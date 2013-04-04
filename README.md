@@ -3,7 +3,7 @@
 # Zinst
 ## What is the Zinst ?
 ### zinst?
-* Package install manager
+* Package install manager. It very similar that concept of yinst command in Yahoo!
 
 ### Summary
 * For the centralized package manage & distributed systems
