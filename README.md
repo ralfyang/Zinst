@@ -1,3 +1,5 @@
+[*Link: Detail Manual - Korean*](http://www.ralfyang.net/Foswiki/bin/view.cgi/Main/TheZinst)
+
 # Zinst
 ## What is the Zinst ?
 ### zinst?
