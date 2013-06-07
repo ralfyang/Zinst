@@ -13,10 +13,10 @@ $]# sh ./install.sh
 ## Description
 * install.sh							- At first time only you can touch this file for your own environment.
 * zinst									- Main execute file for package install & system maintenance
-* server_default_setting-1.1.7.zinst	- A package for the system environments setup. It file has a command for the directory makes & links & PATH add to the profile.
+* server_default_setting-1.1.8.zinst	- A package for the system environments setup. It file has a command for the directory makes & links & PATH add to the profile.
 * httpd_lynx-1.0.0.zinst 				- Base package for the apache_server install
 * gsshop_httpd_conf_pkgdist-1.0.1.zinst	- Configuration package for the Package Distribution server install
-* gsshop_httpd_server-1.0.2.zinst		- Basis package for the apache_server install
-* zinst_making_tool-1.0.5.zinst			- Zinst package Creator / Package Generator from the Source / Package uploader to the Package distributor
+* gsshop_httpd_server-1.0.3.zinst		- Basis package for the apache_server install
+* zinst_making_tool-1.0.6.zinst			- Zinst package Creator / Package Generator from the Source / Package uploader to the Package distributor
 
 

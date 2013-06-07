@@ -1,4 +1,4 @@
-[*Link: Detail Manual - Korean*](http://www.ralfyang.net/Foswiki/bin/view.cgi/Main/TheZinst) í•œêµ­ì–´ì§€ì› 
+[*Link: Detail Manual - Korean*](http://www.ralfyang.net/Foswiki/bin/view.cgi/Main/TheZinst) ÇÑ±¹¾îÁö¿ø 
 
 # Zinst
 ## What is the Zinst ?
@@ -35,3 +35,4 @@
     * Supported a package restore & roll-back as a save file - Not completed yet
       * *ex) zinst restore -file /data/z/save/zinst-save.56*
     * Without difficult language and environment. Due to it made by Bash only
+

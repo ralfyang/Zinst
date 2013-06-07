@@ -7,8 +7,6 @@
 echo " ======================================================================================== "
 echo "  Please insert directory name for you want (ex /data )"
 echo "  Directory will be created as you type it "
-echo "  I recommend you a directory name is /data. Due to I made already so many packages based "
-echo "  on that directory. If you have own package already, you just ignor this message :) "
 echo " ======================================================================================== "
 read ZinstBaseRootO
 # -> ex) /data
@@ -25,6 +23,9 @@ fi
 ZinstBaseRoot=`echo "$ZinstBaseRootO" | sed -e 's/\//\\\\\//g'`
 
 export ZinstDir="$ZinstBaseRootO"
+# RHEL 6.x에서의 list parsing을 위한 command 필요함.
+# echo "export TIME_STYLE=\"+%b %e %R\"" >> /etc/profile
+
 
 
 echo " ======================================================================================== "
@@ -93,9 +94,8 @@ ln -sf $ZinstBaseRootO/vault/Source/bin/zinst /usr/bin/zinst
 
 if [[ $Dist_IC = y ]]
     then
-	mv ./zinst $ZinstBaseRootO/dist/zinst
 	cp ./*.zinst $ZinstBaseRootO/vault/Source/
-	mv ./*.zinst $ZinstBaseRootO/dist/
+	cp ./*.zinst $ZinstBaseRootO/dist/
 	cd $ZinstBaseRootO/vault/Source/
 
 	zinst i server_default_setting*.zinst 

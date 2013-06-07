@@ -5,7 +5,7 @@
 
 export TIME_STYLE="+%b %e %R"
 
-VERSION=2.5.5
+VERSION=2.5.4
 zinst_group=wheel
 
 Allcommand=$@
@@ -21,7 +21,6 @@ List_Up="ls -l"
 
 Pkg_count=${#Pkg_list[@]}; 
 Host_count=${#TargetHost[@]}; 
-History_LOG=/var/log/zinst_history_log
                 
 ### Base information
 ### ------ Config Area -----
@@ -32,6 +31,7 @@ ZinstBaseRoot="RootDirectorY"
 
 ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
+History_LOG="$ZinstBaseRoot/vault/Source/.zinst_history_log"
 ### ------ Config Area -----
 
 
@@ -490,19 +490,14 @@ Pkg_Install(){
 
 #ProcessPkg=$@
 ProcessPkg=$Allcommand
+
 CounterAll=2
 ProcessPkgNum=`echo "$ProcessPkg" | awk '{print NF}'`
-
-## Define work directory
-pwd > $ZinstSourceDir/.current_work.cur
-WorkDir=`cat $ZinstSourceDir/.current_work.cur`
 	while [[ $CounterAll -le $ProcessPkgNum ]]
 	do
-		cd $WorkDir
 		Package_list=`echo $ProcessPkg |awk '{print $'$CounterAll'}'`
 		Package_org=`echo "$Package_list" |awk -F ".zinst" '{print $1}'`
-		Package_ORGs=`echo "$Package_list" |awk -F "-" '{print $1}'`
-		Package_list=`echo "$Package_list" | sed -e 's/ //g'`
+		Package_orgS=`echo "$Package_list" |awk -F "-" '{print $1}'`
 			if [[ $Package_list = "-same" ]]
 			then
 				Save_restore_file $*
@@ -514,15 +509,15 @@ WorkDir=`cat $ZinstSourceDir/.current_work.cur`
 				Save_restore_file $*
 				exit 0;
 			fi
+
 		## Check the Package or Distribution server
-		Pkg_result=`cd $WorkDir;ls |grep $Package_list`
+		Pkg_result=`cd $PWD;ls |grep $Package_list`
 			if [[ $Pkg_result = "" ]];
 			then
 				DIST=$Dist_server
 			else
 				DIST=`pwd`
 			fi
-
 		ZICF=`echo $Package_list | awk -F "-" '{print $1".zicf"}'`
 		SourceDir=`echo $Package_list | awk -F ".zinst" '{print $1}'`
 		############################## Install start without target host ##################################################
@@ -552,6 +547,7 @@ WorkDir=`cat $ZinstSourceDir/.current_work.cur`
 						mkdir $ZinstSourceDir/$ZinstName
 					fi
 				cp -f $DIST/$Package_list $ZinstBaseRoot/vault/Source/$ZinstName/$Package_list
+
 			fi
 
 			if [[ $Package_RC = "Remote file does not exist -- broken link!!!" ]]
@@ -562,7 +558,7 @@ WorkDir=`cat $ZinstSourceDir/.current_work.cur`
 				exit 0;
 			fi
 		## Check a same version Package
-		Existed_pkg=`ls -l $ZinstDIRs |grep ^l | grep $Package_ORGs | awk  '{print $11}' | awk -F '/' '{print $NF}'`
+		Existed_pkg=`ls -l $ZinstDIRs |grep ^l | grep $Package_orgS | awk  '{print $11}' | awk -F '/' '{print $NF}'`
 		echo ""
 		echo ----- $Package_list -----
 
@@ -869,7 +865,7 @@ WorkDir=`cat $ZinstSourceDir/.current_work.cur`
 		SetOptionValue="$SetCommand"
 		Pkg_Set	$*
 	fi
-rm -f $ZinstSourceDir/.current_work.cur
+
 Save_restore_file $*
 }
 
@@ -1082,9 +1078,8 @@ CurrentCheck=`echo $Pkg_file |grep "^./"`
 						while [[ $CounterFM -le $File_list_Num ]]
 						do
 							Package_dir=`echo $File_list | awk '{print $'$CounterFM'}'`
-							#cd $ZinstDIRs/$Package_dir
-							#Package_finder=`nohup egrep "$Pkg_file_checker$" .file.list | grep "^cp" |awk '{print $3}' 2> /dev/null`
-							Package_finder=`egrep "$Pkg_file_checker$" $ZinstDIRs/$Package_dir/.file.list | grep "^cp" |awk '{print $3}'`
+							cd $ZinstDIRs/$Package_dir
+							Package_finder=`nohup egrep "$Pkg_file_checker$" .file.list | grep "^cp" |awk '{print $3}' 2> /dev/null`
 							if [[ $Package_finder != "" ]]
 							then
 								cd $ZinstDIRs/
@@ -1103,15 +1098,8 @@ CurrentCheck=`echo $Pkg_file |grep "^./"`
 					exit 0;
 				fi
 		ZinstOrgName=`echo $Pkg_file| awk -F "-" '{print $1}'`
-		RelatedFile=`cat $ZinstDIRs/$ZinstOrgName/.file.list 2>&1 | grep ^cp | awk '{print $3}'`
-			if [[ $RelatedFile != "" ]]
-			then
-				echo -e "$RelatedFile"
-			else
-				echo " ---- Could not find any packages or files ---- "
-				echo " ---- If you want to find a file, please make sure that directory ---- "
-			fi
-
+		cd $ZinstDIRs/$ZinstOrgName
+		cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep ^cp | awk '{print $3}'
 	fi
 	elif [[ $Pkg_list = "-zicf" ]]
 	then
