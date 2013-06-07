@@ -1,0 +1,172 @@
+#!/bin/bash
+# H/W configuration gathering tool by Ralf yang.
+# ralf.yang@gsshop.com
+#set -xv
+
+OptionV=$1
+
+Type="RAID|SCSI|Raid|SATA|Adaptec"
+ListPCI=`lspci -v |egrep "$Type" |grep "Unknown"`
+	if [[ $ListPCI != "" ]]
+	then 
+		Storage=`lspci -v |egrep "$Type" | awk -F ': ' '{print $2}' | head -1`
+	else
+		Storage=`lspci -v |egrep "$Type" | awk -F ': ' '{print $2}' | tail -1`
+	fi
+
+
+Dkk=`fdisk -l | grep "^Disk" | cut -f 1 -d ',' | cut -f 3- -d '/' | sed -e 's/: /=/g' -e 's/ //g' |fgrep -v "identifier" `
+
+
+if [[ $OptionV = "-r" ]]
+then 
+	/usr/sbin/dmidecode  -t 0 -t 1 -t 3 -t 4 > /data/var/dmidecode.list
+	/usr/sbin/dmidecode  -t 17 > /data/var/dmidecode_meminfo.list
+fi
+
+
+if [[ $OptionV = "-h" ]]
+then 
+	echo "hwconfig"
+	echo "hwconfig -r for data refreash"
+	echo "hwconfig -c for create an output data"
+	exit 0;
+fi
+
+
+DMIfilecheck="`head /data/var/dmidecode.list |grep "# dmidecode" | awk '{print $2}'`"
+if [[ $Hwfilecheck != "dmidecode" ]];
+then
+	/usr/sbin/dmidecode  -t 0 -t 1 -t 3 -t 4 > /data/var/dmidecode.list
+	/usr/sbin/dmidecode  -t 17 > /data/var/dmidecode_meminfo.list
+fi
+
+
+StampDate=`date +%Y-%m-%d`
+MemCurrent=`free |grep Mem | awk '{print $3,"/",$2}'`
+MemCurrentC=`free |grep Mem | awk '{print $2}'`
+
+UnitSize=`cat /data/var/dmidecode.list  | grep Height | awk '{print $1,$2,$3}' |sed -e 's/Height: //g' | sed -e 's/ U/U/g'`
+BiosVendor=`cat /data/var/dmidecode.list   | grep Vendor |awk -F ": " '{print $2}'`
+BiosVerison=`cat /data/var/dmidecode.list  | grep Version |awk -F ": " 'NR==1 {print $2}'`
+
+RAMSize=`cat /data/var/dmidecode_meminfo.list | grep Size |fgrep -v No | awk 'NR==1 {print $2$3}'`
+RAMCap=`cat /data/var/dmidecode_meminfo.list | grep Size |fgrep -v No | awk '{print NR}' |tail -1`
+RAMinfo=$RAMSize" x "$RAMCap"ea"
+
+
+Hostname="`hostname`"
+System=`cat /data/var/dmidecode.list |grep Product | awk '{print $3, $4,$5}'`
+Processors=`dmidecode -t 4 |grep Version | grep CPU | awk 'NR==1 {print $2,$3,$4,$5,$6,$7}'`
+Core=`cat /data/var/dmidecode.list |grep "Core Count" | awk 'NR==1 {print $3}'`
+CoreValue=`cat /data/var/dmidecode.list |grep "Core Count" | awk '{print NR}' |tail -1`
+
+Memory="$RAMinfo"
+
+DiskA=`echo $Dkk`
+DiskC=$Storage
+
+
+
+Gateway=`cat /etc/sysconfig/network |grep GATE | sed -e 's/GATEWAY=//g'`
+
+OS=`cat /etc/redhat-release`
+BIOS="$BiosVendor $BiosVerison"
+Kernel=`uname -a | awk '{print $1, $3, $4, $5, $14,"-", $7"/"$8"/"$11 }'`
+KernelC=`uname -a | awk '{print $1, $3, $4, $5, $14}'`
+PysicalDisk=`/data/bin/MegaCli  -AdpAllInfo -aALL |grep Disks |awk 'NR==1 {print $3}'`
+RAIDLevel=`/data/bin/MegaCli  -LDInfo -Lall -aALL |grep RAID | sed -e 's/RAID Level          : //g' |awk 'NR==1'`
+SerialNum="`dmidecode -t system |grep Serial | awk '{print $3}'`"
+
+
+if [[ $RAIDLevel = "Primary-1, Secondary-0, RAID Level Qualifier-0" ]];
+then
+	RAIDLevel="1"
+elif [[ $RAIDLevel = "Primary-0, Secondary-0, RAID Level Qualifier-0" ]];
+then
+	RAIDLevel="0"
+elif [[ $RAIDLevel = "Primary-5, Secondary-0, RAID Level Qualifier-3" ]];
+then
+        RAIDLevel="5"
+elif [[ $RAIDLevel = "Primary-1, Secondary-3, RAID Level Qualifier-0" ]];
+then
+        RAIDLevel="10"
+fi
+
+
+if [[ $PysicalDisk = "" ]];
+then
+	PysicalDisk=`/data/bin/sas2ircu -0 display |grep PHY | awk '{print NR}' | tail -1`
+	if [[ $PysicalDisk = "" ]];
+	then
+		PysicalDisk="N/A"
+	fi
+fi
+
+
+if [[ $RAIDLevel = "" ]];
+then
+	RAIDLevel=`/data/bin/sas2ircu -0 display |grep level | awk '{print $4}' | sed -e 's/RAID//'`
+	if [[ $RAIDLevel = "" ]];
+	then
+		RAIDLevel="N/A"
+	fi
+fi
+
+
+if [[ $Gateway = "" ]];
+then
+	Gateway="N/A"
+fi
+
+Counter=0
+
+IPList=`grep IPADDR /etc/sysconfig/network-scripts/ifcfg-* | fgrep -v "lo:" | awk -F ":" '{print $2}' | sed -e 's/IPADDR\=//' -e 's/"//g' |fgrep -v "#"`
+DevList=(`grep IPADDR /etc/sysconfig/network-scripts/ifcfg-* | fgrep -v "lo:" |fgrep -v "#" | awk -F ":" '{print $1}' | awk -F "ifcfg-" '{print $2}'`)
+DevCount=${#IPList[@]}
+	while [[ $Counter -lt $DevCount ]]
+	do
+		DeviceMask=(`ifconfig ${DevList[$Counter]} | grep ${IPList[$Counter]} | awk '{print $4}' | sed -e 's/Mask://'`)
+		
+		Result[$Counter]=`echo -e "Network "$Counter": \t ${DevList[$Counter]}=${IPList[$Counter]} \t\t Netmask=${DeviceMask[$Counter]}"`
+		Net_mask[$Counter]=$DeviceMask
+		let Counter=Counter+1
+
+	done
+
+
+Gateway=`echo $Gateway | sed -e 's/\"//g'`
+
+
+if [[ $OptionV = "-c" ]]
+then
+	echo "| Hostname: $Hostname | OS: $OS | CPU: $Processors($Core Core x $CoreValue) | System: $System  | UnitSize: $UnitSize | Memory: $MemCurrentC ($Memory) | Disk size: $DiskA | Disk Qtty.: $PysicalDisk | Disk type:  | Storage: $DiskC | RAID: $RAIDLevel | Owner:  | Group: | Property: | Service: | Int.Switch: | Ext.Switch: | Rack: | IDC: | Network 0: ${DevList[0]} ${IPList[0]} | Netmask 0: ${Net_mask[0]} | Network 1: ${DevList[1]} ${IPList[1]} | Netmask 1: ${Net_mask[1]} | Gateway: $Gateway | RAC IP: | Serial: $SerialNum  | BIOS: $BIOS | Enterd: | Kernel: $KernelC | Update: $StampDate| @END@" | sed -e 's/\\t\\t//g' | sed -e "s/'//g" |  sed -e "s/\"//g"
+else
+	echo -e ""
+	echo -e "Hostname: \t $Hostname"
+	echo -e "Summary: \t $System, $Processors($Core Core x $CoreValue), $MemCurrent, $Memory, $UnitSize"
+	echo -e "System: \t $System | Chassis: $UnitSize"
+	echo -e "Processors: \t $Processors($Core Core x $CoreValue)"
+	echo -e "Memory: \t $MemCurrent ($Memory)"
+
+	echo -e "Disk: \t\t $DiskA"
+	echo -e "Storage: \t $DiskC"
+	echo -e "RAID Level: \t $RAIDLevel" 
+	echo -e "RAID Disks: \t $PysicalDisk"
+
+	Counter=0
+	while [[ $Counter -lt $DevCount ]]
+	do
+		echo -e "${Result[$Counter]}" 
+		let Counter=Counter+1
+	done
+
+	echo -e "Gateway: \t $Gateway"
+	
+	echo -e "OS: \t\t $OS"
+	echo -e "BIOS: \t\t $BIOS"
+
+	echo -e "HW Serial: \t $SerialNum"
+	echo -e "Kernel: \t $Kernel"
+
+fi

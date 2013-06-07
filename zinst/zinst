@@ -5,7 +5,7 @@
 
 export TIME_STYLE="+%b %e %R"
 
-VERSION=2.5.4
+VERSION=2.5.5
 zinst_group=wheel
 
 Allcommand=$@
@@ -201,7 +201,7 @@ szinst="zinst"
 			do
 				HostF=`eval echo $RotaHost | awk '{print $'$Count'}'`
 				## ssh connection check
-				CheckConnection=`nohup ssh $HostF > $ZinstBaseRoot/vault/Source/ssh_conn_test.log 2> /dev/null;cat $ZinstBaseRoot/vault/Source/ssh_conn_test.log |grep known; rm -f $ZinstBaseRoot/vault/Source/ssh_conn_test.log`
+				CheckConnection=`ssh $HostF > $ZinstBaseRoot/vault/Source/ssh_conn_test.log 2> /dev/null;cat $ZinstBaseRoot/vault/Source/ssh_conn_test.log |grep known; rm -f $ZinstBaseRoot/vault/Source/ssh_conn_test.log`
 
 					if [[ $CheckConnection != "" ]]
 					then
@@ -284,7 +284,7 @@ RotaHost=`echo "$Allcommand" |grep "\-H" | awk -F "-H" '{print $2}'`
 				HostF=`eval echo $ListM | awk '{print $'$Count'}'`
 
 				## ssh connection check
-				CheckConnection=`nohup ssh $HostF > $ZinstBaseRoot/vault/Source/ssh_conn_test.log 2> /dev/null;cat $ZinstBaseRoot/vault/Source/ssh_conn_test.log |grep known; rm -f $ZinstBaseRoot/vault/Source/ssh_conn_test.log`
+				CheckConnection=`ssh $HostF > $ZinstBaseRoot/vault/Source/ssh_conn_test.log 2> /dev/null;cat $ZinstBaseRoot/vault/Source/ssh_conn_test.log |grep known; rm -f $ZinstBaseRoot/vault/Source/ssh_conn_test.log`
 
 					if [[ $CheckConnection != "" ]]
 					then
@@ -392,7 +392,7 @@ PkgInfoDir=$Dist/vault
 Package_N=$2
 Package_name=`echo $Package_N |awk -F '-' '{print $1}'`
 
-nohup curl $Dist_server/checker/package_dist_list.info > $PkgInfoDir/package_dist_list.info 2> /dev/null
+curl $Dist_server/checker/package_dist_list.info > $PkgInfoDir/package_dist_list.info 2> /dev/null
 
 #cd $PkgInfoDir
 #wget $Dist_server/checker/package_dist_list.info
@@ -1079,7 +1079,7 @@ CurrentCheck=`echo $Pkg_file |grep "^./"`
 						do
 							Package_dir=`echo $File_list | awk '{print $'$CounterFM'}'`
 							cd $ZinstDIRs/$Package_dir
-							Package_finder=`nohup egrep "$Pkg_file_checker$" .file.list | grep "^cp" |awk '{print $3}' 2> /dev/null`
+							Package_finder=`egrep "$Pkg_file_checker$" .file.list | grep "^cp" |awk '{print $3}' 2> /dev/null`
 							if [[ $Package_finder != "" ]]
 							then
 								cd $ZinstDIRs/
@@ -1135,7 +1135,7 @@ CurrentCheck=`echo $Pkg_file |grep "^./"`
 Pkg_Find(){
 
 ### Check DNS status
-#nohup curl $Dist_server/checker/status.html > $ZinstSourceDir/.checkdist
+#curl $Dist_server/checker/status.html > $ZinstSourceDir/.checkdist
 #CheckDistURL=`cat $ZinstSourceDir/.checkdist |grep "OK"`
 #	if [[ $CheckDistURL != "OK" ]]
 #	then
@@ -1158,9 +1158,9 @@ Check_local=`echo "$Allpackges" |grep "\-local"`
 	else
 			if [[ $Pkg_list = "" ]];
 			then
-				nohup curl -e --url $Dist_server/ 2> /dev/null |grep zinst | sed 's/^.*<a href="//g' |awk -F '\"' '{print $1}' | egrep -v ^zinst$
+				curl -e --url $Dist_server/ 2> /dev/null |grep zinst | sed 's/^.*<a href="//g' |awk -F '\"' '{print $1}' | egrep -v ^zinst$
 			else
-				nohup curl -e --url $Dist_server/ 2> /dev/null |grep zinst | sed 's/^.*<a href="//g' |awk -F '\"' '{print $1}' | egrep -v ^zinst$ | grep $Pkg_list 
+				curl -e --url $Dist_server/ 2> /dev/null |grep zinst | sed 's/^.*<a href="//g' |awk -F '\"' '{print $1}' | egrep -v ^zinst$ | grep $Pkg_list 
 			fi
 	
 	fi
@@ -1224,7 +1224,7 @@ echo "`date +%Y.%m.%d_%T` `whoami` : $Command_p - $ProcessPkg  " >> $History_LOG
 	while [[ $Counter -le $ProcessPkgNum ]]
 	do
 		Pkg_list=`echo "$ProcessPkg" | awk '{print $'$Counter'}'`
-		nohup /sbin/service $Pkg_list start > $ZinstBaseRoot/vault/Source/Daemon_ctrl.log 2> /dev/null
+		/sbin/service $Pkg_list start > $ZinstBaseRoot/vault/Source/Daemon_ctrl.log 2> /dev/null
 		cat $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
 		DeamonLog=`cat $ZinstBaseRoot/vault/Source/Daemon_ctrl.log | awk 'NR==1'`		
 		echo "                    `whoami` : "#    " - $Pkg_list: $DeamonLog  " >> $History_LOG
@@ -1243,7 +1243,7 @@ echo "`date +%Y.%m.%d_%T` `whoami` : $Command_p - $ProcessPkg  " >> $History_LOG
 	while [[ $Counter -le $ProcessPkgNum ]]
 	do
 		Pkg_list=`echo "$ProcessPkg" | awk '{print $'$Counter'}'`
-		nohup /sbin/service $Pkg_list restart > $ZinstBaseRoot/vault/Source/Daemon_ctrl.log 2> /dev/null
+		/sbin/service $Pkg_list restart > $ZinstBaseRoot/vault/Source/Daemon_ctrl.log 2> /dev/null
 		cat $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
 		DeamonLog=`cat $ZinstBaseRoot/vault/Source/Daemon_ctrl.log | awk 'NR==1'`		
 		echo "                    `whoami` : "#    " - $Pkg_list: $DeamonLog  " >> $History_LOG
@@ -1262,7 +1262,7 @@ echo "`date +%Y.%m.%d_%T` `whoami` : $Command_p - $ProcessPkg  " >> $History_LOG
 	while [[ $Counter -le $ProcessPkgNum ]]
 	do
 		Pkg_list=`echo "$ProcessPkg" | awk '{print $'$Counter'}'`
-		nohup /sbin/service $Pkg_list stop > $ZinstBaseRoot/vault/Source/Daemon_ctrl.log 2> /dev/null
+		/sbin/service $Pkg_list stop > $ZinstBaseRoot/vault/Source/Daemon_ctrl.log 2> /dev/null
 		cat $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
 		DeamonLog=`cat $ZinstBaseRoot/vault/Source/Daemon_ctrl.log | awk 'NR==1'`		
 		echo "                    `whoami` : "#    " - $Pkg_list: $DeamonLog  " >> $History_LOG
@@ -1276,7 +1276,7 @@ echo "`date +%Y.%m.%d_%T` `whoami` : $Command_p - $ProcessPkg  " >> $History_LOG
 Zinst_selfupdate(){
 
 ### Check DNS status
-#	nohup curl $Dist_server/checker/status.html > $ZinstSourceDir/.checkdist
+#	curl $Dist_server/checker/status.html > $ZinstSourceDir/.checkdist
 #	CheckDistURL=`cat $ZinstSourceDir/.checkdist |grep "OK"`
 
 #		if [[ $CheckDistURL != "OK" ]]
