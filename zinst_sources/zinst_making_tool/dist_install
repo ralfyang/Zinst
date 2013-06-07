@@ -1,0 +1,78 @@
+#!/bin/bash
+File=$1
+Dist="/data/dist"
+SourceRoot="/data/vault"
+SourceDir="$SourceRoot/Source"
+
+
+### Check a package name
+CheckFile=`echo $File | grep "[a-z.0-9].zinst"`
+if [[ $CheckFile = "" ]]
+then
+	echo "========================================================================"
+	echo "  === This is not a zinst package. Please check this file out again. ==="
+	echo "========================================================================"
+	exit 0;
+
+else
+	### Check a file on this Dir
+	CheckExist=`ls ./ |grep ^$File$`
+	if [[ $CheckExist = "" ]]
+	then
+		echo "========================================================================"
+		echo " $File file dosen't exist on this directory. "
+		echo " Please go to the directory exactly"
+		echo "========================================================================"
+		exit 0;
+	fi
+
+
+fi
+
+
+### Temporary Dir create and fetch the the zicf on compressed file
+mkdir -p $SourceRoot/Temp/package_dist_install;
+mv $File  $SourceRoot/Temp/package_dist_install;
+cd $SourceRoot/Temp/package_dist_install; 
+tar zxfp ./$File  *.zicf 
+
+
+echo "================================================================================"
+echo " $File file has been sent to Distribution server"
+echo "================================================================================"
+
+
+### File Copy and move to Dist Dir
+cp ./$File $Dist/
+mv ./$File $SourceDir/
+
+### Find Package name
+head -14 *.zicf |sed -e 's/ = /=/g' > package_dist_list.info;
+
+### Fetch a dependecy file list
+CheckRequireRaw=`cat *.zicf |grep "^ZINST requires pkg "| awk '{print $4}'`
+CheckRequire=`echo $CheckRequireRaw`
+
+### Move a zicf file to Dist dir
+mv *.zicf /data/dist/checker/
+
+### Parse a Key value for the Dist
+echo "echo \"| \$PACKAGENAME | \$VERSION | \$AUTHORIZED | \$CUSTODIAN | \$DESCRIPTION | $CheckRequire |@ \" " >> package_dist_list.info;
+chmod 755 ./package_dist_list.info; 
+ExistPkg=`sh ./package_dist_list.info | awk '{print $2}'`
+
+
+### Package maintenance list create
+sed -i "/^| $ExistPkg/d" /data/dist/checker/package_dist_list.info
+sh ./package_dist_list.info >> /data/dist/checker/package_dist_list.info 
+
+
+sed -i "/Latest update/d" /data/dist/checker/package_dist_list.info
+echo "Latest update = `date +%Y.%m.%d` `date +[%T]`" >> /data/dist/checker/package_dist_list.info
+
+
+### Remove a Temporary Dir
+cd /data
+rm -Rf $SourceRoot/Temp
+
+
