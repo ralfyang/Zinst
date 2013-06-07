@@ -1,4 +1,4 @@
-[*Link: Detail Manual - Korean*](http://www.ralfyang.net/Foswiki/bin/view.cgi/Main/TheZinst) ÇÑ±¹¾îÁö¿ø 
+[*Link: Detail Manual - Korean*](http://www.ralfyang.net/Foswiki/bin/view.cgi/Main/TheZinst)í•œêµ­ì–´ ì§€ì›
 
 # Zinst
 ## What is the Zinst ?
