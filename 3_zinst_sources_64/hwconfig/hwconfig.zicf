@@ -1,0 +1,55 @@
+## Package infomation
+PACKAGENAME = hwconfig
+VERSION = 1.2.2
+AUTHORIZED = ralf.yang@gsshop.com
+DESCRIPTION = 'hwconfig with Mega Raid config check package'
+CUSTODIAN = eit-team
+
+#Global setting of the files
+OWNER = root
+GROUP = wheel
+PERM = 755
+
+
+### Regular Syntax
+### Based root Directory = /data/
+## --------------------------------------------------------------------------------------------------------------------
+## Option type | File Permission | File Owner | File Group | Destination Dir | Source Dir | Conf option(CONF type only)
+## --------------------------------------------------------------------------------------------------------------------
+##
+## Option type = FILE - Sorce file, CONF - Configuration file, SYMB - Symbolic link, CRON - Crontab
+## File permission =  ex)644 or "-" ( "-" is default, it will be accept by global setting if you used it)
+## File Owner =  ex)krystal or root or "-" ( "-" is default, it will be accept by global setting if you used it)
+## File group =  ex)krystal or wheel or "-" ( "-" is default, it will be accept by global setting if you used it)
+## Destinatin Dir = Target directory for the file copy or symbolic link
+## Source Dir = Source directory for the file copy or symbolic link
+## Conf option - ex) expand-overwite or expand-nomerge, Optional: file overwrite or not(CONF only), default = expand-overwrite
+FILE - - -			bin/MegaCli			./bin/MegaCli
+FILE - - -			bin/hwconfig			./bin/hwconfig
+FILE - - -			bin/sas2ircu			./bin/sas2ircu
+FILE - - -			bin/lspci			./bin/lspci
+FILE 664 - -			var/hwconfig.list		./var/hwconfig.list
+FILE 664 - -			var/dmidecode.list		./var/dmidecode.list
+
+
+
+
+
+### Zinst detail command
+### requires pkg = You can add an option to this line about of the dependency package for this work(install or upgrade).
+### ex) ZINST requires pkg [Packagename] [Lowest version] [latest version]
+#
+### set = You can control the configuration in the CONF file by this options
+### ex) ZINST set [Variables name] [Value]
+#
+### post-activate = You can contral the daemon after the package install as below
+### ex) ZINST post-activate [Target executable file and directory] [Command: stop, start, restart]
+#
+
+#ZINST post-activate /data/tomcat/bin/tomcat restart
+#ZINST requires pkg perl-log4j 1.0.0 1.0.3
+
+
+### Extra command
+## COMM = simple command after the package installed. basedir is the package dir ex) /data/zinst/foo.bar/install.sh
+#COMM cp /data/bin/MegaCli /opt/MegaCli
