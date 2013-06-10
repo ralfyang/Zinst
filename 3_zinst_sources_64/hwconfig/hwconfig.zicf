@@ -1,6 +1,6 @@
 ## Package infomation
 PACKAGENAME = hwconfig
-VERSION = 1.2.2
+VERSION = 1.2.3
 AUTHORIZED = ralf.yang@gsshop.com
 DESCRIPTION = 'hwconfig with Mega Raid config check package'
 CUSTODIAN = eit-team

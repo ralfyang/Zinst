@@ -6,12 +6,12 @@
 OptionV=$1
 
 Type="RAID|SCSI|Raid|SATA|Adaptec"
-ListPCI=`lspci -v |egrep "$Type" |grep "Unknown"`
+ListPCI=`/data/bin/lspci -v |egrep "$Type" |grep "Unknown"`
 	if [[ $ListPCI != "" ]]
 	then 
-		Storage=`lspci -v |egrep "$Type" | awk -F ': ' '{print $2}' | head -1`
+		Storage=`/data/bin/lspci -v |egrep "$Type" | awk -F ': ' '{print $2}' | head -1`
 	else
-		Storage=`lspci -v |egrep "$Type" | awk -F ': ' '{print $2}' | tail -1`
+		Storage=`/data/bin/lspci -v |egrep "$Type" | awk -F ': ' '{print $2}' | tail -1`
 	fi
 
 
@@ -57,8 +57,9 @@ RAMinfo=$RAMSize" x "$RAMCap"ea"
 
 Hostname="`hostname`"
 System=`cat /data/var/dmidecode.list |grep Product | awk '{print $3, $4,$5}'`
-Processors=`dmidecode -t 4 |grep Version | grep CPU | awk 'NR==1 {print $2,$3,$4,$5,$6,$7}'`
-Core=`cat /data/var/dmidecode.list |grep "Core Count" | awk 'NR==1 {print $3}'`
+Processor=`/bin/cat /proc/cpuinfo | grep "model name" | sed -e 's/model name\t: //g' | awk '{print }'| tail -1`
+Core=`/bin/cat /proc/cpuinfo | grep "model name" | sed -e 's/model name\t: //g' | awk '{print NR}'| tail -1`
+
 CoreValue=`cat /data/var/dmidecode.list |grep "Core Count" | awk '{print NR}' |tail -1`
 
 Memory="$RAMinfo"
@@ -140,13 +141,14 @@ Gateway=`echo $Gateway | sed -e 's/\"//g'`
 
 if [[ $OptionV = "-c" ]]
 then
-	echo "| Hostname: $Hostname | OS: $OS | CPU: $Processors($Core Core x $CoreValue) | System: $System  | UnitSize: $UnitSize | Memory: $MemCurrentC ($Memory) | Disk size: $DiskA | Disk Qtty.: $PysicalDisk | Disk type:  | Storage: $DiskC | RAID: $RAIDLevel | Owner:  | Group: | Property: | Service: | Int.Switch: | Ext.Switch: | Rack: | IDC: | Network 0: ${DevList[0]} ${IPList[0]} | Netmask 0: ${Net_mask[0]} | Network 1: ${DevList[1]} ${IPList[1]} | Netmask 1: ${Net_mask[1]} | Gateway: $Gateway | RAC IP: | Serial: $SerialNum  | BIOS: $BIOS | Enterd: | Kernel: $KernelC | Update: $StampDate| @END@" | sed -e 's/\\t\\t//g' | sed -e "s/'//g" |  sed -e "s/\"//g"
+echo "CPU: $Processor x $Core(Core)"
+	echo "| Hostname: $Hostname | OS: $OS | CPU: $Processor x $Core(Core) | System: $System  | UnitSize: $UnitSize | Memory: $MemCurrentC ($Memory) | Disk size: $DiskA | Disk Qtty.: $PysicalDisk | Disk type:  | Storage: $DiskC | RAID: $RAIDLevel | Owner:  | Group: | Property: | Service: | Int.Switch: | Ext.Switch: | Rack: | IDC: | Network 0: ${DevList[0]} ${IPList[0]} | Netmask 0: ${Net_mask[0]} | Network 1: ${DevList[1]} ${IPList[1]} | Netmask 1: ${Net_mask[1]} | Gateway: $Gateway | RAC IP: | Serial: $SerialNum  | BIOS: $BIOS | Enterd: | Kernel: $KernelC | Update: $StampDate| @END@" | sed -e 's/\\t\\t//g' | sed -e "s/'//g" |  sed -e "s/\"//g"
 else
 	echo -e ""
 	echo -e "Hostname: \t $Hostname"
 	echo -e "Summary: \t $System, $Processors($Core Core x $CoreValue), $MemCurrent, $Memory, $UnitSize"
 	echo -e "System: \t $System | Chassis: $UnitSize"
-	echo -e "Processors: \t $Processors($Core Core x $CoreValue)"
+	echo -e "Processors: \t $Processor x $Core(Core)"
 	echo -e "Memory: \t $MemCurrent ($Memory)"
 
 	echo -e "Disk: \t\t $DiskA"
