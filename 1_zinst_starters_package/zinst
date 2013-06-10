@@ -21,7 +21,7 @@ List_Up="ls -l"
 
 Pkg_count=${#Pkg_list[@]}; 
 Host_count=${#TargetHost[@]}; 
-                
+
 ### Base information
 ### ------ Config Area -----
 Dist_server="http://DISTsERVERsET/"
@@ -33,6 +33,7 @@ ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 History_LOG="$ZinstBaseRoot/vault/Source/.zinst_history_log"
 ### ------ Config Area -----
+                
 
 
 export ZinstDir="$ZinstBaseRoot"
@@ -201,7 +202,7 @@ szinst="zinst"
 			do
 				HostF=`eval echo $RotaHost | awk '{print $'$Count'}'`
 				## ssh connection check
-				CheckConnection=`ssh $HostF > $ZinstBaseRoot/vault/Source/ssh_conn_test.log 2> /dev/null;cat $ZinstBaseRoot/vault/Source/ssh_conn_test.log |grep known; rm -f $ZinstBaseRoot/vault/Source/ssh_conn_test.log`
+				CheckConnection=`nohup ssh $HostF > $ZinstBaseRoot/vault/Source/ssh_conn_test.log 2> /dev/null;cat $ZinstBaseRoot/vault/Source/ssh_conn_test.log |grep known; rm -f $ZinstBaseRoot/vault/Source/ssh_conn_test.log`
 
 					if [[ $CheckConnection != "" ]]
 					then
@@ -284,7 +285,7 @@ RotaHost=`echo "$Allcommand" |grep "\-H" | awk -F "-H" '{print $2}'`
 				HostF=`eval echo $ListM | awk '{print $'$Count'}'`
 
 				## ssh connection check
-				CheckConnection=`ssh $HostF > $ZinstBaseRoot/vault/Source/ssh_conn_test.log 2> /dev/null;cat $ZinstBaseRoot/vault/Source/ssh_conn_test.log |grep known; rm -f $ZinstBaseRoot/vault/Source/ssh_conn_test.log`
+				CheckConnection=`nohup ssh $HostF > $ZinstBaseRoot/vault/Source/ssh_conn_test.log 2> /dev/null;cat $ZinstBaseRoot/vault/Source/ssh_conn_test.log |grep known; rm -f $ZinstBaseRoot/vault/Source/ssh_conn_test.log`
 
 					if [[ $CheckConnection != "" ]]
 					then
