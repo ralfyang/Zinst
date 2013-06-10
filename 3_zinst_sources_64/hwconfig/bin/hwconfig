@@ -146,7 +146,7 @@ echo "CPU: $Processor x $Core(Core)"
 else
 	echo -e ""
 	echo -e "Hostname: \t $Hostname"
-	echo -e "Summary: \t $System, $Processors($Core Core x $CoreValue), $MemCurrent, $Memory, $UnitSize"
+	echo -e "Summary: \t $System, $Processor x $Core(Core), $MemCurrent, $Memory, $UnitSize"
 	echo -e "System: \t $System | Chassis: $UnitSize"
 	echo -e "Processors: \t $Processor x $Core(Core)"
 	echo -e "Memory: \t $MemCurrent ($Memory)"
