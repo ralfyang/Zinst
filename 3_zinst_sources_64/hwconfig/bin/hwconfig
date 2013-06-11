@@ -56,7 +56,7 @@ RAMinfo=$RAMSize" x "$RAMCap"ea"
 
 
 Hostname="`hostname`"
-System=`cat /data/var/dmidecode.list |grep Product | awk '{print $3, $4,$5}'`
+System=`cat /data/var/dmidecode.list |grep Product | awk '{print $3, $4,$5}' | sed 's/  //g'`
 Processor=`/bin/cat /proc/cpuinfo | grep "model name" | sed -e 's/model name\t: //g' | awk '{print }'| tail -1`
 Core=`/bin/cat /proc/cpuinfo | grep "model name" | sed -e 's/model name\t: //g' | awk '{print NR}'| tail -1`
 
