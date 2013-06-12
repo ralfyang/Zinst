@@ -5,6 +5,11 @@
 
 OptionV=$1
 
+# For the ziinst package set value
+nameserver1=211.44.62.40
+nameserver2=168.126.63.1
+
+
 Type="RAID|SCSI|Raid|SATA|Adaptec"
 ListPCI=`/data/bin/lspci -v |egrep "$Type" |grep "Unknown"`
 	if [[ $ListPCI != "" ]]
@@ -17,19 +22,23 @@ ListPCI=`/data/bin/lspci -v |egrep "$Type" |grep "Unknown"`
 
 Dkk=`fdisk -l | grep "^Disk" | cut -f 1 -d ',' | cut -f 3- -d '/' | sed -e 's/: /=/g' -e 's/ //g' |fgrep -v "identifier" `
 
-
+# For the refreash the data
 if [[ $OptionV = "-r" ]]
 then 
 	/usr/sbin/dmidecode  -t 0 -t 1 -t 3 -t 4 > /data/var/dmidecode.list
 	/usr/sbin/dmidecode  -t 17 > /data/var/dmidecode_meminfo.list
 fi
 
-
+# for the help
 if [[ $OptionV = "-h" ]]
 then 
-	echo "hwconfig"
-	echo "hwconfig -r for data refreash"
-	echo "hwconfig -c for create an output data"
+	echo "==================================================="
+	echo " hwconfig <no options>"
+	echo " hwconfig -r for data refreash"
+	echo " hwconfig -c for create an output data"
+	echo " hwconfig -net for show the network status"
+	echo " hwconfig -check for check the system configration"
+	echo "==================================================="
 	exit 0;
 fi
 
@@ -60,8 +69,6 @@ System=`cat /data/var/dmidecode.list |grep Product | awk '{print $3, $4,$5}' | s
 Processor=`/bin/cat /proc/cpuinfo | grep "model name" | sed -e 's/model name\t: //g' | awk '{print }'| tail -1`
 Core=`/bin/cat /proc/cpuinfo | grep "model name" | sed -e 's/model name\t: //g' | awk '{print NR}'| tail -1`
 
-CoreValue=`cat /data/var/dmidecode.list |grep "Core Count" | awk '{print NR}' |tail -1`
-
 Memory="$RAMinfo"
 
 DiskA=`echo $Dkk`
@@ -78,6 +85,7 @@ KernelC=`uname -a | awk '{print $1, $3, $4, $5, $14}'`
 PysicalDisk=`/data/bin/MegaCli  -AdpAllInfo -aALL |grep Disks |awk 'NR==1 {print $3}'`
 RAIDLevel=`/data/bin/MegaCli  -LDInfo -Lall -aALL |grep RAID | sed -e 's/RAID Level          : //g' |awk 'NR==1'`
 SerialNum="`dmidecode -t system |grep Serial | awk '{print $3}'`"
+PowerSupply=`cat /data/var/dmidecode.list | grep "Number Of Power Cords:" |sed -e 's/\tNumber Of Power Cords: //g'`
 
 
 if [[ $RAIDLevel = "Primary-1, Secondary-0, RAID Level Qualifier-0" ]];
@@ -121,7 +129,6 @@ then
 fi
 
 Counter=0
-
 IPList=`grep IPADDR /etc/sysconfig/network-scripts/ifcfg-* | fgrep -v "lo:" | awk -F ":" '{print $2}' | sed -e 's/IPADDR\=//' -e 's/"//g' |fgrep -v "#"`
 DevList=(`grep IPADDR /etc/sysconfig/network-scripts/ifcfg-* | fgrep -v "lo:" |fgrep -v "#" | awk -F ":" '{print $1}' | awk -F "ifcfg-" '{print $2}'`)
 DevCount=${#IPList[@]}
@@ -139,15 +146,138 @@ DevCount=${#IPList[@]}
 Gateway=`echo $Gateway | sed -e 's/\"//g'`
 
 
+#for the data insert to the database
 if [[ $OptionV = "-c" ]]
 then
 echo "CPU: $Processor x $Core(Core)"
 	echo "| Hostname: $Hostname | OS: $OS | CPU: $Processor x $Core(Core) | System: $System  | UnitSize: $UnitSize | Memory: $MemCurrentC ($Memory) | Disk size: $DiskA | Disk Qtty.: $PysicalDisk | Disk type:  | Storage: $DiskC | RAID: $RAIDLevel | Owner:  | Group: | Property: | Service: | Int.Switch: | Ext.Switch: | Rack: | IDC: | Network 0: ${DevList[0]} ${IPList[0]} | Netmask 0: ${Net_mask[0]} | Network 1: ${DevList[1]} ${IPList[1]} | Netmask 1: ${Net_mask[1]} | Gateway: $Gateway | RAC IP: | Serial: $SerialNum  | BIOS: $BIOS | Enterd: | Kernel: $KernelC | Update: $StampDate| @END@" | sed -e 's/\\t\\t//g' | sed -e "s/'//g" |  sed -e "s/\"//g"
+
+#for the Network check
+elif [[ $OptionV = "-net" ]]
+then
+	echo " "
+	echo " [ Show the NIC status ]"
+	/sbin/ip -s -s link show
+	echo " "
+
+	echo " "
+	echo " [ Show the route status ]"
+	/sbin/ip route list
+	echo " "
+
+	echo " "
+	echo " [ Show the resolv.conf ]"
+
+
+	name1=`cat /etc/resolv.conf | grep nameserver | head -1 | grep "$nameserver1" | awk '{print $2}'`
+	name2=`cat /etc/resolv.conf | grep nameserver | tail -1 | grep "$nameserver2" | awk '{print $2}'`
+		if [[ $name1 != "" ]]
+		then
+			echo "1st Name server is $name1 - Ok [o]"
+		else
+			echo "1st Name server is `cat /etc/resolv.conf | grep nameserver | head -1 | awk '{print $2}'` - Not ok [x]"
+		fi
+
+		if [[ $name2 != "" ]]
+		then
+			echo "2nd Name server is $name2 - Ok [o]"
+		else
+			echo "2nd Name server is `cat /etc/resolv.conf | grep nameserver | tail -1 | awk '{print $2}'` - Not ok [x]"
+		fi
+
+
+	echo " "
+
+	echo " "
+	echo " [ Check the loopback ]"
+	Loopback=`/sbin/ip addr show | grep lo:0`
+		if [[ $Loopback = "" ]]
+		then 
+			echo "== This server has not loopback.. (lo:0) =="
+		else
+			echo $Loopback
+		fi
+	echo " "
+
+#for the system check list
+elif [[ $OptionV = "-check" ]]
+then
+	File_name="/data/var/checklist.txt"
+
+
+	Ok_="Ok - o"
+	#Not_="\e[5;32;40m $Not_ \e[m\n"
+	Not_="Not ok - x"
+
+	divider="==================================="
+	divider=$divider$divider$divider$divider$divider
+
+	header="\n %-35s %-32s %-32s %12s\n"
+	format=" %-35s %-32s %-32s %12s\n"
+	width=120
+
+	printf "%$width.${width}s" "$divider"
+	printf "$header" "Configuration" "Target" "Current" "Result"
+	printf "%$width.${width}s\n" "$divider"
+
+
+
+	Counter=1
+	LineVar="egrep -v \"^#\"  $File_name | egrep -v \"^$\""
+	LineNum=`eval $LineVar |awk '{print NR}' | tail -1`
+	#LineNum=`egrep -v "^#"  $File_name | egrep -v "^$" |awk '{print NR}' | tail -1`
+
+		while [[ $Counter -le $LineNum ]]
+		do
+			#LineSort=`cat ./$File_name | egrep -v "^#" | awk NR==$Counter`
+			LineSort_Var1=`eval $LineVar | awk NR==$Counter | awk -F ',' '{print $1}'`
+			LineSort_Var2=`eval $LineVar | awk NR==$Counter | awk -F ',' '{print $2}'`
+			LineSort_Var3=`eval $LineVar | awk NR==$Counter | awk -F ',' '{print $3}'`
+
+			TargetVar_ID=$LineSort_Var1
+			TargetVar=$LineSort_Var2
+			LineBreak=`echo $LineSort_Var1 |grep "^-"`
+				if [[ $LineBreak != "" ]]
+				then
+					printf "%$width.${width}s\n\n" "$divider"
+					printf "$format" "$LineSort_Var1"
+					printf "%$width.${width}s" "$divider"
+					printf "$header" "Configuration" "Target" "Current" "Result"
+					printf "%$width.${width}s\n" "$divider"
+					let Counter=Counter+1
+				else
+					if [[ $LineSort_Var3 = "" ]]
+					then
+						echo " "
+						echo "| `eval $LineVar | awk NR==$Counter` | - Not enough a Data for checking: Line. $Counter"
+						exit 0;
+					fi
+				ResultVar=`eval echo $LineSort_Var3`
+					if [[ $ResultVar = "" ]]
+					then
+						ResultVar="Not exist"
+					fi	
+	
+					if [[ $ResultVar = $TargetVar ]]
+					then
+						printf "$format" "$TargetVar_ID" "$TargetVar" "$ResultVar" "$Ok_"
+					else
+						printf '\e[1;30m'
+						printf "$format" "$TargetVar_ID" "$TargetVar" "$ResultVar" "$Not_" 
+						printf '\e[0m'
+					fi
+				let Counter=Counter+1	
+				fi
+		done
+	printf "%$width.${width}s\n" "$divider"
+
+
 else
 	echo -e ""
 	echo -e "Hostname: \t $Hostname"
 	echo -e "Summary: \t $System, $Processor x $Core(Core), $MemCurrent, $Memory, $UnitSize"
 	echo -e "System: \t $System | Chassis: $UnitSize"
+
 	echo -e "Processors: \t $Processor x $Core(Core)"
 	echo -e "Memory: \t $MemCurrent ($Memory)"
 
@@ -167,8 +297,8 @@ else
 	
 	echo -e "OS: \t\t $OS"
 	echo -e "BIOS: \t\t $BIOS"
-
 	echo -e "HW Serial: \t $SerialNum"
 	echo -e "Kernel: \t $Kernel"
-
+	echo -e "PowerSupply: \t $PowerSupply onlined power cord(s) "
 fi
+

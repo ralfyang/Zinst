@@ -1,6 +1,6 @@
 ## Package infomation
 PACKAGENAME = hwconfig
-VERSION = 1.2.3
+VERSION = 1.2.5
 AUTHORIZED = ralf.yang@gsshop.com
 DESCRIPTION = 'hwconfig with Mega Raid config check package'
 CUSTODIAN = eit-team
@@ -25,12 +25,12 @@ PERM = 755
 ## Source Dir = Source directory for the file copy or symbolic link
 ## Conf option - ex) expand-overwite or expand-nomerge, Optional: file overwrite or not(CONF only), default = expand-overwrite
 FILE - - -			bin/MegaCli			./bin/MegaCli
-FILE - - -			bin/hwconfig			./bin/hwconfig
+CONF - - -			bin/hwconfig			./bin/hwconfig
 FILE - - -			bin/sas2ircu			./bin/sas2ircu
 FILE - - -			bin/lspci			./bin/lspci
+FILE 644 - -			var/checklist.txt		./bin/checklist.txt
 FILE 664 - -			var/hwconfig.list		./var/hwconfig.list
 FILE 664 - -			var/dmidecode.list		./var/dmidecode.list
-
 
 
 
@@ -42,6 +42,11 @@ FILE 664 - -			var/dmidecode.list		./var/dmidecode.list
 ### set = You can control the configuration in the CONF file by this options
 ### ex) ZINST set [Variables name] [Value]
 #
+
+ZINST set nameserver1 211.44.62.40
+ZINST set nameserver2 168.126.63.1
+
+
 ### post-activate = You can contral the daemon after the package install as below
 ### ex) ZINST post-activate [Target executable file and directory] [Command: stop, start, restart]
 #
