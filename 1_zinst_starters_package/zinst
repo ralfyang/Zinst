@@ -28,6 +28,7 @@ ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 History_LOG="$ZinstBaseRoot/vault/Source/.zinst_history_log"
 ### ------ Config Area -----
 
+
 export ZinstDir="$ZinstBaseRoot"
 ### Config about of Save file
 Save_Dir="$ZinstBaseRoot/z/save"
@@ -822,7 +823,7 @@ ProcessPkgNum=`echo "$ProcessPkg" | awk '{print NF}'`
 								cat $Packagename.cron >> $TargetCron
 							fi
 					let Counter=Counter+1
-					done;
+					done
 			#rm $Packagename.cron
 			fi
 		## Excute command list and file & package file remove
@@ -1106,11 +1107,18 @@ CurrentCheck=`echo $Pkg_file |grep "^./"`
 			fi
 	else
 		ZP=`echo "$ZinstBaseRoot" | sed -e "s/\///g"` 
-		ls -l $ZinstDIRs/ | awk '{print $6,$7,$8,"\t -", $11}' > $ZinstBaseRoot/vault/zinst/.pkglist
+		mkdir -p $ZinstBaseRoot/vault/zinst/
+		ls -l $ZinstDIRs/ 2> /dev/null | awk '{print $6,$7,$8,"\t -", $11}' > $ZinstBaseRoot/vault/zinst/.pkglist 
 		sed -i 's/\//%/g'  $ZinstBaseRoot/vault/zinst/.pkglist
 		sed -i '/   -/d'  $ZinstBaseRoot/vault/zinst/.pkglist
 		sed -i "s/%$ZP%vault%Source%/ /g"  $ZinstBaseRoot/vault/zinst/.pkglist
-		cat $ZinstBaseRoot/vault/zinst/.pkglist
+		PkgListZ=`cat $ZinstBaseRoot/vault/zinst/.pkglist 2> /dev/null`
+			if [[ $PkgListZ = "" ]]
+			then
+				echo "=============== Not existed zinst package in here ============"
+			fi
+		echo "$PkgListZ"
+
 	fi
 }
 
@@ -1261,7 +1269,7 @@ Number=`ls $ZinstBaseRoot/vault/Source/bin/ |egrep ^zinst.bak. |awk '{print NR}'
 	then
 		Number="0"
 	fi
-mv $ZinstBaseRoot/vault/Source/bin/zinst $ZinstBaseRoot/vault/Source/bin/zinst.bak.$Number;
+mv $ZinstBaseRoot/vault/Source/bin/zinst $ZinstBaseRoot/vault/Source/bin/zinst.bak.$Number 2> /dev/null;
 cp zinst $ZinstBaseRoot/vault/Source/bin/zinst;
 rm -f /usr/bin/zinst;
 ln -sf $ZinstBaseRoot/vault/Source/bin/zinst /usr/bin/zinst;
