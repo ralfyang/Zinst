@@ -5,7 +5,7 @@
 
 export TIME_STYLE="+%b %e %R"
 
-VERSION=2.5.5
+VERSION=2.5.6
 zinst_group=wheel
 
 Allcommand=$@
@@ -13,15 +13,9 @@ Comm_x=$1
 SetOptionValue=$2
 Pkg_list=$2
 Pkg_file=$3
-HostC=$3
 Hostname=$4
 
-
-List_Up="ls -l"
-
-Pkg_count=${#Pkg_list[@]}; 
-Host_count=${#TargetHost[@]}; 
-
+                
 ### Base information
 ### ------ Config Area -----
 Dist_server="http://DISTsERVERsET/"
@@ -33,14 +27,12 @@ ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 History_LOG="$ZinstBaseRoot/vault/Source/.zinst_history_log"
 ### ------ Config Area -----
-                
-
 
 export ZinstDir="$ZinstBaseRoot"
 ### Config about of Save file
 Save_Dir="$ZinstBaseRoot/z/save"
 Save_Filename="zinst-save"
-CheckSaveDir=`ls $ZinstBaseRoot/z |grep save`
+CheckSaveDir=`ls $ZinstBaseRoot/z 2> /dev/null |grep save`
 
 
 ####################  Set option filter function start    ###########################
@@ -202,7 +194,7 @@ szinst="zinst"
 			do
 				HostF=`eval echo $RotaHost | awk '{print $'$Count'}'`
 				## ssh connection check
-				CheckConnection=`nohup ssh $HostF > $ZinstBaseRoot/vault/Source/ssh_conn_test.log 2> /dev/null;cat $ZinstBaseRoot/vault/Source/ssh_conn_test.log |grep known; rm -f $ZinstBaseRoot/vault/Source/ssh_conn_test.log`
+				CheckConnection=`nohup ssh $HostF 2> $ZinstBaseRoot/vault/Source/ssh_conn_test.log;cat $ZinstBaseRoot/vault/Source/ssh_conn_test.log |grep known; rm -f $ZinstBaseRoot/vault/Source/ssh_conn_test.log`
 
 					if [[ $CheckConnection != "" ]]
 					then
@@ -213,11 +205,11 @@ szinst="zinst"
 						## Install start with target host ##
 						## Check the Package or Distribution server
 						## Package scp to destination
-						zinst_emptyCheck=`ssh $HostF "ls /usr/bin/ |grep zinst"`
+						zinst_emptyCheck=`ssh $HostF "ls /usr/bin/ 2> /dev/null |grep zinst"`
 							if [[ $zinst_emptyCheck != "" ]]
 							then
 								zinst_checkDes=`ssh $HostF "cat /usr/bin/zinst |grep ^VERSION | sed -e 's/VERSION=//g'"`
-								zinst_checkLoc=`cat /usr/bin/zinst |grep ^VERSION | sed -e 's/VERSION=//g'`
+								zinst_checkLoc=`cat /usr/bin/zinst 2> /dev/null |grep ^VERSION | sed -e 's/VERSION=//g'`
 
 									if [[ $zinst_checkDes < $zinst_checkLoc ]];
 									then
@@ -285,7 +277,7 @@ RotaHost=`echo "$Allcommand" |grep "\-H" | awk -F "-H" '{print $2}'`
 				HostF=`eval echo $ListM | awk '{print $'$Count'}'`
 
 				## ssh connection check
-				CheckConnection=`nohup ssh $HostF > $ZinstBaseRoot/vault/Source/ssh_conn_test.log 2> /dev/null;cat $ZinstBaseRoot/vault/Source/ssh_conn_test.log |grep known; rm -f $ZinstBaseRoot/vault/Source/ssh_conn_test.log`
+				CheckConnection=`nohup ssh $HostF 2> $ZinstBaseRoot/vault/Source/ssh_conn_test.log;cat $ZinstBaseRoot/vault/Source/ssh_conn_test.log |grep known; rm -f $ZinstBaseRoot/vault/Source/ssh_conn_test.log`
 
 					if [[ $CheckConnection != "" ]]
 					then
@@ -296,10 +288,10 @@ RotaHost=`echo "$Allcommand" |grep "\-H" | awk -F "-H" '{print $2}'`
 						## Install start with target host ##
 						## Check the Package or Distribution server
 						## Package scp to destination
-						zinst_emptyCheck=`ssh $HostF "ls /usr/bin/ |grep zinst"`
+						zinst_emptyCheck=`ssh $HostF "ls /usr/bin/ 2> /dev/null |grep zinst"`
 							if [[ $zinst_emptyCheck != "" ]]
 							then
-								zinst_checkDes=`ssh $HostF "cat /usr/bin/zinst |grep ^VERSION | sed -e 's/VERSION=//g'"`
+								zinst_checkDes=`ssh $HostF "cat /usr/bin/zinst 2> /dev/null |grep ^VERSION | sed -e 's/VERSION=//g'"`
 								zinst_checkLoc=`cat /usr/bin/zinst |grep ^VERSION | sed -e 's/VERSION=//g'`
 
 									if [[ $zinst_checkDes < $zinst_checkLoc ]];
@@ -395,10 +387,6 @@ Package_name=`echo $Package_N |awk -F '-' '{print $1}'`
 
 curl $Dist_server/checker/package_dist_list.info > $PkgInfoDir/package_dist_list.info 2> /dev/null
 
-#cd $PkgInfoDir
-#wget $Dist_server/checker/package_dist_list.info
-
-
 
 ### Package name check
 	if [[ `cat $PkgInfoDir/package_dist_list.info | grep "^| $Package_name |"` = "" ]]
@@ -489,7 +477,6 @@ rm -f $PkgInfoDir/package_dist_list.info
 
 Pkg_Install(){
 
-#ProcessPkg=$@
 ProcessPkg=$Allcommand
 
 CounterAll=2
@@ -559,7 +546,7 @@ ProcessPkgNum=`echo "$ProcessPkg" | awk '{print NF}'`
 				exit 0;
 			fi
 		## Check a same version Package
-		Existed_pkg=`ls -l $ZinstDIRs |grep ^l | grep $Package_orgS | awk  '{print $11}' | awk -F '/' '{print $NF}'`
+		Existed_pkg=`ls -l $ZinstDIRs 2> /dev/null |grep ^l | grep $Package_orgS | awk  '{print $11}' | awk -F '/' '{print $NF}'`
 		echo ""
 		echo ----- $Package_list -----
 
@@ -623,7 +610,7 @@ ProcessPkgNum=`echo "$ProcessPkg" | awk '{print NF}'`
 
 		cd $ZinstBaseRoot/vault/Source/$ZinstName
 		tar zxf $ZinstBaseRoot/vault/Source/$ZinstName/$Package_list
-		rm -rfv $ZinstBaseRoot/vault/Source/$ZinstName/$Package_list
+		rm -rf $ZinstBaseRoot/vault/Source/$ZinstName/$Package_list
 		rm -Rf $ZinstDIRs/$ZinstOrgName
 		ln -sf $ZinstBaseRoot/vault/Source/$ZinstName $ZinstDIRs/$ZinstOrgName
 		cd $ZinstDIRs/$ZinstOrgName; chmod 644 $ZICF
@@ -643,7 +630,7 @@ ProcessPkgNum=`echo "$ProcessPkg" | awk '{print NF}'`
 
 		### zinst default checkr
 		## zinst set checker
-		ZinstSetCheck=`cat $ZinstBaseRoot/vault/zinst/zinst_set.list | grep ZinstSet | awk '{print $1}'`
+		ZinstSetCheck=`cat $ZinstBaseRoot/vault/zinst/zinst_set.list 2> /dev/null | grep ZinstSet | awk '{print $1}'`
 		ZinstSetTitle="#==========================ZinstSet==========================="
 			if [[ $ZinstSetCheck != $ZinstSetTitle ]];
 			then
@@ -668,7 +655,8 @@ ProcessPkgNum=`echo "$ProcessPkg" | awk '{print NF}'`
 			fi
 		
 		### Make a Blank .file.list
-		echo "echo "$Packagename-$Version has been installed" " > .file.list
+		echo "echo \" $Packagename-$Version package install ==>>> \" " > .file.list
+		#echo "echo "$Packagename-$Version has been installed" " > .file.list
 
 		## Package Dependency check - on no-over write
 		Dep_checkerNum=`cat ./$ZICF  |grep "^ZINST requires pkg" | awk '{print NR}' |tail -1 `
@@ -817,7 +805,7 @@ ProcessPkgNum=`echo "$ProcessPkg" | awk '{print NF}'`
 							fi
 						TargetCron=/var/spool/cron/$CronUser
 						echo "#### $TargetCron"  >> .file.list
-						Result=`cat $TargetCron |grep $Packagename`
+						Result=`cat $TargetCron  2> /dev/null |grep $Packagename`
 							if [[ $Counter = "1" ]];
 							then
 								if [[ $Result != "" ]];
@@ -828,6 +816,7 @@ ProcessPkgNum=`echo "$ProcessPkg" | awk '{print NF}'`
 									cat $Packagename.cron >> $TargetCron
 								else
 									cat $Packagename.cron >> $TargetCron
+									echo "---==== Crontab has been changed as a new configration ====---"
 								fi
 							else
 								cat $Packagename.cron >> $TargetCron
@@ -840,10 +829,10 @@ ProcessPkgNum=`echo "$ProcessPkg" | awk '{print NF}'`
 		sed -i 's/\t//g' ./.file.list
 		sed -i 's/^ cp/cp/g' ./.file.list
 		sh ./.file.list; zinst ls -files $Packagename
-		rm -f $Dist_server/$Package_list
+		echo "$Packagename-$Version package has been installed"
+		rm -f $Dist_server/$Package_list 1> /dev/null
 
 ## Out of 3 steps older package clean - Todo
-#echo 3333333333333333
 
 		## Package listup
 		ZP=`echo "$ZinstBaseRoot" | sed -e "s/\///g"` 
@@ -890,7 +879,7 @@ Pkg_Set() {
 	    CurrentSetCheck=`echo "$CurrentSet" | awk -F "=" '{print $1}'`
 	    CurrentSetCheck2=`echo "$CurrentSet" | sed -e "s/$CurrentSetCheck=//g"`
 
-		Setchecker=`ls $ZinstDIRs |grep $PackageS`
+		Setchecker=`ls $ZinstDIRs 2> /dev/null |grep $PackageS`
 			if [[ $Setchecker != ""  ]];
 			then
 			## Find a current set 
@@ -934,8 +923,6 @@ Pkg_Set() {
 					Equiltype1=`grep "$Option=$CurrentSetCheck2" $Conf_File`
 					Equiltype2=`grep "$Option = $CurrentSetCheck2" $Conf_File`
 					Equiltype3=`grep "$Option $CurrentSetCheck2" $Conf_File`
-#			Equiltype4=`grep "$Option</name><value>$CurrentSetCheck2" $Conf_File`
-#echo "s/$Option $CurrentSetCheck2/$Option $ZinstSet/g"
 					Check_Conf_File=`grep \/ $Conf_File`
 						if [[ $Check_Conf_File != ""  ]];
 						then
@@ -949,8 +936,6 @@ Pkg_Set() {
 									sed -i "s/$Option = $CurrentSetCheck2$/$Option = $ZinstSet/g" $Conf_File
 								elif [[ $Equiltype3 != "" ]]; then
 									sed -i "s/$Option $CurrentSetCheck2$/$Option $ZinstSet/g" $Conf_File
-#								elif [[ $Equiltype4 != "" ]]; then
-#									sed -i "s/$Option<\/name><value>$CurrentSetCheck2/$Option<\/name><value>$ZinstSet/g" $Conf_File
 								fi		
 							sed -i "s/%%%/\//g" $Conf_File
 						fi
@@ -962,8 +947,6 @@ Pkg_Set() {
 							sed -i "s/$Option = $CurrentSetCheck2$/$Option = $ZinstSet/g" $Conf_File
 						elif [[ $Equiltype3 != "" ]]; then
 							sed -i "s/$Option $CurrentSetCheck2$/$Option $ZinstSet/g" $Conf_File
-#						elif [[ $Equiltype4 != "" ]]; then
-#							sed -i "s/$Option<\/name><value>$CurrentSetCheck2/$Option<\/name><value>$ZinstSet/g" $Conf_File
 						fi		
 					echo "`date +%Y.%m.%d_%T` `whoami` : $Command_p - $Pkg_list  " >> $History_LOG
 				else
@@ -979,7 +962,6 @@ Pkg_Set() {
 }
 
 Pkg_Remove(){
-#echo $Pkg_list 
 	if [[ $Pkg_list = "" ]]
 	then
 		echo "=============== Please insert a package name as you need to see ============"
@@ -1004,7 +986,7 @@ Pkg_Remove(){
 					then
 						cd $ZinstDIRs/$ZinstOrgName
 						RmTargetCron=`cat .file.list  | grep \#### | awk '{print $2}'`
-						RmPkg_list=`cat .file.list |grep ^echo |awk '{print $2}'`
+						RmPkg_list=`cat .file.list |grep ^echo |awk '{print $3}'`
 						RmDepChecker=`cat $ZinstBaseRoot/vault/zinst/.dependency.list | grep ^$ZinstOrgName |awk '{print $9}' `
 							if [[ $RmDepChecker != "" ]]
 							then
@@ -1134,14 +1116,6 @@ CurrentCheck=`echo $Pkg_file |grep "^./"`
 
 
 Pkg_Find(){
-
-### Check DNS status
-#curl $Dist_server/checker/status.html > $ZinstSourceDir/.checkdist
-#CheckDistURL=`cat $ZinstSourceDir/.checkdist |grep "OK"`
-#	if [[ $CheckDistURL != "OK" ]]
-#	then
-#		Dist_server="http://10.35.35.235:8000/vault/Source"
-#	fi
 
 Allpackges=$@
 Check_local=`echo "$Allpackges" |grep "\-local"`
@@ -1275,15 +1249,6 @@ echo "`date +%Y.%m.%d_%T` `whoami` : $Command_p - $ProcessPkg  " >> $History_LOG
 
 
 Zinst_selfupdate(){
-
-### Check DNS status
-#	curl $Dist_server/checker/status.html > $ZinstSourceDir/.checkdist
-#	CheckDistURL=`cat $ZinstSourceDir/.checkdist |grep "OK"`
-
-#		if [[ $CheckDistURL != "OK" ]]
-#		then
-#			Dist_server="http://10.35.35.235:8000/vault/Source"
-#		fi
 cd ~/;
 rm -f zinst
 wget  $Dist_server/zinst;
@@ -1427,9 +1392,6 @@ RestoreFile_checkr=`ls $Restore_File`
     restart)
         Daemon_restart $*
     ;;
-#    search)
-#        Pkg_Search
-#    ;;
     his*)
         History
     ;;
