@@ -4,6 +4,7 @@
 #set -xv
 
 OptionV=$1
+OptionSub=$2
 
 # For the ziinst package set value
 nameserver1=211.44.62.40
@@ -32,13 +33,16 @@ fi
 # for the help
 if [[ $OptionV = "-h" ]]
 then 
-	echo "==================================================="
-	echo " hwconfig <no options>"
-	echo " hwconfig -r for data refreash"
-	echo " hwconfig -c for create an output data"
-	echo " hwconfig -net for show the network status"
-	echo " hwconfig -check for check the system configration"
-	echo "==================================================="
+	echo "====================================================================="
+	echo " hwconfig <no options> 	for the normal view"
+	echo " hwconfig -r 		for the data refreash"
+	echo " hwconfig -c 		for create an output data"
+	echo " hwconfig -net 		for show the network status"
+	echo "====================================================================="
+	echo " hwconfig -check	for check the system configration"
+	echo "====================================================================="
+	echo " hwconfig -check --file [FILE NAME] 	for use a custome check"
+	echo "====================================================================="
 	exit 0;
 fi
 
@@ -203,6 +207,18 @@ then
 elif [[ $OptionV = "-check" ]]
 then
 	File_name="/data/var/checklist.txt"
+	
+		if [[ $OptionSub = "--file" ]]
+		then
+			File_name="$3"
+			if [[ $File_name = "" ]]
+			then
+				echo " "
+				echo " --- Dose not exist the file name. ---"
+				exit 0;
+			fi
+
+		fi
 
 
 	Ok_="Ok - o"
