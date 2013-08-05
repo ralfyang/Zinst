@@ -124,13 +124,14 @@ zinst help
  
  
 Example)
-zinst set 'cat /etc/hosts;pwd' -h web[01-09].test.com	-- Send a command to seperated hosts 
- 
+zinst ssh 'cat /etc/hosts;pwd' -h web[01-09].test.com	-- Send a command to seperated hosts 
 zinst mcp ./test.* /data/var/ -h web[01-09].test.com 	-- File copy to seperated hosts 
  
 zinst install hwconfig-1.0.2.zinst -same		-- for overwrite the package as a same version 
 zinst i hwconfig-1.0.2.zinst -downgrade			-- for downgrade the package as a lower version 
- 
+
+zinst install hwconfig -stable			<- for package apply as a latest version automatically 
+
 zinst list -files hwconfig				-- list-up file of the hwconfig package 
 zinst ls -files /data/bin/hwconfig			-- find a package as a file 
 zinst list -zicf hwconfig				-- see the index file of package 
@@ -160,5 +161,4 @@ zinst help						-- Detail view the help
  
 === For more detail: http://www.ralfyang.net/Foswiki/bin/view.cgi/Main/TheZinst ===
 </pre>
-
 
