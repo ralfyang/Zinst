@@ -130,7 +130,7 @@ zinst mcp ./test.* /data/var/ -h web[01-09].test.com 	-- File copy to seperated 
 zinst install hwconfig-1.0.2.zinst -same		-- for overwrite the package as a same version 
 zinst i hwconfig-1.0.2.zinst -downgrade			-- for downgrade the package as a lower version 
 
-zinst install hwconfig -stable			<- for package apply as a latest version automatically 
+zinst install hwconfig -stable			-- for package apply as a latest version automatically 
 
 zinst list -files hwconfig				-- list-up file of the hwconfig package 
 zinst ls -files /data/bin/hwconfig			-- find a package as a file 
