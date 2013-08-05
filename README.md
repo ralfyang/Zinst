@@ -9,7 +9,7 @@
 * For the centralized package manage & distributed systems
   * Centralized control:
     * Install the Package to the destination server 
-      * *ex) zinst install apache_server-1.0.1.zinst apache_conf-1.0.1.zinst -h web0{1..9}* 
+      * *ex) zinst install apache_server-1.0.1.zinst apache_conf-1.0.1.zinst -h web0[1-9]* 
     * list-up the package in each server 
       * *ex) zinst ls*
     * list-up the file of package in each server 
@@ -23,7 +23,7 @@
       * Then you can see the configuration has been changed on the Apache server for example.
     * Package remove
     * Send a command to the distributed systems
-      * *ex) zinst ssh "whoami" -h web{0..1}{0..9}, web20*
+      * *ex) zinst ssh "whoami" -h web[0-1][0-9], web20*
     * Can makes a list of multiple host for the target control
       * *ex) zinst ssh "whoami" -H ./hostlist.txt* 
     * One package, can makes a differnt output
@@ -39,8 +39,9 @@
 
 ### How to use
 <pre>
+zinst help
 ------------------------------------------------------------------------------------------------------ 
- zinst	[Command]	[Option Types]		[Target Names]	[-h or -H]	[Targe Host] 
+	zinst	[Command]	[Option Types]		[Target Names]	[-h or -H]	[Targe Host] 
 ------------------------------------------------------------------------------------------------------ 
  + For remote work 
  
@@ -55,18 +56,19 @@
  + For Package 
  
   - Package manage: You can install/remove a package as under the command 
-		 install				[Package_name]   
-				[-same]			[Package_name]	  
-				[-downgrade]		[Package_name]	  
-		 remove					[Package_name]	  
+		 install				[Package]   
+				[-same]			[Package]	  
+				[-downgrade]		[Package]	  
+				[-stable]		[Package without version for latest package]	  
+		 remove					[Package]	  
 ...................................................................................................... 
  
   - Package view: You can see an installed packages/files/index & dependency 
 		 list					[Blank for list-up]	  
-				[-files]		[Package_name]	  
+				[-files]		[Package]	  
 				[-files]		[/Dir/File-name]	  
-				[-zicf]			[Package_name]	  
-				[-dep]			[Package_name]	  
+				[-zicf]			[Package]	  
+				[-dep]			[Package]	  
 ...................................................................................................... 
  
   - Package restore: You can restore the package set as a file for restore	ex) ~/z/save/zinst-* 
@@ -81,7 +83,7 @@
 							[Package.option=value]			  
  
   - Configuration with Install: Configure the setup with the package install 
-		 [Package_name]	-set 			[Package.option=value]  
+		 [Package]	-set 			[Package.option=value]  
  
 ------------------------------------------------------------------------------------------------------ 
  + For System manage 
@@ -101,12 +103,12 @@
  
   - Package find 
 		 find		[Blank for list-up]			 
-				[Package_name]		 
+				[Package]		 
  
 ------------------------------------------------------------------------------------------------------ 
  + View history 
  
-		 history	[-range] 
+		 history	[Number of Range] 
 ...................................................................................................... 
  
 		 self-update			 
@@ -115,16 +117,16 @@
 		 *, help		 
 ------------------------------------------------------------------------------------------------------ 
  -h is target host, -H is targe file of hostlist 
- ex) zinst i sample-1.0.0.zinst -h web01.news web02.news web0{3..5}.news 
+ ex) zinst i sample-1.0.0.zinst -h web01.news.kr[1,3]  web[03-12].news[1,3] 
  ex) zinst i sample-1.0.0.zinst -H ./server_list.txt 
 ------------------------------------------------------------------------------------------------------ 
  
  
  
 Example)
-zinst set 'cat /etc/hosts;pwd' -h web0{1..9}.test.com	<- Send a command to seperated hosts 
+zinst set 'cat /etc/hosts;pwd' -h web[01-09].test.com	<- Send a command to seperated hosts 
  
-zinst mcp ./test.* /data/var/ -h web0{1..9}.test.com 	<- File copy to seperated hosts 
+zinst mcp ./test.* /data/var/ -h web[01-09].test.com 	<- File copy to seperated hosts 
  
 zinst install hwconfig-1.0.2.zinst -same		<- for overwrite the package as a same version 
 zinst i hwconfig-1.0.2.zinst -downgrade			<- for downgrade the package as a lower version 
@@ -143,13 +145,14 @@ zinst i hwconfig-1.0.2.zinst -set hwconfig.nameserver1=1.1.1.1 -set hwconfig.nam
 zinst restart httpd					<- restart the httpd daemon by /etc/init.d/httpd file control 
  
 zinst crontab -l 					<- list-up the crontab scheduler 
+zinst crontab -u root -l			<- list-up the crontab scheduler for an user 
 zinst cront -e	 					<- edit the crontab scheduler 
  
 zinst find						<- list-up the available file for install 
 zinst find hwcon					<- list-up the available file for install as you typed 
  
 zinst hist						<- show the history 
-zinst hist -300						<- show the 300 lines history 
+zinst hist 300						<- show the 300 lines history 
  
 zinst self-update					<- zinst command update( *Requires: Package dist server must has a zinst file) 
  
