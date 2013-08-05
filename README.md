@@ -124,39 +124,39 @@ zinst help
  
  
 Example)
-zinst set 'cat /etc/hosts;pwd' -h web[01-09].test.com	<- Send a command to seperated hosts 
+zinst set 'cat /etc/hosts;pwd' -h web[01-09].test.com	-- Send a command to seperated hosts 
  
-zinst mcp ./test.* /data/var/ -h web[01-09].test.com 	<- File copy to seperated hosts 
+zinst mcp ./test.* /data/var/ -h web[01-09].test.com 	-- File copy to seperated hosts 
  
-zinst install hwconfig-1.0.2.zinst -same		<- for overwrite the package as a same version 
-zinst i hwconfig-1.0.2.zinst -downgrade			<- for downgrade the package as a lower version 
+zinst install hwconfig-1.0.2.zinst -same		-- for overwrite the package as a same version 
+zinst i hwconfig-1.0.2.zinst -downgrade			-- for downgrade the package as a lower version 
  
-zinst list -files hwconfig				<- list-up file of the hwconfig package 
-zinst ls -files /data/bin/hwconfig			<- find a package as a file 
-zinst list -zicf hwconfig				<- see the index file of package 
-zinst ls -dep hwconfig 					<- package dependency check 
+zinst list -files hwconfig				-- list-up file of the hwconfig package 
+zinst ls -files /data/bin/hwconfig			-- find a package as a file 
+zinst list -zicf hwconfig				-- see the index file of package 
+zinst ls -dep hwconfig 					-- package dependency check 
  
-zinst set						<- list-up of zinst current setups 
-zinst set hwconfig.nameserver1=1.1.1.1			<- change the setup nameserver1=1.1.1.1 to the hwconfig 
+zinst set						-- list-up of zinst current setups 
+zinst set hwconfig.nameserver1=1.1.1.1			-- change the setup nameserver1=1.1.1.1 to the hwconfig 
  
 zinst i hwconfig-1.0.2.zinst -set hwconfig.nameserver1=1.1.1.1 -set hwconfig.nameserver2=2.2.2.2 
- <- change the setup nameserver1=1.1.1.1 and nameserver2=2.2.2.2 to the hwconfig with package install 
+ -- change the setup nameserver1=1.1.1.1 and nameserver2=2.2.2.2 to the hwconfig with package install 
  
-zinst restart httpd					<- restart the httpd daemon by /etc/init.d/httpd file control 
+zinst restart httpd					-- restart the httpd daemon by /etc/init.d/httpd file control 
  
-zinst crontab -l 					<- list-up the crontab scheduler 
-zinst crontab -u root -l			<- list-up the crontab scheduler for an user 
-zinst cront -e	 					<- edit the crontab scheduler 
+zinst crontab -l 					-- list-up the crontab scheduler 
+zinst crontab -u root -l			-- list-up the crontab scheduler for an user 
+zinst cront -e	 					-- edit the crontab scheduler 
  
-zinst find						<- list-up the available file for install 
-zinst find hwcon					<- list-up the available file for install as you typed 
+zinst find						-- list-up the available file for install 
+zinst find hwcon					-- list-up the available file for install as you typed 
  
-zinst hist						<- show the history 
-zinst hist 300						<- show the 300 lines history 
+zinst hist						-- show the history 
+zinst hist 300						-- show the 300 lines history 
  
-zinst self-update					<- zinst command update( *Requires: Package dist server must has a zinst file) 
+zinst self-update					-- zinst command update( *Requires: Package dist server must has a zinst file) 
  
-zinst help						<- Detail view the help 
+zinst help						-- Detail view the help 
  
 === For more detail: http://www.ralfyang.net/Foswiki/bin/view.cgi/Main/TheZinst ===
 </pre>
