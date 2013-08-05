@@ -1,5 +1,5 @@
 [*Link: Detail Manual - Korean*](http://www.ralfyang.net/Foswiki/bin/view.cgi/Main/TheZinst)한국어 지원
-Contact: goody80762@gmail.com or ralf.yang@gsshop.com
+* Contact: goody80762@gmail.com or ralf.yang@gsshop.com
 
 # Zinst
 ## What is the Zinst ?
