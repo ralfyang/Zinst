@@ -37,6 +37,41 @@
       * *ex) zinst restore -file /data/z/save/zinst-save.56*
     * Without difficult language and environment. Due to it made by Bash only
 
+### How to install
+```
+sh ./install.sh
+
+ ======================================================================================== 
+  Please insert directory name for you want (ex /data )
+  Directory will be created as you type it 
+ ======================================================================================== 
+/data
+ ======================================================================================== 
+  Do you want to make a Distribute server for packages download? [y / n ]
+  * Notice: Apache web server will be start in this server automaticlly *
+ ======================================================================================== 
+y
+ ======================================================================================= 
+  File directory for the Distritution is /data/dist  
+ ======================================================================================= 
+ ======================================================================================== 
+  Please insert your Domain name of the Distribution server ex)package.dist.blahblah.com
+ ======================================================================================== 
+package.dist.blahblah.com
+ ======================================================================================= 
+  Please insert your IP address of the Distribution server
+ ======================================================================================= 
+192.168.10.141
+ =======================
+ | Go ahead ? [y or n] |
+ =======================
+```
+* And please rejoin the server for the patch apply
+
+```
+$] zinst -help
+```
+
 
 ### How to use
 <pre>
