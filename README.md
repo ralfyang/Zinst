@@ -66,7 +66,7 @@ package.dist.blahblah.com
  | Go ahead ? [y or n] |
  =======================
 ```
-* And please rejoin the server for the patch apply
+* And please rejoin the server for the path apply
 
 ```
 $] zinst -help
