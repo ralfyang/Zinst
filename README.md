@@ -1,4 +1,5 @@
-[*Link: Detail Manual - Korean*](http://www.ralfyang.net/Foswiki/bin/view.cgi/Main/TheZinst)한국어 지원
+[*Link: Detail Manual - Korean*](http://www.ralfyang.net/Foswiki/bin/view.cgi/Main/TheZinst) 한국어 지원
+[*Link: zinst packages repository in github*](https://github.com/goody80/Zinst_packages)
 * Contact: goody80762@gmail.com or ralf.yang@gsshop.com
 
 # Zinst
