@@ -38,6 +38,10 @@
       * *ex) zinst restore -file /data/z/save/zinst-save.56*
     * Without difficult language and environment. Due to it made by Bash only
 
+### Architecture Overview
+![Architecture Overview](http://www.ralfyang.net/Foswiki/pub/Main/TheZinst/zinst_architecture_pub.png)
+
+
 ### How to install
 ```
 sh ./install.sh
