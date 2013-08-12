@@ -39,7 +39,7 @@
     * Without difficult language and environment. Due to it made by Bash only
 
 ### Architecture Overview
-![Architecture Overview](http://www.ralfyang.net/Foswiki/pub/Main/TheZinst/zinst_architecture_pub.png)
+![Architecture Overview](http://www.ralfyang.net/Foswiki/pub/Main/TheZinst/zinst_architecture__pub.png)
 
 
 ### How to install
