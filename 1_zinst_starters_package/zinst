@@ -2,14 +2,14 @@
 # GSshop package install manager   
 # Made by Ralf Yang
 # ralf.yang@gsshop.com & goody80762@gmail.com
-export TIME_STYLE="+%b %e %R"
+export TIME_STYLE="+%b %d %R"
 
 Barr="======================================================================="
 BARR="#############################################################"
 ROWW="============================================================="
 
 
-VERSION=3.0.0
+VERSION=3.0.1
 zinst_group=wheel
 
 ### Base information
@@ -76,6 +76,7 @@ PackageArryNum=${#PackageArry[@]}
 ### Remove install command
 PackageArry[0]=""
 
+MidPackageArry=${PackageArry[@]}
 
 	Counter=1
 	SubCounter=0
@@ -336,7 +337,7 @@ szinst="zinst"
 						#### Check SSH command ########
 							if [[ $CommandX = "ssh" ]]
 							then
-								RotaCommand=$ZPackages
+								RotaCommand=$MidPackageArry
 								szinst=""
 							fi
 						ssh $HostF "mkdir -p $ZinstBaseRoot/vault/Source"
@@ -687,8 +688,6 @@ CounterAll=1
 		### Config file set
 		#### [Zinst Set parser]
 		#cat $ZICF |grep '^ZINST set' |grep set | awk '{print "zinst set","'$Packagename'."$3"="$4}' >> .file.list
-#cat $ZICF |grep '^ZINST set' |grep set | awk '{print "sed -i '/$Packagename.'"$3"'/'d '$ZinstBaseRoot/vault/zinst/zinst_set.list'"}' >> .file.list
-#cat $ZICF |grep '^ZINST set' |grep set | awk '{print "echo \"'"$Packagename."'"$3"="$4"\" >> '$ZinstBaseRoot'/vault/zinst/zinst_set.list"}' >> .file.list
 		cat $ZICF |grep '^ZINST set' |grep set | awk '{print "sed -i '/$Packagename.'"$3"'/'d '$ZinstBaseRoot/vault/zinst/zinst_set.list'"}' >> .file.list
 		cat $ZICF |grep '^ZINST set' |grep set | awk '{print " echo \"'"$Packagename."'"$3"="$4"\" >> '$ZinstBaseRoot'/vault/zinst/zinst_set.list"}' >> .file.list
 
@@ -995,7 +994,7 @@ Save_Restore_file $*
 
 }
 
-Pkginst_list(){
+Pkg_List(){
 
 ### Check file of the phrase
 Pkg_file_checker=`echo $ZPackages |grep "/"`
@@ -1071,9 +1070,9 @@ CurrentCheck=`echo $ZPackages |grep "^./"`
 	else
 		ZP=`echo "$ZinstBaseRoot" | sed -e "s/\///g"` 
 		mkdir -p $ZinstBaseRoot/vault/zinst/
-		ls -l $ZinstDIRs/ 2> /dev/null | awk '{print $6,$7,$8,"\t -", $11}' > $ZinstBaseRoot/vault/zinst/.pkglist 
+		ls -l $ZinstDIRs/ 2> /dev/null | awk '{print $6,$7,"\t",$8,"\t -", $11}' > $ZinstBaseRoot/vault/zinst/.pkglist 
 		sed -i 's/\//%/g'  $ZinstBaseRoot/vault/zinst/.pkglist
-		sed -i '/   -/d'  $ZinstBaseRoot/vault/zinst/.pkglist
+		sed -i '/  	  	 - /d'  $ZinstBaseRoot/vault/zinst/.pkglist
 		sed -i "s/%$ZP%vault%Source%/ /g"  $ZinstBaseRoot/vault/zinst/.pkglist
 		PkgListZ=`cat $ZinstBaseRoot/vault/zinst/.pkglist 2> /dev/null`
 			if [[ $PkgListZ = "" ]]
@@ -1382,9 +1381,11 @@ echo " "
 echo " "
 echo " "
 echo "Example)"
-echo "zinst set 'cat /etc/hosts;pwd' -h web[01-09].test.com	<- Send a command to seperated hosts "
+echo "zinst ssh 'cat /etc/hosts;pwd' -h web[01-09].test.com	<- Send a command to seperated hosts "
 echo " "
 echo "zinst mcp ./test.* /data/var/ -h web[01-09].test.com 	<- File copy to seperated hosts "
+echo " "
+echo "zinst install hwconfig -stable			<- for package apply as a latest version automatically "
 echo " "
 echo "zinst install hwconfig-1.0.2.zinst -same		<- for overwrite the package as a same version "
 echo "zinst i hwconfig-1.0.2.zinst -downgrade			<- for downgrade the package as a lower version "
@@ -1416,7 +1417,7 @@ echo "zinst self-update					<- zinst command update( *Requires: Package dist ser
 echo " "
 echo "zinst help						<- Detail view the help "
 echo " "
-echo "=== For more detail: http://www.ralfyang.net/Foswiki/bin/view.cgi/Main/TheZinst ===" 
+echo "=== For more detail: http://twiki.gsenext.com/bin/view/Main/TheZinst ===" 
 echo " "
 echo " "
 
@@ -1452,14 +1453,14 @@ tail $ZPackages $History_LOG
 	cront*)
 		Cront_Command $* ;;
 	l*s*)  
-		Pkginst_list $*	;;
+		Pkg_List $*	;;
 	restore)
 		Pkg_Restore $*	;;
 	find)
 		Pkg_Find $*	;;
 	-v*)
 		Zinst_Version 	;;
-	help)
+	*help)
 		Help_Detail	;;
 	*)
 		Help_Command	;;
