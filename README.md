@@ -2,6 +2,9 @@
 * [*Link: zinst packages repository in github*](https://github.com/goody80/Zinst_packages)
 * Contact: goody80762@gmail.com or ralf.yang@gsshop.com
 
+
+* You just can download an archive file as this link - [Download Starters package file on Dropbox](http://m-gs.kr/7FT)
+
 # Zinst
 ## What is the Zinst ?
 ### zinst?
