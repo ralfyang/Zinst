@@ -9,7 +9,7 @@ BARR="#############################################################"
 ROWW="============================================================="
 
 
-VERSION=3.0.1
+VERSION=3.0.2
 zinst_group=wheel
 
 ### Base information
@@ -20,6 +20,7 @@ ZinstBaseRoot="RootDirectorY"
 ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ### ------ Config Area -----
+
 
 export ZinstDir="$ZinstBaseRoot"
 ### Config about of Save file
@@ -943,7 +944,6 @@ ProcessPkg=($ZPackages)
 		echo "=============== Please insert a package name as you need to see ============"
 	else
 		Counter=0
-#echo ProcessPkgNumProcessPkgNumProcessPkgNum $ProcessPkgNum
 			while [[ $Counter -lt $ProcessPkgNum ]]
 			do
 
@@ -994,6 +994,9 @@ ProcessPkg=($ZPackages)
 					else
 						echo "============= $ZPackages package has not installed =================="
 					fi
+				### Remove action stamps to Dist
+				curl -e --url $Dist_server/remove:$RmPkg_list.zinst > /dev/null  2>&1
+
 				Command_p="- Remove "
 				echo "`date +%Y.%m.%d_%T` `whoami` : $Command_p - $RmPkg_list  " >> $History_LOG
 				let Counter=Counter+1
@@ -1055,8 +1058,8 @@ CurrentCheck=`echo $ZPackages |grep "^./"`
 					exit 0;
 				fi
 		ZinstOrgName=`echo $ZPackages| awk -F "-" '{print $1}'`
-		cd $ZinstDIRs/$ZinstOrgName
-		cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep ^cp | awk '{print $3}'
+		cd $ZinstDIRs/$ZinstOrgName 2> /dev/null
+		cat $ZinstDIRs/$ZinstOrgName/.file.list 2> /dev/null | grep ^cp | awk '{print $3}'
 	fi
 	elif [[ $ZOptions = "-zicf" ]]
 	then
@@ -1250,10 +1253,11 @@ mv $ZinstBaseRoot/vault/Source/bin/zinst $ZinstBaseRoot/vault/Source/bin/zinst.b
 cp zinst $ZinstBaseRoot/vault/Source/bin/zinst;
 rm -f /usr/bin/zinst;
 ln -sf $ZinstBaseRoot/vault/Source/bin/zinst /usr/bin/zinst;
-echo "Zinst version" `cat /usr/bin/zinst |grep ^VERSION | sed -e 's/VERSION=//g'`
+ShowVersion=`cat /usr/bin/zinst |grep ^VERSION | sed -e 's/VERSION=//g'`
+echo "Zinst version" $ShowVersion
 
 Command_p="@ Self-update"
-echo "`date +%Y.%m.%d_%T` `whoami` : $Command_p - $ProcessPkg  " >> $History_LOG
+echo "`date +%Y.%m.%d_%T` `whoami` : $Command_p - $ShowVersion  " >> $History_LOG
 
 } 
 
@@ -1292,6 +1296,9 @@ echo "				[-l] "
 echo "------------------------------------------------------------------------------------------------------ "
 echo "		 find		[Blank for list-up]			 "
 echo "				[Package]		 "
+echo "------------------------------------------------------------------------------------------------------ "
+echo "		 track		[Blank for list-up]			 "
+echo "				[Package or hostname]		 "
 echo "------------------------------------------------------------------------------------------------------ "
 echo "		 history	[Number of Range] "
 echo "...................................................................................................... "
@@ -1374,6 +1381,12 @@ echo "		 find		[Blank for list-up]			 "
 echo "				[Package]		 "
 echo " "
 echo "------------------------------------------------------------------------------------------------------ "
+echo " + For tracking the released package "
+echo " "
+echo "  - Track the package "
+echo "		 track		[Blank for list-up]			 "
+echo "				[Package or hostname]		 "
+echo "------------------------------------------------------------------------------------------------------ "
 echo " + View history "
 echo " "
 echo "		 history	[Number of Range] "
@@ -1443,6 +1456,33 @@ History(){
 tail $ZPackages $History_LOG
 }
 
+
+
+Pkg_Track(){
+
+
+width=102
+echo ""
+echo "Package has been released to below list - Sort by \"${PackageArry[0]}\""
+printf "%$width.${width}s \n" "$Barr$Barr"
+printf "%-30s %-50s %-30s \n" "Host" "Package" "Date"
+printf "%$width.${width}s \n" "$Barr$Barr"
+
+ResultPack=`curl -e --url $Dist_server/track/distributed_package 2> /dev/null |egrep " ${PackageArry[0]}" | awk '{printf("%-30s",$1); printf("%-40s",$3); printf("%-30s\n",$2)}'`
+	if [[ $ResultPack = "" ]]
+	then
+		curl -e --url $Dist_server/track/distributed_package 2> /dev/null |egrep "${PackageArry[0]}" | awk '{printf("%-30s",$1); printf("%-50s",$3); printf("%-30s\n",$2)}'
+	else
+		curl -e --url $Dist_server/track/distributed_package 2> /dev/null |egrep " ${PackageArry[0]}" | awk '{printf("%-30s",$1); printf("%-50s",$3); printf("%-30s\n",$2)}'
+	fi
+printf "%$width.${width}s \n" "$Barr$Barr"
+
+
+
+
+}
+
+
 ##############################  Command menu  ###################################
 	case "$CommandX" in
 	i*)
@@ -1469,6 +1509,8 @@ tail $ZPackages $History_LOG
 		Pkg_Restore $*	;;
 	find)
 		Pkg_Find $*	;;
+	track)
+		Pkg_Track $* ;;
 	-v*)
 		Zinst_Version 	;;
 	*help)
