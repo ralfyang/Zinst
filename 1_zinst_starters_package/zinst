@@ -321,7 +321,7 @@ szinst="zinst"
 			do
 				HostF=${HostChanged[$Count]}
 				## ssh connection check
-				CheckConnection=`nohup ssh $HostF 2> $ZinstBaseRoot/vault/Source/ssh_conn_test.log;cat $ZinstBaseRoot/vault/Source/ssh_conn_test.log |grep known; rm -f $ZinstBaseRoot/vault/Source/ssh_conn_test.log`
+CheckConnection=`nohup ssh $HostF 2> $ZinstBaseRoot/vault/Source/ssh_conn_test.log;cat $ZinstBaseRoot/vault/Source/ssh_conn_test.log |grep "No route\|known\|Connection refused"; rm -f $ZinstBaseRoot/vault/Source/ssh_conn_test.log`
 
 					if [[ $CheckConnection != "" ]]
 					then
