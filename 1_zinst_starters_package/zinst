@@ -1299,6 +1299,8 @@ echo "				[Package]		 "
 echo "------------------------------------------------------------------------------------------------------ "
 echo "		 track		[Blank for list-up]			 "
 echo "				[Package or hostname]		 "
+echo "				[Package or hostname]	[-file] 	 "
+echo "				[Package or hostname]	[-file] [Export File_name]	 "
 echo "------------------------------------------------------------------------------------------------------ "
 echo "		 history	[Number of Range] "
 echo "...................................................................................................... "
@@ -1386,6 +1388,8 @@ echo " "
 echo "  - Track the package "
 echo "		 track		[Blank for list-up]			 "
 echo "				[Package or hostname]		 "
+echo "				[Package or hostname]	[-file] 	 "
+echo "				[Package or hostname]	[-file] [Export File_name]	 "
 echo "------------------------------------------------------------------------------------------------------ "
 echo " + View history "
 echo " "
@@ -1460,6 +1464,13 @@ tail $ZPackages $History_LOG
 
 Pkg_Track(){
 
+### Set for Print screen
+
+CheckZPkg=`echo ${PackageArry[0]} | egrep "\/"`
+	if [[ $CheckZPkg != "" ]]
+	then
+		PackageArry[0]=""
+	fi
 
 width=102
 echo ""
@@ -1467,14 +1478,37 @@ echo "Package has been released to below list - Sort by \"${PackageArry[0]}\""
 printf "%$width.${width}s \n" "$Barr$Barr"
 printf "%-30s %-50s %-30s \n" "Host" "Package" "Date"
 printf "%$width.${width}s \n" "$Barr$Barr"
+	
 
-ResultPack=`curl -e --url $Dist_server/track/distributed_package 2> /dev/null |egrep " ${PackageArry[0]}" | awk '{printf("%-30s",$1); printf("%-40s",$3); printf("%-30s\n",$2)}'`
+ResultPack=`curl -e --url $Dist_server/track/distributed_package 2> /dev/null |egrep " ${PackageArry[0]}"`
+
+FileChecker=`echo $MidPackageArry | awk -F '-file' '{print $2}'`
+	if [[ $FileChecker = ""  ]]
+	then
+		OutPutFile="$PWD/host.output"
+	else
+		OutPutFile="$FileChecker"
+	fi
+
+
 	if [[ $ResultPack = "" ]]
 	then
-		curl -e --url $Dist_server/track/distributed_package 2> /dev/null |egrep "${PackageArry[0]}" | awk '{printf("%-30s",$1); printf("%-50s",$3); printf("%-30s\n",$2)}'
+		OutTrack=`curl -e --url $Dist_server/track/distributed_package 2> /dev/null |egrep "${PackageArry[0]}" | awk '{printf("%-30s",$1); printf("%-50s",$2); printf("%-30s\n",$3)}'`
 	else
-		curl -e --url $Dist_server/track/distributed_package 2> /dev/null |egrep " ${PackageArry[0]}" | awk '{printf("%-30s",$1); printf("%-50s",$3); printf("%-30s\n",$2)}'
+		OutTrack=`curl -e --url $Dist_server/track/distributed_package 2> /dev/null |egrep " ${PackageArry[0]}" | awk '{printf("%-30s",$1); printf("%-50s",$2); printf("%-30s\n",$3)}'`
 	fi
+
+	### Export data
+	if [[ $ZOptions != "-file"  ]] 
+	then
+		echo "$OutTrack"
+	else
+		echo "$OutTrack"
+		echo "$OutTrack" | awk '{print $1}' > $OutPutFile
+		printf "%$width.${width}s \n" "$Barr$Barr"
+		echo " Hostlist file has been created to $OutPutFile "
+	fi
+
 printf "%$width.${width}s \n" "$Barr$Barr"
 
 
