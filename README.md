@@ -3,7 +3,7 @@
 * Contact: goody80762@gmail.com or ralf.yang@gsshop.com
 
 
-* You just can download an archive file as this link - [Download Starters package file on Dropbox](http://m-gs.kr/7FT)
+* You just can download an archive file as this link - [Download Starters package file on Dropbox](http://m-gs.kr/8Yq)
 
 # Zinst
 ## What is the Zinst ?
@@ -37,9 +37,13 @@
     * Daemon controll
       * *ex) zinst start httpd*
       * Then we can recognize that who managed the daemon in the server as a history
+    * Easy to find out the package has been released to somewhere
+      * *ex) zinst track hwconfig-1.
     * Supported a package restore & roll-back as a save file - Not completed yet
       * *ex) zinst restore -file /data/z/save/zinst-save.56*
     * Without difficult language and environment. Due to it made by Bash only
+
+
 
 ### Architecture Overview
 ![Architecture Overview](http://www.ralfyang.net/Foswiki/pub/Main/TheZinst/zinst_architecture__pub.png)
@@ -149,6 +153,12 @@ zinst help
 		 find		[Blank for list-up]			 
 				[Package]		 
  
+------------------------------------------------------------------------------------------------------ 
+ + For tracking the released package 
+ 
+  - Track the package 
+		 track		[Blank for list-up]			 
+				[Package or hostname]		 
 ------------------------------------------------------------------------------------------------------ 
  + View history 
  
