@@ -21,7 +21,6 @@ ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ### ------ Config Area -----
 
-
 export ZinstDir="$ZinstBaseRoot"
 ### Config about of Save file
 Save_Dir="$ZinstBaseRoot/z/save"
