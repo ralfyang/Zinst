@@ -9,7 +9,7 @@ BARR="#############################################################"
 ROWW="============================================================="
 
 
-VERSION=3.0.2
+VERSION=3.0.3
 zinst_group=wheel
 
 ### Base information
@@ -20,6 +20,7 @@ ZinstBaseRoot="RootDirectorY"
 ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ### ------ Config Area -----
+
 
 export ZinstDir="$ZinstBaseRoot"
 ### Config about of Save file
@@ -295,7 +296,7 @@ Allcommand="$CommandX $ZPackages $ZOptions $Zset"
 					Localhost=$HOSTNAME
 					Command_p=">   mcp  "
 					SourceFull=(`echo "$Source"`)
-					ssh $TartgetHost "echo \"`date +%Y.%m.%d_%T` `whoami` : $Command_p - $Localhost:${SourceFull[@]} -> $TargetDir \" >> $History_LOG"
+					ssh  -oStrictHostKeyChecking=no $TartgetHost "echo \"`date +%Y.%m.%d_%T` `whoami` : $Command_p - $Localhost:${SourceFull[@]} -> $TargetDir \" >> $History_LOG"
 				done
 		else
 			echo "$ROWW"
@@ -320,7 +321,7 @@ szinst="zinst"
 			do
 				HostF=${HostChanged[$Count]}
 				## ssh connection check
-CheckConnection=`nohup ssh $HostF 2> $ZinstBaseRoot/vault/Source/ssh_conn_test.log;cat $ZinstBaseRoot/vault/Source/ssh_conn_test.log |grep "No route\|known\|Connection refused"; rm -f $ZinstBaseRoot/vault/Source/ssh_conn_test.log`
+CheckConnection=`nohup ssh  -oStrictHostKeyChecking=no $HostF 2> $ZinstBaseRoot/vault/Source/ssh_conn_test.log;cat $ZinstBaseRoot/vault/Source/ssh_conn_test.log |grep "No route\|not known\|Connection refused"; rm -f $ZinstBaseRoot/vault/Source/ssh_conn_test.log`
 
 					if [[ $CheckConnection != "" ]]
 					then
@@ -381,7 +382,15 @@ CheckConnection=`nohup ssh $HostF 2> $ZinstBaseRoot/vault/Source/ssh_conn_test.l
 								RotaCommand=`echo $RotaCommand | sed -e 's/ \-set//1'`
 							fi
 
-						ssh $HostF "echo [ :: $HostF :: ];cd $ZinstSourceDir ;$szinst $RotaCommand";
+						MultiCheck=`echo $ZOptions |grep -e "-multi"`
+							if [[ $MultiCheck = "" ]]
+							then
+								ssh $HostF "echo [ :: $HostF :: ];cd $ZinstSourceDir ;$szinst $RotaCommand"
+							else
+								### For multi-task
+								ssh $HostF "echo [ :: $HostF :: ];cd $ZinstSourceDir ;$szinst $RotaCommand" &
+							fi
+
 					fi
 				let Count=Count+1
 			done
@@ -1312,6 +1321,8 @@ echo " ex) zinst i sample-1.0.0.zinst -h web01.news.kr[1,3]  web[03-12].news[1,3
 echo " ex) zinst i sample-1.0.0.zinst -H ./server_list.txt "
 echo "------------------------------------------------------------------------------------------------------ "
 echo " "
+### Hidden function for Multi-tasking on multiful host -multi option
+### But it's not stable on some function
 
 }
 
@@ -1509,9 +1520,6 @@ FileChecker=`echo $MidPackageArry | awk -F '-file' '{print $2}'`
 	fi
 
 printf "%$width.${width}s \n" "$Barr$Barr"
-
-
-
 
 }
 
