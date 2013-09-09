@@ -488,7 +488,7 @@ CounterAll=1
 				exit 0;
 			fi
 		## Check a same version Package
-		Existed_pkg=`ls -l $ZinstDIRs 2> /dev/null |grep ^l | grep $Package_orgS | awk  '{print $11}' | awk -F '/' '{print $NF}'`
+		Existed_pkg=`ls -l $ZinstDIRs 2> /dev/null |grep ^l | grep "$Package_orgS-" | awk  '{print $11}' | awk -F '/' '{print $NF}'`
 		echo ""
 		echo ----- $Package_list -----
 
