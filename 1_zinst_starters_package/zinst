@@ -9,7 +9,7 @@ BARR="#############################################################"
 ROWW="============================================================="
 
 
-VERSION=3.0.3
+VERSION=3.0.4
 zinst_group=wheel
 
 ### Base information
@@ -984,7 +984,7 @@ ProcessPkg=($ZPackages)
 						`cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep ^cp | awk '{print "rm -Rfv",$3}'`
 						RmMv=`cat $ZinstDIRs/$ZinstOrgName/.file.list |grep ^mv  | awk '{print $2}' | awk -F '/' '{print $NF}'`
 						`cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep ^mv | awk '{print "rm -Rfv",$3"$RmMv"}'`
-						`cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep ^ln | awk '{print "rm -Rfv",$3}'`
+						`cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep ^ln | awk '{print "rm -Rfv",$4}'`
 						RmDir=`cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep ^mkdir |awk '{print "ls", $3}'`
 							if [[ $RmDir = "" ]];
 							then
@@ -1054,6 +1054,14 @@ CurrentCheck=`echo $ZPackages |grep "^./"`
 								Result_file=`ls -ali | grep $Package_dir- | awk -F '/' '{print $NF}'`
 								echo "$Result_file  <-------   $Pkg_file_checker"
 							fi
+
+							Symb_finder=`egrep "$Pkg_file_checker$" .file.list | grep "^ln" |awk '{print $4}' 2> /dev/null`
+							if [[ $Symb_finder != "" ]]
+							then
+								cd $ZinstDIRs/
+								Result_file=`ls -ali | grep $Package_dir- | awk -F '/' '{print $NF}'`
+								echo "$Result_file  <-------   $Pkg_file_checker"
+							fi
         
 							cd $ZinstDIRs/
 							let CounterFM=CounterFM+1
@@ -1068,6 +1076,7 @@ CurrentCheck=`echo $ZPackages |grep "^./"`
 		ZinstOrgName=`echo $ZPackages| awk -F "-" '{print $1}'`
 		cd $ZinstDIRs/$ZinstOrgName 2> /dev/null
 		cat $ZinstDIRs/$ZinstOrgName/.file.list 2> /dev/null | grep ^cp | awk '{print $3}'
+		cat $ZinstDIRs/$ZinstOrgName/.file.list 2> /dev/null | grep ^ln | awk '{print $4,"<- " $3}'
 	fi
 	elif [[ $ZOptions = "-zicf" ]]
 	then
