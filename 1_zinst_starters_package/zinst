@@ -9,7 +9,7 @@ BARR="#############################################################"
 ROWW="============================================================="
 
 
-VERSION=3.0.4
+VERSION=3.0.5
 zinst_group=wheel
 
 ### Base information
@@ -20,7 +20,6 @@ ZinstBaseRoot="RootDirectorY"
 ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ### ------ Config Area -----
-
 
 export ZinstDir="$ZinstBaseRoot"
 ### Config about of Save file
@@ -925,7 +924,7 @@ SetValue=${CheckSetArry[1]}
 											Grep_Option=`grep "^$Option " $Conf_Dir/*`
 										fi
 								fi
-							realSetOption=`echo "$Grep_Option"  | awk -F ':' '{print $2}'`
+							realSetOption=`echo "$Grep_Option"  | awk -F ':' '{print $2}' | sed -e "s/$Option /$Option=/g" -e 's/== /=/g'`
 							echo "$PackageS.$realSetOption" >> $ZinstBaseRoot/vault/zinst/zinst_set.list
 							cat  $ZinstBaseRoot/vault/zinst/zinst_set.list |grep ^$SetTarget
 
