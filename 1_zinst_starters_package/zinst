@@ -9,7 +9,7 @@ BARR="#############################################################"
 ROWW="============================================================="
 
 
-VERSION=3.0.5
+VERSION=3.0.6
 zinst_group=wheel
 
 ### Base information
@@ -20,6 +20,7 @@ ZinstBaseRoot="RootDirectorY"
 ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ### ------ Config Area -----
+
 
 export ZinstDir="$ZinstBaseRoot"
 ### Config about of Save file
@@ -1100,9 +1101,10 @@ CurrentCheck=`echo $ZPackages |grep "^./"`
 	else
 		ZP=`echo "$ZinstBaseRoot" | sed -e "s/\///g"` 
 		mkdir -p $ZinstBaseRoot/vault/zinst/
-		ls -l $ZinstDIRs/ 2> /dev/null | awk '{print $6,$7,"\t",$8,"\t -", $11}' > $ZinstBaseRoot/vault/zinst/.pkglist 
+		export TIME_STYLE="+%Y-%m-%d %H:%M:%S %z" 
+		ls -l $ZinstDIRs/ 2> /dev/null | awk '{print $6,$7," - ", $11}' > $ZinstBaseRoot/vault/zinst/.pkglist 
 		sed -i 's/\//%/g'  $ZinstBaseRoot/vault/zinst/.pkglist
-		sed -i '/  	  	 - /d'  $ZinstBaseRoot/vault/zinst/.pkglist
+		sed -i '/   -/d'  $ZinstBaseRoot/vault/zinst/.pkglist
 		sed -i "s/%$ZP%vault%Source%/ /g"  $ZinstBaseRoot/vault/zinst/.pkglist
 		PkgListZ=`cat $ZinstBaseRoot/vault/zinst/.pkglist 2> /dev/null`
 			if [[ $PkgListZ = "" ]]
