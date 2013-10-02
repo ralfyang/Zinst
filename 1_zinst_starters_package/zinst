@@ -9,7 +9,7 @@ BARR="#############################################################"
 ROWW="============================================================="
 
 
-VERSION=3.0.6
+VERSION=3.0.7
 zinst_group=wheel
 
 ### Base information
@@ -21,6 +21,14 @@ ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ### ------ Config Area -----
 
+### Requires server_default_setup package for the account policy
+WhoStamp=`cat $ZinstBaseRoot/logs/_tmp_acc 2> /dev/null`
+	if [[ $WhoStamp = "" ]]
+	then
+		WhoStamp=`whoami`
+	fi
+
+WhoStamps=`printf "%-14s" "$WhoStamp"`
 
 export ZinstDir="$ZinstBaseRoot"
 ### Config about of Save file
@@ -296,7 +304,7 @@ Allcommand="$CommandX $ZPackages $ZOptions $Zset"
 					Localhost=$HOSTNAME
 					Command_p=">   mcp  "
 					SourceFull=(`echo "$Source"`)
-					ssh  -oStrictHostKeyChecking=no $TartgetHost "echo \"`date +%Y.%m.%d_%T` `whoami` : $Command_p - $Localhost:${SourceFull[@]} -> $TargetDir \" >> $History_LOG"
+					ssh  -oStrictHostKeyChecking=no $TartgetHost "echo \"`date +%Y.%m.%d_%T` $WhoStamps : $Command_p - $Localhost:${SourceFull[@]} -> $TargetDir \" >> $History_LOG"
 				done
 		else
 			echo "$ROWW"
@@ -414,7 +422,7 @@ MakeANum=1
 let MakeANum=MakeANum+$Save_File_num
 Naming="$Save_Filename.$MakeANum"
 
-echo "# --- Last touched by \"`whoami`\" --- " > $Save_Dir/$Naming
+echo "# --- Last touched by $WhoStamps --- " > $Save_Dir/$Naming
 echo "# --- Last command \" zinst $PackageAll \" " >> $Save_Dir/$Naming
 echo "# Date: `date +%Y.%m.%d_%T` " >> $Save_Dir/$Naming
 echo "#"  >> $Save_Dir/$Naming
@@ -785,7 +793,7 @@ CounterAll=1
 		sed -i "s/%$ZP%vault%Source%/ /g"  $ZinstBaseRoot/vault/zinst/.pkglist
 
 		Command_p="+ Install"
-		echo "`date +%Y.%m.%d_%T` `whoami` : $Command_p - $ZinstName $PureOption" >> $History_LOG 
+		echo "`date +%Y.%m.%d_%T` $WhoStamps : $Command_p - $ZinstName $PureOption" >> $History_LOG 
 		let "Host_index=$Host_index + 1";
 
 		############################## Install end without target host ##################################################	
@@ -929,10 +937,10 @@ SetValue=${CheckSetArry[1]}
 							echo "$PackageS.$realSetOption" >> $ZinstBaseRoot/vault/zinst/zinst_set.list
 							cat  $ZinstBaseRoot/vault/zinst/zinst_set.list |grep ^$SetTarget
 
-							echo "`date +%Y.%m.%d_%T` `whoami` : $Command_p - $SetOptionValueE  " >> $History_LOG
+							echo "`date +%Y.%m.%d_%T` $WhoStamps : $Command_p - $SetOptionValueE  " >> $History_LOG
 						else
 							echo "$SetOptionValueE" >> $ZinstBaseRoot/vault/zinst/zinst_set.list
-							echo "`date +%Y.%m.%d_%T` `whoami` : $Command_p - $SetOptionValueE  " >> $History_LOG
+							echo "`date +%Y.%m.%d_%T` $WhoStamps : $Command_p - $SetOptionValueE  " >> $History_LOG
 						fi
 					Save_Restore_file $*
 				else
@@ -1006,7 +1014,7 @@ ProcessPkg=($ZPackages)
 				curl -e --url $Dist_server/remove:$RmPkg_list.zinst > /dev/null  2>&1
 
 				Command_p="- Remove "
-				echo "`date +%Y.%m.%d_%T` `whoami` : $Command_p - $RmPkg_list  " >> $History_LOG
+				echo "`date +%Y.%m.%d_%T` $WhoStamps : $Command_p - $RmPkg_list  " >> $History_LOG
 				let Counter=Counter+1
 			done
 	fi
@@ -1146,14 +1154,14 @@ Command_p="+ Crontab - Edit"
 		crontab -l ;;
 	-e)
 		crontab -e 
-		echo "`date +%Y.%m.%d_%T` `whoami` : $Command_p" >> $History_LOG ;;
+		echo "`date +%Y.%m.%d_%T` $WhoStamps : $Command_p" >> $History_LOG ;;
 	-u)
 	case "$4" in
 		-l)
-			crontab -u $ZPackages -l ;;
+			sudo crontab -u $ZPackages -l ;;
 		-e)
-			crontab -u $ZPackages
-			echo "`date +%Y.%m.%d_%T` `whoami` : $Command_p -u $ZPackages " >> $History_LOG ;;
+			sudo crontab -u $ZPackages
+			echo "`date +%Y.%m.%d_%T` $WhoStamps : $Command_p -u $ZPackages " >> $History_LOG ;;
 		*)
 			echo " - Please insert an option as you need to change correctly - "
 			echo " ex) 'zinst crontab -e' to edit crontab"
@@ -1226,7 +1234,7 @@ ProcessPkgNum=${#ProcessPkg[@]}
 
 Counter=0
 Command_p="# Daemon $CommandX"
-echo "`date +%Y.%m.%d_%T` `whoami` : $Command_p - ${ProcessPkg[@]}  " >> $History_LOG
+echo "`date +%Y.%m.%d_%T` $WhoStamps : $Command_p - ${ProcessPkg[@]}  " >> $History_LOG
 	while [[ $Counter -lt $ProcessPkgNum ]]
 	do
 		DaemonC=`echo "${ProcessPkg[$Counter]}"`
@@ -1242,7 +1250,7 @@ echo "`date +%Y.%m.%d_%T` `whoami` : $Command_p - ${ProcessPkg[@]}  " >> $Histor
 				echo "$DaemonC is unrecognized service"
 				exit 0;
 			fi
-		echo "                    `whoami` : "#    " - $DaemonC: $DaemonLog  " >> $History_LOG
+		echo "                    $WhoStamps : "#    " - $DaemonC: $DaemonLog  " >> $History_LOG
 		rm -f $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
 		let Counter=Counter+1
 	done
@@ -1275,7 +1283,7 @@ ShowVersion=`cat /usr/bin/zinst |grep ^VERSION | sed -e 's/VERSION=//g'`
 echo "Zinst version" $ShowVersion
 
 Command_p="@ Self-update"
-echo "`date +%Y.%m.%d_%T` `whoami` : $Command_p - $ShowVersion  " >> $History_LOG
+echo "`date +%Y.%m.%d_%T` $WhoStamps : $Command_p - $ShowVersion  " >> $History_LOG
 
 } 
 
