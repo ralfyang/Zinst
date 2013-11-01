@@ -3,13 +3,11 @@
 # Made by Ralf Yang
 # ralf.yang@gsshop.com & goody80762@gmail.com
 export TIME_STYLE="+%b %d %R"
-
-Barr="======================================================================="
+Barr="==========================================================================="
 BARR="#############################################################"
 ROWW="============================================================="
 
-
-VERSION=3.0.7
+VERSION=3.1.0
 zinst_group=wheel
 
 ### Base information
@@ -22,27 +20,31 @@ ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ### ------ Config Area -----
 
 ### Requires server_default_setup package for the account policy
-WhoStamp=`cat $ZinstBaseRoot/logs/_tmp_acc 2> /dev/null`
+WhoStamp=`sudo cat $ZinstBaseRoot/src/_tmp_acc 2> /dev/null`
 	if [[ $WhoStamp = "" ]]
 	then
 		WhoStamp=`whoami`
 	fi
 
+sudo rm $ZinstBaseRoot/src/_tmp_acc 2> /dev/null
+
+export ZinstDir=$ZinstBaseRoot
+
 WhoStamps=`printf "%-14s" "$WhoStamp"`
 
-export ZinstDir="$ZinstBaseRoot"
 ### Config about of Save file
 Save_Dir="$ZinstBaseRoot/z/save"
 Save_Filename="zinst-save"
 CheckSaveDir=`ls $ZinstBaseRoot/z 2> /dev/null |grep save`
 	if [[ $CheckSaveDir = "" ]]
 	then
-		mkdir -p $Save_Dir
+		sudo mkdir -p $Save_Dir
 	fi
 
-	
 
+	
 PackageAll=$@
+
 
 #########################################################################################
 ############################ zinst parsing engine start #################################
@@ -53,10 +55,44 @@ HostCheck=`echo "$PackageAll" |grep "\-h\|\-H"`
 	then
 		PackageArry=(`echo "$PackageAll" | awk -F ' -[h|H]' '{print $1}'`)
 		HostArry=(`echo "$PackageAll" | awk -F ' -[h|H]' '{print $2}'`)
+
+		### check sshpass
+		sudo sh -c "sshpass -V &> /tmp/.sshpass_check"
+		Check_sshpass=`sudo grep "not found" /tmp/.sshpass_check`
+			if [[ $Check_sshpass = "" ]]
+			then
+				echo " Please insert a password for a work to the destination "
+				read -s Zinst_PASSWD
+
+					if [[ $Zinst_PASSWD = "" ]]
+					then
+						Comm_sshpass="sshpass -p \"$Zinst_PASSWD\""
+					else
+						Comm_sshpass="sshpass -p $Zinst_PASSWD"
+					fi
+			else 
+#				echo " You have to type the password manually on each steps while this job. Due to You don't have sshpass tool"
+#				echo " If you want to make a job easy. then you install the package \"sshpass\" "
+#				echo " ex) zinst install sshpass -stable"
+				echo $Barr$Barr
+				echo " sshpass tool will be install first in this server(local) for the password insert automation as below"
+				echo $Barr$Barr
+				zinst i sshpass -stable
+				echo " Please insert a password for a work to the destination "
+				read -s Zinst_PASSWD
+
+					if [[ $Zinst_PASSWD = "" ]]
+					then
+						Comm_sshpass="sshpass -p \"$Zinst_PASSWD\""
+					else
+						Comm_sshpass="sshpass -p $Zinst_PASSWD"
+					fi
+			fi
 	else 
 		PackageArry=(`echo $PackageAll`)
 	fi
 	
+
 	
 ### Get Command Type
 CommandX=${PackageArry[0]}
@@ -140,64 +176,25 @@ MidPackageArry=${PackageArry[@]}
 		done
 	fi
 
-	## Package Version making auto
-	Counter=1
-	while [[ $Counter -lt $PackageArryNum ]]
-	do
-		### Package version get from latest package list
-		if [[ ${PackageArry[$Counter]} != ""  ]]
-		then
-			ActualPkg=${PackageArry[$Counter]}
-
-			### Full Package name check
-			FullnameC=`echo "${PackageArry[$Counter]}" |grep "\.zinst"`
-			StableOptionCheck=`echo "${PackageArryOption[@]}" |grep "\-stable"`
-				CheckCommandX=`echo $CommandX |egrep "^i"`
-				if [[ $CheckCommandX != "" ]]
-				then
-					if [[ $StableOptionCheck != "" ]]
-					then
-							if [[ $FullnameC != "" ]]
-							then 
-								PackageArry[$Counter]=`zinst find ^${PackageArry[$Counter]}`
-							else				
-								PackageArry[$Counter]=`zinst find ^${PackageArry[$Counter]}- | tail -1`
-							fi
-    
-							if [[ ${PackageArry[$Counter]} = "" ]]
-							then 
-								echo "$BARR"
-								echo "Which one is correct as you want in below list ( $ActualPkg )"
-								echo "$ROWW"
-								zinst find $ActualPkg
-								echo "$BARR"
-							exit 0;
-							fi
-    
-					fi
-				fi
-		fi
-
-	let Counter=Counter+1
-	done
 
 
 ### Hostlist file check
 
 	if [[ $HostlistV = "1" ]]
 	then
-		HostFileCheck=`cat ${HostArry[@]} 2> $ZinstDIRs/.Hostcheck 1> /dev/null ;cat $ZinstDIRs/.Hostcheck`
+		HostFileCheck=`sudo cat ${HostArry[@]} 2> $ZinstDIRs/.Hostcheck 1> /dev/null ;sudo cat $ZinstDIRs/.Hostcheck`
 		if [[ $HostFileCheck = "" ]]
 		then
-			HostArry=(`cat ${HostArry[@]}`)
+			HostArry=(`sudo cat ${HostArry[@]}`)
 		else 
 			echo "$Barr"
 			echo " Requires filename for listing exactly. Please make sure the filename "
 			echo "$Barr"
+			echo ""
 			exit 0;
 
 		fi
-		rm -f $ZinstDIRs/.Hostcheck
+		sudo rm -f $ZinstDIRs/.Hostcheck
 
 	fi
 
@@ -247,7 +244,6 @@ Zset=${PackageArrySet[@]}
 ZHosts=${HostChanged[@]}
 History_LOG="$ZinstBaseRoot/vault/Source/.zinst_history_log"
 
-
 ### Alias for existed fuction
 ProcessPkg=$ZPackages
 ProcessPkgNum=${#PackageArry[@]}
@@ -267,6 +263,226 @@ Allcommand="$CommandX $ZPackages $ZOptions $Zset"
 
 ############################  zinst parsing engine end ##################################
 #########################################################################################
+### History File reset for permission
+sudo chmod 664 $History_LOG 2> /dev/null
+sudo chgrp $zinst_group $History_LOG 2> /dev/null
+
+
+Package_Parse_Check(){
+### Package name check 
+Parse_Checker=$*
+	ParsedPkgVerChk=`echo "$Parse_Checker" | egrep "\-[0-9.*]*.zinst\$"`
+	if [[ $ParsedPkgVerChk != "" ]]
+	then 
+		ParsedPkgZinstFind=`cat $CurrPkgList | grep "^$Parse_Checker" | tail -1`
+		if [[ $ParsedPkgZinstFind = "" ]]
+		then
+			echo "$BARR"
+			echo "Which one is correct as you want in below list ( $Parse_Checker )"
+			echo "$ROWW"
+			zinst find $Parse_Checker
+			echo "$BARR"
+			echo ""
+			exit 0
+		else
+			Parse_Result="$ParsedPkgZinstFind"
+		fi
+	else
+		ParsedPkgZinstFind=`cat $CurrPkgList | grep "^$Parse_Checker-" | tail -1`
+		if [[ $ParsedPkgZinstFind = "" ]]
+		then
+			echo "$BARR"
+			echo "Which one is correct as you want in below list ( $Parse_Checker )"
+			echo "$ROWW"
+			zinst find $Parse_Checker
+			echo "$BARR"
+			exit 0
+		else
+			Parse_Result="$ParsedPkgZinstFind"
+		fi
+	fi
+}
+
+
+PrintCheck(){
+Parse_Result=$@
+	PkgCheckTime=`echo "$PkgCheckArry" |grep "$Parse_Result"`
+	if [[ $PkgCheckTime = "" ]]
+	then
+		PkgCheckArry="$PkgCheckArry $Parse_Result"
+		printf "%-60s %-1s %-10s %-1s\n" "| $Parse_Result" "|" "- Checked" "|"
+	fi
+}
+
+
+Package_Array_Sort(){
+# =========================================================
+BoxPkg=$ZPackages
+BoxPkgArry=( $BoxPkg )
+
+CurrPkgList="$ZinstBaseRoot/vault/Source/.current_package.list"
+CurrPkgDiR="$ZinstBaseRoot/vault/zinst/index"
+
+### Package list up
+zinst find > $CurrPkgList
+
+	### Loop for each package sort
+	BoxCounter=0
+	while [ $BoxCounter -lt ${#BoxPkgArry[@]} ]
+	do
+		Package_Parse_Check ${BoxPkgArry[$BoxCounter]}
+		BoxPkgArry[$BoxCounter]=$Parse_Result
+		PrintCheck $Parse_Result
+		
+		#### Start here for fetch the information
+		### Dependency check by zicf file from distribution server
+
+
+			IndexFileChk=`ls $CurrPkgDiR/${BoxPkgArry[$BoxCounter]}.zicf 2> /dev/null`
+			if [[ $IndexFileChk = "" ]]
+			then
+				wget "$Dist_server/checker/${BoxPkgArry[$BoxCounter]}.zicf" --directory-prefix=$CurrPkgDiR 2> /dev/null
+				CheckDep=(`cat $CurrPkgDiR/${BoxPkgArry[$BoxCounter]}.zicf 2> /dev/null |grep '^ZINST requires' | sed 's/ZINST requires pkg //g'`)
+			else
+				CheckDep=(`cat $CurrPkgDiR/${BoxPkgArry[$BoxCounter]}.zicf 2> /dev/null |grep '^ZINST requires' | sed 's/ZINST requires pkg //g'`)
+			fi
+		
+
+		### Check existed dependency package 
+		if [[ ${CheckDep[@]} != ""  ]]
+		then
+			### Loop for requires package check
+			SubBoxCounter=0
+			while [ $SubBoxCounter -lt ${#CheckDep[@]} ]
+			do
+				### version check & define
+				SubCt=0
+				while [ $SubCt -lt ${#BoxPkgArry[@]} ]
+				do
+					## check verion in line
+					Package_Parse_Check ${BoxPkgArry[$SubCt]}
+					BoxPkgArry[$SubCt]=$Parse_Result
+					PrintCheck $Parse_Result
+				let SubCt=$SubCt+1
+				done
+
+
+				Package_Parse_Check ${CheckDep[$SubBoxCounter]}
+				CheckDep[$SubBoxCounter]=$Parse_Result
+				PrintCheck $Parse_Result
+				CheckBoxPkg=`echo "${BoxPkgArry[@]}" | grep "${CheckDep[$SubBoxCounter]}" `
+				CurrCheckBoxPkg=`zinst ls |grep \`echo "${CheckDep[$SubBoxCounter]}" | awk -F'-' '{print $1}'\``
+
+				SubFetchFile=`echo "${CheckDep[$SubBoxCounter]}"`
+
+					SubIndexFileChk=`ls $CurrPkgDiR/$SubFetchFile.zicf 2> /dev/null`
+					if [[ $SubIndexFileChk = "" ]]
+					then
+						wget "$Dist_server/checker/$SubFetchFile.zicf" --directory-prefix=$CurrPkgDiR 2> /dev/null
+						SudDepChk=(`cat $CurrPkgDiR/$SubFetchFile.zicf 2> /dev/null |grep '^ZINST requires' | sed 's/ZINST requires pkg //g'`)
+					else
+						SudDepChk=(`cat $CurrPkgDiR/$SubFetchFile.zicf 2> /dev/null |grep '^ZINST requires' | sed 's/ZINST requires pkg //g'`)
+					fi
+		
+				### Package version check & define
+				SubCLe=0
+				while [ $SubCLe -lt ${#SudDepChk[@]} ]
+				do
+					if [[ ${SudDepChk[$SubCLe]} != "" ]]
+					then
+						CurrSubSecPkgChk=`zinst ls |grep "${SudDepChk[$SubCLe]}" | awk '{print $4}' `
+						SubSecPkgChk=`echo "${BoxPkgArry[@]}" | grep "${SudDepChk[$SubCLe]}"`
+						if [[ $CurrSubSecPkgChk = "" ]]
+						then
+							if [[ $SubSecPkgChk = "" ]]
+							then
+								echo " $Barr"
+								echo "  Notice: Package requires as below"
+								echo "   ${SudDepChk[$SubCLe]}" 
+								echo " $Barr"
+								echo ""
+								exit 0;
+							fi
+						fi
+    
+					fi
+				let SubCLe=$SubCLe+1
+				done
+
+				### Switch array
+
+				if [[ $SubBoxCounter = 0 ]]
+				then
+
+					if [[ $CurrCheckBoxPkg = "" ]]
+					then
+						if [[ $CheckBoxPkg != "" ]]
+						then
+							BoxPkgArry=(`echo "${BoxPkgArry[@]} " | sed -e "s/${BoxPkgArry[$BoxCounter]} //" -e "s/${CheckDep[$SubBoxCounter]} /${CheckDep[$SubBoxCounter]} ${BoxPkgArry[$BoxCounter]} /g"`)
+						else
+							echo "$Barr"
+							echo "  Notice: Package requires as below"
+							echo "   ${CheckDep[$SubBoxCounter]}"
+							echo "$Barr"
+							echo ""
+						exit 0;
+						fi
+					fi
+				else
+					if [[ $CurrCheckBoxPkg = "" ]]
+					then
+						if [[ $CheckBoxPkg != "" ]]
+						then
+							BoxPkgArry=(`echo "${BoxPkgArry[@]} " | sed -e "s/${CheckDep[$SubBoxCounter]} //" -e "s/^/${CheckDep[$SubBoxCounter]} /g"`)
+						else
+							echo "$Barr"
+							echo "  Notice: Package requires as below" 
+							echo "   ${CheckDep[$SubBoxCounter]}"
+							echo "$Barr"
+							echo ""
+							exit 0;
+						fi
+					fi
+			
+
+				fi
+				let SubBoxCounter=$SubBoxCounter+1
+			done
+		else
+			Package_Parse_Check ${BoxPkgArry[$BoxCounter]}
+			BoxPkgArry[$BoxCounter]=$Parse_Result
+			PrintCheck $Parse_Result
+			BoxPkgArry=(`echo "${BoxPkgArry[@]} " | sed -e "s/${BoxPkgArry[$BoxCounter]} //" -e "s/^/${BoxPkgArry[$BoxCounter]} /g"`)
+
+		fi
+
+	let BoxCounter=$BoxCounter+1
+	done
+
+### Remove temporary file
+rm -f $CurrPkgList $CurrPkgDiR 2> /dev/null
+
+#echo $CurrPkgDiR CurrPkgDiRCurrPkgDiRCurrPkgDiRCurrPkgDiRCurrPkgDiRCurrPkgDiRCurrPkgDiR
+
+AllPkgSortedResult="${BoxPkgArry[@]}"
+}
+
+
+	## Package Version making auto
+	StableOptionCheck=`echo "${PackageArryOption[@]}" |grep "\-stable"`
+		CheckCommandX=`echo $CommandX |egrep "^i"`
+		if [[ $CheckCommandX != "" ]]
+		then
+			if [[ $StableOptionCheck != "" ]]
+			then
+				echo ""
+				echo $Barr
+				Package_Array_Sort $ZPackages
+				ProcessPkg=$AllPkgSortedResult
+			fi
+		fi
+
+
 
 	if [[ $CommandX = "mcp" ]]
 	then
@@ -296,7 +512,7 @@ Allcommand="$CommandX $ZPackages $ZOptions $Zset"
 									exit 0;
 								fi
     
-							scp $PartedSource $TartgetHost:$TargetDir	
+							$Comm_sshpass scp $PartedSource $TartgetHost:$TargetDir	
 							let Scount=Scount+1
 						done
 					let Hcount=Hcount+1
@@ -304,7 +520,7 @@ Allcommand="$CommandX $ZPackages $ZOptions $Zset"
 					Localhost=$HOSTNAME
 					Command_p=">   mcp  "
 					SourceFull=(`echo "$Source"`)
-					ssh  -oStrictHostKeyChecking=no $TartgetHost "echo \"`date +%Y.%m.%d_%T` $WhoStamps : $Command_p - $Localhost:${SourceFull[@]} -> $TargetDir \" >> $History_LOG"
+					$Comm_sshpass ssh -oStrictHostKeyChecking=no $TartgetHost "echo \"`date +%Y.%m.%d_%T` $WhoStamps : $Command_p - $Localhost:${SourceFull[@]} -> $TargetDir \" >> $History_LOG"
 				done
 		else
 			echo "$ROWW"
@@ -327,10 +543,10 @@ szinst="zinst"
 
 			while [[ $Count -lt $Max ]];
 			do
-				HostF=${HostChanged[$Count]}
+				HostF=$WhoStamp@${HostChanged[$Count]}
 				## ssh connection check
-CheckConnection=`nohup ssh  -oStrictHostKeyChecking=no $HostF 2> $ZinstBaseRoot/vault/Source/ssh_conn_test.log;cat $ZinstBaseRoot/vault/Source/ssh_conn_test.log |grep "No route\|not known\|Connection refused"; rm -f $ZinstBaseRoot/vault/Source/ssh_conn_test.log`
-
+				$Comm_sshpass ssh -oStrictHostKeyChecking=no $HostF "grep ^VERSION /usr/bin/zinst" 2>&1> $ZinstBaseRoot/vault/Source/ssh_conn_test.log
+				CheckConnection=`sudo cat $ZinstBaseRoot/vault/Source/ssh_conn_test.log |grep "No route\|not known\|Connection refused"`
 					if [[ $CheckConnection != "" ]]
 					then
 						echo $Barr	
@@ -340,18 +556,18 @@ CheckConnection=`nohup ssh  -oStrictHostKeyChecking=no $HostF 2> $ZinstBaseRoot/
 						## Install start with target host ##
 						## Check the Package or Distribution server
 						## Package scp to destination
-						zinst_emptyCheck=`ssh $HostF "ls /usr/bin/ 2> /dev/null |grep zinst"`
-							if [[ $zinst_emptyCheck != "" ]]
+						zinst_checkDes=`sudo grep ^VERSION $ZinstBaseRoot/vault/Source/ssh_conn_test.log | sed -e 's/VERSION=//g' 2> /dev/null`
+						#zinst_emptyCheck=`grep ^VERSION $ZinstBaseRoot/vault/Source/ssh_conn_test.log | sed -e 's/VERSION=//g' 2> /dev/null`
+							if [[ $zinst_checkDes != "" ]]
 							then
-								zinst_checkDes=`ssh $HostF "cat /usr/bin/zinst 2> /dev/null |grep ^VERSION | sed -e 's/VERSION=//g'"`
-								zinst_checkLoc=`cat /usr/bin/zinst 2> /dev/null |grep ^VERSION | sed -e 's/VERSION=//g'`
+								zinst_checkLoc=`sudo cat /usr/bin/zinst 2> /dev/null |grep ^VERSION | sed -e 's/VERSION=//g'`
 
 									if [[ $zinst_checkDes < $zinst_checkLoc ]];
 									then
-										scp /usr/bin/zinst $HostF:/usr/bin/
+										$Comm_sshpass scp /usr/bin/zinst $HostF:/usr/bin
 									fi
 							else
-								scp /usr/bin/zinst $HostF:/usr/bin/
+								$Comm_sshpass scp /usr/bin/zinst $HostF:/usr/bin/ 2> /dev/null
 							fi
 
 						#### Check SSH command ########
@@ -360,9 +576,16 @@ CheckConnection=`nohup ssh  -oStrictHostKeyChecking=no $HostF 2> $ZinstBaseRoot/
 								RotaCommand=$MidPackageArry
 								szinst=""
 							fi
-						ssh $HostF "mkdir -p $ZinstBaseRoot/vault/Source"
-						echo ""
 
+						CheckDesDIR=`sudo grep " cannot access " $ZinstBaseRoot/vault/Source/ssh_conn_test.log`
+							if [[ $CommandX != "" ]]
+							then
+        						$Comm_sshpass ssh -t $HostF "sudo mkdir -p $ZinstBaseRoot/vault/Source" 2> /dev/null
+							fi
+
+        				echo ""
+						## Delete temporary connection checker file
+     					sudo rm -f $ZinstBaseRoot/vault/Source/ssh_conn_test.log
 						#### Local package scp to destination ####
 						LocalPkg=`echo $RotaCommand | sed -e 's/^[a-z]* //g'`
 						LocalPkg_Num=`echo $LocalPkg | awk '{print NF}'`
@@ -377,7 +600,7 @@ CheckConnection=`nohup ssh  -oStrictHostKeyChecking=no $HostF 2> $ZinstBaseRoot/
 
 									if [[ $LocalPkg_chk != "" ]]
 									then
-										scp $LocalRealPkg $HostF:$ZinstSourceDir/
+										$Comm_sshpass scp $LocalRealPkg $HostF:$ZinstSourceDir/
 									fi
 
 								let CountSub=CountSub+1
@@ -393,10 +616,10 @@ CheckConnection=`nohup ssh  -oStrictHostKeyChecking=no $HostF 2> $ZinstBaseRoot/
 						MultiCheck=`echo $ZOptions |grep -e "-multi"`
 							if [[ $MultiCheck = "" ]]
 							then
-								ssh $HostF "echo [ :: $HostF :: ];cd $ZinstSourceDir ;$szinst $RotaCommand"
+								$Comm_sshpass ssh -t $HostF "echo [ :: $HostF :: ];cd $ZinstSourceDir; source /etc/profile ;$szinst $RotaCommand" 2> /dev/null
 							else
 								### For multi-task
-								ssh $HostF "echo [ :: $HostF :: ];cd $ZinstSourceDir ;$szinst $RotaCommand" &
+								$Comm_sshpass ssh -t $HostF "echo [ :: $HostF :: ];cd $ZinstSourceDir; source /etc/profile ;$szinst $RotaCommand" & 
 							fi
 
 					fi
@@ -405,8 +628,7 @@ CheckConnection=`nohup ssh  -oStrictHostKeyChecking=no $HostF 2> $ZinstBaseRoot/
 		exit 0;
 	fi
 
-
-
+ 
 
 Save_Restore_file(){
 
@@ -427,7 +649,7 @@ echo "# --- Last command \" zinst $PackageAll \" " >> $Save_Dir/$Naming
 echo "# Date: `date +%Y.%m.%d_%T` " >> $Save_Dir/$Naming
 echo "#"  >> $Save_Dir/$Naming
 echo "# zinst package installer all-configuration backup-list for the package restore" >> $Save_Dir/$Naming
-zinst ls | awk 'NR>2{print "Package install",$5".zinst"}' >> $Save_Dir/$Naming
+zinst ls | awk '{print "Package install",$4".zinst"}' >> $Save_Dir/$Naming
 echo "- - - " >> $Save_Dir/$Naming
 zinst set | awk 'NR>2{print "Package settting",$1}' >> $Save_Dir/$Naming
 
@@ -437,7 +659,7 @@ zinst set | awk 'NR>2{print "Package settting",$1}' >> $Save_Dir/$Naming
 		CheckSameSave=`diff $Save_Dir/$Save_Filename.$Save_File_num  $Save_Dir/$Naming 2> /dev/null`
 			if [[ $CheckSameSave = "" ]]
 			then
-				rm -f $Save_Dir/$Naming
+				sudo rm -f $Save_Dir/$Naming
 			fi
 	fi
 
@@ -472,7 +694,7 @@ CounterAll=1
 			if [[ $Pkg_result != $Package_list ]]
 			then
 				###  check package by wget ###
-				Package_RC=`wget  --spider  $Dist_server/$Package_list -o $ZinstSourceDir/tmp_wget_check ;cat $ZinstSourceDir/tmp_wget_check |grep Remote ;rm -f $ZinstSourceDir/tmp_wget_check`
+				Package_RC=`wget  --spider  $Dist_server/$Package_list -o $ZinstSourceDir/tmp_wget_check ;sudo cat $ZinstSourceDir/tmp_wget_check |grep Remote ;sudo rm -f $ZinstSourceDir/tmp_wget_check`
 			fi
 
 		#### check local zinst file
@@ -483,9 +705,9 @@ CounterAll=1
 				CheckDir=`ls $ZinstSourceDir| grep $ZinstName$`
 					if [[ $CheckDir = "" ]]
 					then
-						mkdir $ZinstSourceDir/$ZinstName
+						sudo mkdir $ZinstSourceDir/$ZinstName
 					fi
-				cp -f $DIST/$Package_list $ZinstBaseRoot/vault/Source/$ZinstName/$Package_list
+				sudo cp -f $DIST/$Package_list $ZinstBaseRoot/vault/Source/$ZinstName/$Package_list
 			fi
 
 			if [[ $Package_RC = "Remote file does not exist -- broken link!!!" ]]
@@ -539,55 +761,58 @@ CounterAll=1
 		cd $ZinstSourceDir/$ZinstName/
 			if [[ $Pkg_result != $Package_list ]]
 			then
-				wget -N $Dist_server/$Package_list -o $ZinstSourceDir/tmp_wget_check;rm -f $ZinstSourceDir/tmp_wget_check
+				sudo wget -N $Dist_server/$Package_list -o $ZinstSourceDir/tmp_wget_check;sudo rm -f $ZinstSourceDir/tmp_wget_check
 			fi
 
 			#########  -same -live option check  ################
 			if [[ $PureOption != "-same" ]]
 			then
 				cd $ZinstSourceDir/$ZinstName/
-				rm -f $ZinstSourceDir/$ZinstName/$Package_list
+				sudo rm -f $ZinstSourceDir/$ZinstName/$Package_list
 					if [[ $Pkg_result != $Package_list ]]
 					then
-						wget -N $Dist_server/$Package_list -o $ZinstSourceDir/tmp_wget_check;rm -f $ZinstSourceDir/tmp_wget_check
+						sudo wget -N $Dist_server/$Package_list -o $ZinstSourceDir/tmp_wget_check;sudo rm -f $ZinstSourceDir/tmp_wget_check
 					else
-						mv -f $DIST/$Package_list $ZinstBaseRoot/vault/Source/$ZinstName/$Package_list	### local file copy
+						sudo mv -f $DIST/$Package_list $ZinstBaseRoot/vault/Source/$ZinstName/$Package_list	### local file copy
 					fi
 			fi
 
 		cd $ZinstBaseRoot/vault/Source/$ZinstName
-		tar zxf $ZinstBaseRoot/vault/Source/$ZinstName/$Package_list
-		rm -rf $ZinstBaseRoot/vault/Source/$ZinstName/$Package_list
-		rm -Rf $ZinstDIRs/$ZinstOrgName
-		ln -sf $ZinstBaseRoot/vault/Source/$ZinstName $ZinstDIRs/$ZinstOrgName
-		cd $ZinstDIRs/$ZinstOrgName; chmod 644 $ZICF
+		sudo tar zxf $ZinstBaseRoot/vault/Source/$ZinstName/$Package_list
+		sudo rm -rf $ZinstBaseRoot/vault/Source/$ZinstName/$Package_list
+		sudo rm -Rf $ZinstDIRs/$ZinstOrgName
+		sudo ln -sf $ZinstBaseRoot/vault/Source/$ZinstName $ZinstDIRs/$ZinstOrgName
+		cd $ZinstDIRs/$ZinstOrgName; sudo chmod 644 $ZICF
  
 		## Value set
-		Packagename=`cat $ZICF |grep ^PACKAGENAME |awk '{print $3}'`
+		Packagename=`sudo cat $ZICF |grep ^PACKAGENAME |awk '{print $3}'`
 		ZinstPackageDir="$ZinstDIRs/$Packagename"
-		Version=`cat $ZICF |grep ^VERSION |awk '{print $3}'`
-		Authorized=`cat $ZICF |grep ^AUTHORIZED |awk '{print $3}'` 
-		Owner=`cat $ZICF |grep ^OWNER |awk '{print $3}'`
-		Group=`cat $ZICF |grep ^GROUP |awk '{print $3}'`
-		Perm=`cat $ZICF |grep ^PERM |awk '{print $3}'`
-		Custodian=`cat $ZICF |grep ^CUSTODIAN |awk '{print $3}'`
-		Crontab=`cat $ZICF |grep ^CRON |awk 'NR==1{print $1}'`
-		CrontabRow=`cat $ZICF |grep ^CRON |awk '{print NR}' |tail -1`
-		Description=`cat $ZICF |grep ^DESCRIPTION |awk '{print $0}'`
+		Version=`sudo cat $ZICF |grep ^VERSION |awk '{print $3}'`
+		Authorized=`sudo cat $ZICF |grep ^AUTHORIZED |awk '{print $3}'` 
+		Owner=`sudo cat $ZICF |grep ^OWNER |awk '{print $3}'`
+		Group=`sudo cat $ZICF |grep ^GROUP |awk '{print $3}'`
+		Perm=`sudo cat $ZICF |grep ^PERM |awk '{print $3}'`
+		Custodian=`sudo cat $ZICF |grep ^CUSTODIAN |awk '{print $3}'`
+		Crontab=`sudo cat $ZICF |grep ^CRON |awk 'NR==1{print $1}'`
+		CrontabRow=`sudo cat $ZICF |grep ^CRON |awk '{print NR}' |tail -1`
+		Description=`sudo cat $ZICF |grep ^DESCRIPTION |awk '{print $0}'`
+
+		## Directory Group Permission
+		sudo chgrp -R $Group $ZinstBaseRoot/vault/Source/$ZinstName $ZinstDIRs/$ZinstOrgName
 
 		### zinst default checkr
 		## zinst set checker
-		ZinstSetCheck=`cat $ZinstBaseRoot/vault/zinst/zinst_set.list 2> /dev/null | grep ZinstSet | awk '{print $1}'`
+		ZinstSetCheck=`sudo cat $ZinstBaseRoot/vault/zinst/zinst_set.list 2> /dev/null | grep ZinstSet | awk '{print $1}'`
 		ZinstSetTitle="#==========================ZinstSet==========================="
 			if [[ $ZinstSetCheck != $ZinstSetTitle ]];
 			then
-				mkdir -p $ZinstBaseRoot/vault/zinst/
+				sudo mkdir -p $ZinstBaseRoot/vault/zinst/
 				echo "$ZinstSetTitle" > $ZinstBaseRoot/vault/zinst/zinst_set.list
-				chgrp wheel $ZinstBaseRoot/vault/zinst/zinst_set.list
+				sudo chgrp $zinst_group $ZinstBaseRoot/vault/zinst/zinst_set.list
 				echo "   -------> $ZinstBaseRoot/vault/zinst/zinst_set.list has been created for the zinst :)"
 				echo " "
 			fi
-		mkdir -p $ZinstBaseRoot/vault/Source $ZinstBaseRoot/zinst
+		sudo mkdir -p $ZinstBaseRoot/vault/Source $ZinstBaseRoot/zinst
 
 		### Dependency-checker file
 		## zinst dependency checker
@@ -595,23 +820,27 @@ CounterAll=1
 		ZinstDepTitle="#==========================ZinstDep==========================="
 			if [[ $ZinstDepCheck = "" ]];
 			then
-				mkdir -p $ZinstBaseRoot/vault/zinst/
+				sudo mkdir -p $ZinstBaseRoot/vault/zinst/
 				echo "$ZinstDepTitle" > $ZinstBaseRoot/vault/zinst/.dependency.list
-				chgrp wheel $ZinstBaseRoot/vault/zinst/.dependency.list
+				sudo chgrp $zinst_group $ZinstBaseRoot/vault/zinst/.dependency.list
 				echo " "
 			fi
 		
 		### Make a Blank .file.list
 		echo "echo \" $Packagename-$Version package install ==>>> \" " > .file.list
+		echo "export ZinstDir=$ZinstBaseRoot " >> .file.list
+
+		sudo chgrp $zinst_group .file.list
+		sudo chmod 664 .file.list
 		#echo "echo "$Packagename-$Version has been installed" " > .file.list
 
 		## Package Dependency check - on no-over write
-		Dep_checkerNum=`cat ./$ZICF  |grep "^ZINST requires pkg" | awk '{print NR}' |tail -1 `
+		Dep_checkerNum=`sudo cat ./$ZICF  |grep "^ZINST requires pkg" | awk '{print NR}' |tail -1 `
 		DepCounter=1
 			while [[ $DepCounter -le $Dep_checkerNum ]]
 			do
-				Dep_checker=`cat ./$ZICF  |grep "^ZINST requires pkg" | awk 'NR=='$DepCounter'{print $4}'`
-				Dep_list_check=`zinst ls |awk -F '-  ' '{print $2}' | awk -F '-' '{print $1}' | egrep "^$Dep_checker$"`
+				Dep_checker=`sudo cat ./$ZICF  |grep "^ZINST requires pkg" | awk 'NR=='$DepCounter'{print $4}'`
+				Dep_list_check=`zinst ls |awk -F '-   ' '{print $2}' | awk -F '-' '{print $1}' | egrep "^$Dep_checker$"`
 					if [[ $Dep_checker != "" ]]
 					then    
 
@@ -619,7 +848,7 @@ CounterAll=1
 						then
 							echo ""
 							echo " ===== You need to install the \"$Dep_checker\" package first before the $Packagename install ===="
-							rm -Rf $ZinstBaseRoot/vault/Source/$ZinstName $ZinstDIRs/$ZinstOrgName
+							sudo rm -Rf $ZinstBaseRoot/vault/Source/$ZinstName $ZinstDIRs/$ZinstOrgName
 							exit 0;
 						fi
 
@@ -635,30 +864,30 @@ CounterAll=1
 		#### [File parser] #####
 		### File set
 		## Directory make for the File copy
-		CPP=( `cat $ZICF |grep ^FILE | awk '{print "'$ZinstBaseRoot'/"$5}'` )
+		CPP=( `sudo cat $ZICF |grep ^FILE | awk '{print "'$ZinstBaseRoot'/"$5}'` )
 			if [[ $CPP != ""  ]]; 
 			then
-				echo "mkdir -p ${CPP[*]%/*}" >> .file.list
+				echo "sudo mkdir -p ${CPP[*]%/*}" >> .file.list
 			fi
 		## File copy
 		#echo "File copy" >> .file.list
-		cat $ZICF |grep ^FILE | awk '{print "cp",$6,"'$ZinstBaseRoot'/"$5}' >> .file.list
+		sudo cat $ZICF |grep ^FILE | awk '{print "cp",$6,"'$ZinstBaseRoot'/"$5}' >> .file.list
 
 		## File Permission
-		cat $ZICF |grep ^FILE | awk '{print "chmod",$2,"'$ZinstBaseRoot'/"$5}' >> .file.list
+		sudo cat $ZICF |grep ^FILE | awk '{print "chmod",$2,"'$ZinstBaseRoot'/"$5}' >> .file.list
 
 		## File Owner 
-		#cat $ZICF |grep ^FILE | awk '{print "chown",'\"$Owner\"',"'$ZinstBaseRoot'/"$5}' >> .file.list
-		cat $ZICF |grep ^FILE | awk '{print "chown",$3,"'$ZinstBaseRoot'/"$5}' >> .file.list
+		#sudo cat $ZICF |grep ^FILE | awk '{print "chown",'\"$Owner\"',"'$ZinstBaseRoot'/"$5}' >> .file.list
+		sudo cat $ZICF |grep ^FILE | awk '{print "chown",$3,"'$ZinstBaseRoot'/"$5}' >> .file.list
 
 		## File Group 
-		cat $ZICF |grep ^FILE | awk '{print "chgrp",$4,"'$ZinstBaseRoot'/"$5}' >> .file.list
+		sudo cat $ZICF |grep ^FILE | awk '{print "chgrp",$4,"'$ZinstBaseRoot'/"$5}' >> .file.list
 
 
 		#### [Symbolic parser] #####
 		### Symbolic link set
 		## Directory makes for the simbolic
-		LNP=( `cat $ZICF |grep ^SYMB | awk '{print "'$ZinstBaseRoot'/"$5}'` )
+		LNP=( `sudo cat $ZICF |grep ^SYMB | awk '{print "'$ZinstBaseRoot'/"$5}'` )
 			if [[ $LNP != ""  ]]; 
 			then
 				echo "mkdir -p ${LNP[*]%/*}" >> .file.list
@@ -666,71 +895,71 @@ CounterAll=1
 
 		## make a Symbolic
 		#echo "Make a symbole" >> .file.list
-		cat $ZICF |grep ^SYMB | awk '{print "ln -sf '$ZinstBaseRoot'/"$6, "'$ZinstBaseRoot'/"$5}' >> .file.list
+		sudo cat $ZICF |grep ^SYMB | awk '{print "sudo ln -fs '$ZinstBaseRoot'/"$6, "'$ZinstBaseRoot'/"$5}' >> .file.list
 
 		## Symb Permission
-		#cat $ZICF |grep ^SYMB | awk '{print "chmod",$2,"'$ZinstBaseRoot'/"$5}' >> .file.list
+		#sudo cat $ZICF |grep ^SYMB | awk '{print "chmod",$2,"'$ZinstBaseRoot'/"$5}' >> .file.list
 		## Symb Owner 
-		#cat $ZICF |grep ^SYMB | awk '{print "chown",$3,"'$ZinstBaseRoot'/"$5}' >> .file.list
+		#sudo cat $ZICF |grep ^SYMB | awk '{print "chown",$3,"'$ZinstBaseRoot'/"$5}' >> .file.list
 		## Symb Group 
-		#cat $ZICF |grep ^SYMB | awk '{print "chgrp",$4,"'$ZinstBaseRoot'/"$5}' >> .file.list
+		#sudo cat $ZICF |grep ^SYMB | awk '{print "chgrp",$4,"'$ZinstBaseRoot'/"$5}' >> .file.list
 
 
 		#### [Configuration file parser] #####
 		### Config file set
 
 		## Directory makes for the Config
-		CPC=( `cat $ZICF |grep ^CONF | awk '{print "'$ZinstBaseRoot'/"$5}'` )
+		CPC=( `sudo cat $ZICF |grep ^CONF | awk '{print "'$ZinstBaseRoot'/"$5}'` )
 			if [[ $CPC != ""   ]];
 			then						
-				echo "mkdir -p ${CPC[*]%/*}" >> .file.list
-				echo "touch  ${CPC[*]%/*}""/_zinst" >> .file.list
+				echo "sudo mkdir -p ${CPC[*]%/*}" >> .file.list
+				echo "sudo touch  ${CPC[*]%/*}""/_zinst" >> .file.list
 			fi
 		#echo "Config file set" >> .file.list
-		cat $ZICF |grep ^CONF | awk '{print "cp",$6,"'$ZinstBaseRoot'/"$5}' >> .file.list
+		sudo cat $ZICF |grep ^CONF | awk '{print "cp",$6,"'$ZinstBaseRoot'/"$5}' >> .file.list
 
 		## Config Permission
-		cat $ZICF |grep ^CONF | awk '{print "chmod",$2,"'$ZinstBaseRoot'/"$5}' >> .file.list
+		sudo cat $ZICF |grep ^CONF | awk '{print "chmod",$2,"'$ZinstBaseRoot'/"$5}' >> .file.list
 
 		## Config Owner 
-		cat $ZICF |grep ^CONF | awk '{print "chown",$3,"'$ZinstBaseRoot'/"$5}' >> .file.list
+		sudo cat $ZICF |grep ^CONF | awk '{print "chown",$3,"'$ZinstBaseRoot'/"$5}' >> .file.list
 
 		## Config Group 
-		cat $ZICF |grep ^CONF | awk '{print "chgrp",$4,"'$ZinstBaseRoot'/"$5}' >> .file.list
+		sudo cat $ZICF |grep ^CONF | awk '{print "chgrp",$4,"'$ZinstBaseRoot'/"$5}' >> .file.list
 
 		#### [Change parse detail]
 		## change Permission
-		sed -i 's/chmod - /chmod '$Perm' /g' ./.file.list
+		sudo sed -i 's/chmod - /chmod '$Perm' /g' ./.file.list
 		## change Owner
-		sed -i 's/chown - /chown '$Owner' /g' ./.file.list
+		sudo sed -i 's/chown - /chown '$Owner' /g' ./.file.list
 		## change Group
-		sed -i 's/chgrp - /chgrp '$Group' /g' ./.file.list
+		sudo sed -i 's/chgrp - /chgrp '$Group' /g' ./.file.list
 		## change direction
-		sed -i 's/\.\./\./g' ./.file.list
+		sudo sed -i 's/\.\./\./g' ./.file.list
 
 		#### [Command line parser] #####
 		## Command line excute
-		cat $ZICF |grep ^COMM | awk '{print $0}' | sed -e 's/COMM//g' >> .file.list
+		sudo cat $ZICF |grep ^COMM | awk '{print $0}' | sed -e 's/COMM //g' >> .file.list
 
 
 		### Config file set
 		#### [Zinst Set parser]
-		#cat $ZICF |grep '^ZINST set' |grep set | awk '{print "zinst set","'$Packagename'."$3"="$4}' >> .file.list
-		cat $ZICF |grep '^ZINST set' |grep set | awk '{print "sed -i '/$Packagename.'"$3"'/'d '$ZinstBaseRoot/vault/zinst/zinst_set.list'"}' >> .file.list
-		cat $ZICF |grep '^ZINST set' |grep set | awk '{print " echo \"'"$Packagename."'"$3"="$4"\" >> '$ZinstBaseRoot'/vault/zinst/zinst_set.list"}' >> .file.list
+		#sudo cat $ZICF |grep '^ZINST set' |grep set | awk '{print "zinst set","'$Packagename'."$3"="$4}' >> .file.list
+		sudo cat $ZICF |grep '^ZINST set' |grep set | awk '{print "sed -i '/$Packagename.'"$3"'/'d '$ZinstBaseRoot/vault/zinst/zinst_set.list'"}' >> .file.list
+		sudo cat $ZICF |grep '^ZINST set' |grep set | awk '{print "echo \"'"$Packagename."'"$3"="$4"\" >> '$ZinstBaseRoot'/vault/zinst/zinst_set.list"}' >> .file.list
 
 
 		### Package Dependency check
 		#### [Zinst Dep parser]
-		Dep_checkerNum=`cat ./$ZICF  |grep "^ZINST requires" | awk '{print NR}' |tail -1 `
+		Dep_checkerNum=`sudo cat ./$ZICF  |grep "^ZINST requires" | awk '{print NR}' |tail -1 `
 		DepCounter=1
 			while [[ $DepCounter -le $Dep_checkerNum ]]
 			do
-			ZinstDeps=`cat $ZICF |grep '^ZINST requires' | awk 'NR=='$DepCounter`
+			ZinstDeps=`sudo cat $ZICF |grep '^ZINST requires' | awk 'NR=='$DepCounter`
 				if [[ $ZinstDeps != "" ]];
 				then
-					ZinstDepChk=`cat $ZICF |grep '^ZINST requires' | awk '{print $4" - package has a dependency with ( '$Packagename' )"}'`
-					ZinstCurrentDeps=`cat $ZinstBaseRoot/vault/zinst/.dependency.list |grep "$ZinstDepChk"`
+					ZinstDepChk=`sudo cat $ZICF |grep '^ZINST requires' | awk '{print $4" - package has a dependency with ( '$Packagename' )"}'`
+					ZinstCurrentDeps=`sudo cat $ZinstBaseRoot/vault/zinst/.dependency.list |grep "$ZinstDepChk"`
 						if [[ $ZinstCurrentDeps = ""  ]];
 						then
 							echo "$ZinstDepChk"  >> $ZinstBaseRoot/vault/zinst/.dependency.list
@@ -747,50 +976,52 @@ CounterAll=1
 				Counter=1
 					while [ $Counter -le $CrontabRow ]
 					do
-						echo "##$Packagename-$Version Cron Scheduler"  > $Packagename.cron	
-						cat $ZICF |grep ^CRON | awk 'NR=='$Counter'{print $5,$6,$7,$8,$9,"'$ZinstBaseRoot'/"$10," #'$Packagename'"}' >> $Packagename.cron
-						CronUser=`cat $ZICF |grep ^CRON | awk 'NR=='$Counter'{print $3}'`
+						sudo sh -c "echo \"##$Packagename-$Version Cron Scheduler\"  > $Packagename.cron"
+						#sudo sh -c "cat $ZICF |grep \"^CRON\" | awk 'NR==$Counter {print $5,$6,$7,$8,$9,\"$ZinstBaseRoot/\"$10,\" #$Packagename\"}' >> $Packagename.cron"
+						CrontFetch=`sudo cat $ZICF |grep "^CRON" | awk 'NR=='$Counter' {print $5,$6,$7,$8,$9,"'$ZinstBaseRoot'/"$10," #'$Packagename'"}'`
+						sudo sh -c "echo \"$CrontFetch\" >> $Packagename.cron"
+						CronUser=`sudo cat $ZICF |grep ^CRON |  awk 'NR=='$Counter'{print $3}'`
 							if [[ $CronUser = "-" ]];
 							then 
 								CronUser=$Owner
 							fi
 						TargetCron=/var/spool/cron/$CronUser
 						echo "#### $TargetCron"  >> .file.list
-						Result=`cat $TargetCron  2> /dev/null |grep $Packagename`
+						Result=`sudo cat $TargetCron  2> /dev/null |grep $Packagename`
 							if [[ $Counter = "1" ]];
 							then
 								if [[ $Result != "" ]];
 								then
 									echo "---==== Crontab has a configuration about this already ====---";
-									sed -i "/$Packagename/d" $TargetCron;
+									sudo sed -i "/$Packagename/d" $TargetCron;
 									echo "---==== Crontab has been changed as a new configration ====---"
-									cat $Packagename.cron >> $TargetCron
+									sudo sh -c "cat $Packagename.cron >> $TargetCron"
 								else
-									cat $Packagename.cron >> $TargetCron
+									sudo sh -c "cat $Packagename.cron >> $TargetCron"
 									echo "---==== Crontab has been changed as a new configration ====---"
 								fi
 							else
-								cat $Packagename.cron >> $TargetCron
+								sudo sh -c "cat $Packagename.cron >> $TargetCron"
 							fi
 					let Counter=Counter+1
 					done;
 			#rm $Packagename.cron
 			fi
 		## Excute command list and file & package file remove
-		sed -i 's/\t//g' ./.file.list
-		sed -i 's/^ cp/cp/g' ./.file.list
-		sh ./.file.list; zinst ls -files $Packagename
+		sudo sed -i 's/\t//g' ./.file.list
+		sudo sed -i 's/^ cp/cp/g' ./.file.list
+		sudo sh ./.file.list; zinst ls -files $Packagename
 		echo "$Packagename-$Version package has been installed"
-		rm -f $ZinstSourceDir/$Package_list 1> /dev/null
+		sudo rm -f $ZinstSourceDir/$Package_list 1> /dev/null
 
 ## Out of 3 steps older package clean - Todo
 
 		## Package listup
 		ZP=`echo "$ZinstBaseRoot" | sed -e "s/\///g"` 
 		ls -l $ZinstDIRs/ | awk '{print $6,$7,$8,"-", $11}' > $ZinstBaseRoot/vault/zinst/.pkglist
-		sed -i 's/\//%/g'  $ZinstBaseRoot/vault/zinst/.pkglist
-		sed -i '/   -/d'  $ZinstBaseRoot/vault/zinst/.pkglist
-		sed -i "s/%$ZP%vault%Source%/ /g"  $ZinstBaseRoot/vault/zinst/.pkglist
+		sudo sed -i 's/\//%/g'  $ZinstBaseRoot/vault/zinst/.pkglist
+		sudo sed -i '/   -/d'  $ZinstBaseRoot/vault/zinst/.pkglist
+		sudo sed -i "s/%$ZP%vault%Source%/ /g"  $ZinstBaseRoot/vault/zinst/.pkglist
 
 		Command_p="+ Install"
 		echo "`date +%Y.%m.%d_%T` $WhoStamps : $Command_p - $ZinstName $PureOption" >> $History_LOG 
@@ -820,7 +1051,7 @@ SetValue=${CheckSetArry[1]}
 
 	if [[ $SetValue = "" ]];
 	then
-		cat $ZinstBaseRoot/vault/zinst/zinst_set.list
+		sudo cat $ZinstBaseRoot/vault/zinst/zinst_set.list
 	else
 		CSetCount=0;
 			for (( i=0; i<=$CheckSetNum; i++ ))
@@ -847,19 +1078,26 @@ SetValue=${CheckSetArry[1]}
 			SetTarget=`echo "$SetOptionValueE" | awk -F "=" '{print $1}'`	
 			ZinstSet=`echo "$SetOptionValueE" | sed -e "s/$SetTarget=//g" 2> /dev/null`
 			Option=`echo $SetTarget | awk -F '.' '{print $2}'`
+
 			PackageS=`echo $SetTarget | awk -F '.' '{print $1}'`
 
 			SetZICF="$PackageS.zicf"
 			## Check a set list in zinst
-			CurrentSet=( `cat $ZinstBaseRoot/vault/zinst/zinst_set.list | grep ^$SetTarget` )
+			CurrentSet=( `sudo cat $ZinstBaseRoot/vault/zinst/zinst_set.list | grep ^$SetTarget` )
 			CurrentSetCheck=`echo "$CurrentSet" | awk -F "=" '{print $1}'`
 			CurrentSetCheck2=`echo "$CurrentSet" | sed -e "s/$CurrentSetCheck=//g"  2> /dev/null`
 			Setchecker=`ls $ZinstDIRs 2> /dev/null |grep $PackageS`
 
 				if [[ $Setchecker != ""  ]];
 				then
+						if [[ $Option = "" ]]
+						then 
+							echo " Please make sure the target option "
+							echo " ex) zinst set vipctl.onboot=yes "
+							exit 0;
+						fi
 					## Find a current set 
-					Grep_ZICF=`cat $ZinstDIRs/$PackageS/$SetZICF |grep ^CONF | awk '{print "'$ZinstBaseRoot'/"$5}'`
+					Grep_ZICF=`sudo cat $ZinstDIRs/$PackageS/$SetZICF |grep ^CONF | awk '{print "'$ZinstBaseRoot'/"$5}'`
 						if [[ $Grep_ZICF = "" ]]
 						then 
 							echo "$Barr"
@@ -872,13 +1110,13 @@ SetValue=${CheckSetArry[1]}
 							exit 0;
 						fi
 					Conf_Dir="${Grep_ZICF[*]%/*}"
-					Grep_Option=`grep "^$Option=" $Conf_Dir/*`
+					Grep_Option=`sudo grep "^$Option=" $Conf_Dir/*`
 						if [[ $Grep_Option = "" ]]
 						then
-							Grep_Option=`grep "^$Option = " $Conf_Dir/*`
+							Grep_Option=`sudo grep "^$Option = " $Conf_Dir/*`
 								if [[ $Grep_Option = "" ]]
 								then 
-									Grep_Option=`grep "^$Option " $Conf_Dir/*`
+									Grep_Option=`sudo grep "^$Option " $Conf_Dir/*`
 								fi
 						fi
 					## Parsing
@@ -892,53 +1130,62 @@ SetValue=${CheckSetArry[1]}
 					### Current Setting check and replace
 						if [[ $SetTarget = $CurrentSetCheck ]];
 						then
-							sed -i "/$SetTarget/d" $ZinstBaseRoot/vault/zinst/zinst_set.list
+							sudo sed -i "/$SetTarget/d" $ZinstBaseRoot/vault/zinst/zinst_set.list
 					
-							Equiltype1=`grep "$Option=$CurrentSetCheck2" $Conf_File`
-							Equiltype2=`grep "$Option = $CurrentSetCheck2" $Conf_File`
-							Equiltype3=`grep "$Option $CurrentSetCheck2" $Conf_File`
-							Check_Conf_File=`grep \/ $Conf_File`
+							Equiltype1=`sudo grep "$Option=$CurrentSetCheck2" $Conf_File`
+							Equiltype2=`sudo grep "$Option = $CurrentSetCheck2" $Conf_File`
+							Equiltype3=`sudo grep "$Option $CurrentSetCheck2" $Conf_File`
+							Check_Conf_File=`sudo grep \/ $Conf_File`
 								if [[ $Check_Conf_File != ""  ]];
 								then
-									sed -i "s/\//%%%/g" $Conf_File
+									sudo sed -i "s/\//%%%/g" $Conf_File
 									CurrentSetCheck2=`echo "$CurrentSetCheck2" | sed -e "s/\//%%%/g"`
 									ZinstSet=`echo "$ZinstSet" |  sed -e "s/\//%%%/g"`
 										if [[ $Equiltype1 != "" ]];
 										then 
-											sed -i "s/$Option=$CurrentSetCheck2$/$Option=$ZinstSet/g" $Conf_File
+											sudo sed -i "s/$Option=$CurrentSetCheck2$/$Option=$ZinstSet/g" $Conf_File
 										elif [[ $Equiltype2 != "" ]]; then
-											sed -i "s/$Option = $CurrentSetCheck2$/$Option = $ZinstSet/g" $Conf_File
+											sudo sed -i "s/$Option = $CurrentSetCheck2$/$Option = $ZinstSet/g" $Conf_File
 										elif [[ $Equiltype3 != "" ]]; then
-											sed -i "s/$Option $CurrentSetCheck2$/$Option $ZinstSet/g" $Conf_File
+											sudo sed -i "s/$Option $CurrentSetCheck2$/$Option $ZinstSet/g" $Conf_File
 										fi		
-									sed -i "s/%%%/\//g" $Conf_File
+									sudo sed -i "s/%%%/\//g" $Conf_File
 								fi
 			
 								if [[ $Equiltype1 != "" ]];
 								then 
-									sed -i "s/$Option=$CurrentSetCheck2$/$Option=$ZinstSet/g" $Conf_File
+									sudo sed -i "s/$Option=$CurrentSetCheck2$/$Option=$ZinstSet/g" $Conf_File
 								elif [[ $Equiltype2 != "" ]]; then
-									sed -i "s/$Option = $CurrentSetCheck2$/$Option = $ZinstSet/g" $Conf_File
+									sudo sed -i "s/$Option = $CurrentSetCheck2$/$Option = $ZinstSet/g" $Conf_File
 								elif [[ $Equiltype3 != "" ]]; then
-									sed -i "s/$Option $CurrentSetCheck2$/$Option $ZinstSet/g" $Conf_File
+									sudo sed -i "s/$Option $CurrentSetCheck2$/$Option $ZinstSet/g" $Conf_File
 								fi		
 
 							### Stamping a Set value for history
-							Grep_Option=`grep "^$Option=" $Conf_Dir/*`
+							Grep_Option=`sudo grep "^$Option=" $Conf_Dir/*`
 								if [[ $Grep_Option = "" ]]
 								then
-									Grep_Option=`grep "^$Option = " $Conf_Dir/*`
+									Grep_Option=`sudo grep "^$Option = " $Conf_Dir/*`
 										if [[ $Grep_Option = "" ]]
 										then 
-											Grep_Option=`grep "^$Option " $Conf_Dir/*`
+											Grep_Option=`sudo grep "^$Option " $Conf_Dir/*`
 										fi
 								fi
+
+
 							realSetOption=`echo "$Grep_Option"  | awk -F ':' '{print $2}' | sed -e "s/$Option /$Option=/g" -e 's/== /=/g'`
 							echo "$PackageS.$realSetOption" >> $ZinstBaseRoot/vault/zinst/zinst_set.list
-							cat  $ZinstBaseRoot/vault/zinst/zinst_set.list |grep ^$SetTarget
+							sudo cat  $ZinstBaseRoot/vault/zinst/zinst_set.list |grep ^$SetTarget
 
 							echo "`date +%Y.%m.%d_%T` $WhoStamps : $Command_p - $SetOptionValueE  " >> $History_LOG
 						else
+							### Cancel Setup when it meet th Empty result
+								if [[ $Grep_Option = "" ]]
+								then
+									echo " It dose not existed target option"
+									echo " ex) zinst set vipctl.onboot=yes "
+									exit 0;
+								fi
 							echo "$SetOptionValueE" >> $ZinstBaseRoot/vault/zinst/zinst_set.list
 							echo "`date +%Y.%m.%d_%T` $WhoStamps : $Command_p - $SetOptionValueE  " >> $History_LOG
 						fi
@@ -973,45 +1220,49 @@ ProcessPkg=($ZPackages)
 						echo "  "
 						exit;
 					fi
-				RmResult=`cat $ZinstDIRs/$ZinstOrgName/.file.list |grep ^echo | awk '{print $2}'`
+				RmResult=`sudo cat $ZinstDIRs/$ZinstOrgName/.file.list |grep ^echo | awk '{print $2}'`
 					if  [[ $RmResult != "" ]]; 
 					then
 						cd $ZinstDIRs/$ZinstOrgName
-						RmTargetCron=`cat .file.list  | grep \#### | awk '{print $2}'`
-						RmPkg_list=`cat .file.list |grep ^echo |awk '{print $3}'`
-						RmDepChecker=`cat $ZinstBaseRoot/vault/zinst/.dependency.list | grep ^$ZinstOrgName |awk '{print $9}' `
-							if [[ $RmDepChecker != "" ]]
+						RmTargetCron=`sudo cat .file.list  | grep \#### | awk '{print $2}'`
+						RmPkg_list=`sudo cat .file.list |grep " package install " |awk '{print $3}'`
+
+							if [[ $ZOptions != "-force" ]]
 							then
-								echo "===== You have to remove as below package(s) ===== "
-								echo "$RmDepChecker"
-								echo "================================================== "
-								echo "= $ZinstOrgName has a dependency with that. = "
-								exit 0;
+							RmDepChecker=`sudo cat $ZinstBaseRoot/vault/zinst/.dependency.list | grep ^$ZinstOrgName |awk '{print $9}' `
+								if [[ $RmDepChecker != "" ]]
+								then
+									echo "===== You have to remove as below package(s) ===== "
+									echo "$RmDepChecker"
+									echo "================================================== "
+									echo "= $ZinstOrgName has a dependency with that. = "
+									exit 0;
+								fi
 							fi
-						sed -i '/'$ZinstOrgName'/d' $ZinstBaseRoot/vault/zinst/.dependency.list
-						`cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep ^cp | awk '{print "rm -Rfv",$3}'`
-						RmMv=`cat $ZinstDIRs/$ZinstOrgName/.file.list |grep ^mv  | awk '{print $2}' | awk -F '/' '{print $NF}'`
-						`cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep ^mv | awk '{print "rm -Rfv",$3"$RmMv"}'`
-						`cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep ^ln | awk '{print "rm -Rfv",$4}'`
-						RmDir=`cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep ^mkdir |awk '{print "ls", $3}'`
+						sudo sed -i '/'$ZinstOrgName'/d' $ZinstBaseRoot/vault/zinst/.dependency.list
+						`sudo cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep "^cp" | awk '{print "sudo rm -Rfv",$3}'`
+						RmMv=`sudo cat $ZinstDIRs/$ZinstOrgName/.file.list |grep "^mv"  | awk '{print $2}' | awk -F '/' '{print $NF}'`
+						`sudo cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep "^mv" | awk '{print "sudo rm -Rfv",$3"$RmMv"}'`
+						`sudo cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep "^ln" | awk '{print "sudo rm -Rfv",$4}'`
+						RmDir=`sudo cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep "^mkdir" |awk '{print "ls", $3}'`
 							if [[ $RmDir = "" ]];
 							then
-								`cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep ^mkdir |awk '{print "rmdir", $3}'`
+								`sudo cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep "^mkdir" |awk '{print "rmdir", $3}'`
 							fi
 						RmZinstName=`ls $ZinstBaseRoot/vault/Source/ |grep $Pkg_list`
-						rm -Rfv $ZinstDIRs/$ZinstOrgName
-						rm -Rfv $ZinstBaseRoot/vault/Source/$RmPkg_list
+						sudo rm -Rfv $ZinstDIRs/$ZinstOrgName
+						sudo rm -Rfv $ZinstBaseRoot/vault/Source/$RmPkg_list
  						echo "########## $RmPkg_list package has been removed ######## "
-						sed -i "/$ZinstOrgName/d" $ZinstBaseRoot/vault/zinst/zinst_set.list
+						sudo sed -i "/$ZinstOrgName/d" $ZinstBaseRoot/vault/zinst/zinst_set.list
 							if [[ $RmTargetCron != "" ]]
 							then
-								sed -i "/$ZinstOrgName/d" $RmTargetCron
+								sudo sed -i "/$ZinstOrgName/d" $RmTargetCron
 							fi
 					else
 						echo "============= $ZPackages package has not installed =================="
 					fi
 				### Remove action stamps to Dist
-				curl -e --url $Dist_server/remove:$RmPkg_list.zinst > /dev/null  2>&1
+				sudo curl -e --url $Dist_server/remove:$RmPkg_list.zinst > /dev/null  2>&1
 
 				Command_p="- Remove "
 				echo "`date +%Y.%m.%d_%T` $WhoStamps : $Command_p - $RmPkg_list  " >> $History_LOG
@@ -1054,8 +1305,9 @@ CurrentCheck=`echo $ZPackages |grep "^./"`
 						while [[ $CounterFM -le $File_list_Num ]]
 						do
 							Package_dir=`echo $File_list | awk '{print $'$CounterFM'}'`
+
 							cd $ZinstDIRs/$Package_dir
-							Package_finder=`egrep "$Pkg_file_checker$" .file.list | grep "^cp" |awk '{print $3}' 2> /dev/null`
+							Package_finder=`sudo egrep "$Pkg_file_checker$" .file.list | grep "^cp" |awk '{print $3}' 2> /dev/null`
 							if [[ $Package_finder != "" ]]
 							then
 								cd $ZinstDIRs/
@@ -1063,7 +1315,8 @@ CurrentCheck=`echo $ZPackages |grep "^./"`
 								echo "$Result_file  <-------   $Pkg_file_checker"
 							fi
 
-							Symb_finder=`egrep "$Pkg_file_checker$" .file.list | grep "^ln" |awk '{print $4}' 2> /dev/null`
+							cd $ZinstDIRs/$Package_dir
+							Symb_finder=`sudo egrep "$Pkg_file_checker$" .file.list | grep "^ln" |awk '{print $4}' 2> /dev/null`
 							if [[ $Symb_finder != "" ]]
 							then
 								cd $ZinstDIRs/
@@ -1083,8 +1336,8 @@ CurrentCheck=`echo $ZPackages |grep "^./"`
 				fi
 		ZinstOrgName=`echo $ZPackages| awk -F "-" '{print $1}'`
 		cd $ZinstDIRs/$ZinstOrgName 2> /dev/null
-		cat $ZinstDIRs/$ZinstOrgName/.file.list 2> /dev/null | grep ^cp | awk '{print $3}'
-		cat $ZinstDIRs/$ZinstOrgName/.file.list 2> /dev/null | grep ^ln | awk '{print $4,"<- " $3}'
+		sudo cat $ZinstDIRs/$ZinstOrgName/.file.list 2> /dev/null | grep "^cp" | awk '{print $3}'
+		sudo cat $ZinstDIRs/$ZinstOrgName/.file.list 2> /dev/null | grep "^ln" | awk '{print $5,"<- " $4}'
 	fi
 	elif [[ $ZOptions = "-zicf" ]]
 	then
@@ -1094,7 +1347,7 @@ CurrentCheck=`echo $ZPackages |grep "^./"`
 			else
 				ZinstOrgName=`echo ${PackageArry[0]}| awk -F "-" '{print $1}'`
 				cd $ZinstDIRs/$ZinstOrgName
-				cat $ZinstDIRs/$ZinstOrgName/$ZinstOrgName.zicf
+				sudo cat $ZinstDIRs/$ZinstOrgName/$ZinstOrgName.zicf
 			fi
 	elif [[ $ZOptions = "-dep" ]]
 	then
@@ -1104,20 +1357,22 @@ CurrentCheck=`echo $ZPackages |grep "^./"`
 			else
 				ZinstOrgName=`echo ${PackageArry[0]}| awk -F "-" '{print $1}'`
 				cd $ZinstDIRs/$ZinstOrgName
-				cat $ZinstBaseRoot/vault/zinst/.dependency.list |grep ^$ZinstOrgName
+				sudo cat $ZinstBaseRoot/vault/zinst/.dependency.list |grep ^$ZinstOrgName
 			fi
 	else
 		ZP=`echo "$ZinstBaseRoot" | sed -e "s/\///g"` 
-		mkdir -p $ZinstBaseRoot/vault/zinst/
+		sudo mkdir -p $ZinstBaseRoot/vault/zinst/
 		export TIME_STYLE="+%Y-%m-%d %H:%M:%S %z" 
 		ls -l $ZinstDIRs/ 2> /dev/null | awk '{print $6,$7," - ", $11}' > $ZinstBaseRoot/vault/zinst/.pkglist 
-		sed -i 's/\//%/g'  $ZinstBaseRoot/vault/zinst/.pkglist
-		sed -i '/   -/d'  $ZinstBaseRoot/vault/zinst/.pkglist
-		sed -i "s/%$ZP%vault%Source%/ /g"  $ZinstBaseRoot/vault/zinst/.pkglist
-		PkgListZ=`cat $ZinstBaseRoot/vault/zinst/.pkglist 2> /dev/null`
+		sudo chgrp wheel $ZinstBaseRoot/vault/zinst/.pkglist
+		sudo chmod 664 $ZinstBaseRoot/vault/zinst/.pkglist
+		sudo sed -i 's/\//%/g'  $ZinstBaseRoot/vault/zinst/.pkglist
+		sudo sed -i '/   -/d'  $ZinstBaseRoot/vault/zinst/.pkglist
+		sudo sed -i "s/%$ZP%vault%Source%/ /g"  $ZinstBaseRoot/vault/zinst/.pkglist
+		PkgListZ=`sudo cat $ZinstBaseRoot/vault/zinst/.pkglist 2> /dev/null`
 			if [[ $PkgListZ = "" ]]
 			then
-				echo "=============== Not existed zinst package in here ============"
+				echo "=============== Package dose Not-existed here ============"
 			fi
 		echo "$PkgListZ"
 
@@ -1137,9 +1392,9 @@ Pkg_Find(){
 	else
 			if [[ $ZPackages = "" ]];
 			then
-				curl -e --url $Dist_server/ 2> /dev/null |grep zinst | sed 's/^.*<a href="//g' |awk -F '\"' '{print $1}' | egrep -v ^zinst$
+				sudo curl -e --url $Dist_server/ 2> /dev/null |grep zinst | sed 's/^.*<a href="//g' |awk -F '\"' '{print $1}' | egrep -v ^zinst$
 			else
-				curl -e --url $Dist_server/ 2> /dev/null |grep zinst | sed 's/^.*<a href="//g' |awk -F '\"' '{print $1}' | egrep -v ^zinst$ | grep $ZPackages 
+				sudo curl -e --url $Dist_server/ 2> /dev/null |grep zinst | sed 's/^.*<a href="//g' |awk -F '\"' '{print $1}' | egrep -v ^zinst$ | grep $ZPackages 
 			fi
 	
 	fi
@@ -1210,7 +1465,28 @@ RestoreFile_checkr=`ls $Restore_File`
 
 	if [[ $Types = "-file" ]]
 	then
-		cat $RestoreFile_checkr |egrep "^Package" | sed 's/Package/zinst/g' |  sed 's/settting/set/g'
+		sudo cat $RestoreFile_checkr |egrep "^Package" | sed 's/Package/zinst/g' |  sed 's/settting/set/g'
+	
+		echo " "
+		echo " Do you want to restore as these list ? [ y / n ]"
+		read SureRestore
+
+			### Restore Remove
+			if [[ $SureRestore = "y" ]]
+			then
+				
+				RemoveForRestore=( `zinst ls | awk '{print $4}'` )
+#				RestoreCount=0
+#				while [ $RestoreCount -lt ${#RemoveForRestore[@]} ]
+#				do
+					`echo zinst remove ${RemoveForRestore[@]}`
+#				let RestoreCount=$RestoreCount+1
+#				done
+				ServerDefaultFirst=`cat $RestoreFile_checkr |grep "install server_default_setting" | awk '{print $3}'`
+				zinst install $ServerDefaultFirst
+				`echo "zinst install \`cat $RestoreFile_checkr |egrep "^Package" | sed 's/Package install //g' |  sed 's/Package settting/ -set/g' | sed -e "s/$ServerDefaultFirst//g" \` -stable"`
+			fi
+
 	elif [[ $Types = "-igor" ]]
 	then
 		echo $Barr
@@ -1240,10 +1516,10 @@ echo "`date +%Y.%m.%d_%T` $WhoStamps : $Command_p - ${ProcessPkg[@]}  " >> $Hist
 		DaemonC=`echo "${ProcessPkg[$Counter]}"`
 		export LANG=c
 		#/sbin/service $DaemonC $CommandX > $ZinstBaseRoot/vault/Source/Daemon_ctrl.log 2> /dev/null
-		/sbin/service $DaemonC $CommandX &> $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
-		cat $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
-		#DaemonLog=`cat $ZinstBaseRoot/vault/Source/Daemon_ctrl.log | awk 'NR==1'`
-		DaemonLog=`cat $ZinstBaseRoot/vault/Source/Daemon_ctrl.log`
+		sudo /sbin/service $DaemonC $CommandX &> $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
+		sudo cat $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
+		#DaemonLog=`sudo cat $ZinstBaseRoot/vault/Source/Daemon_ctrl.log | awk 'NR==1'`
+		DaemonLog=`sudo cat $ZinstBaseRoot/vault/Source/Daemon_ctrl.log`
 		DaemonCheck=`echo $DaemonLog | grep "unrecognized"`
 			if [[ $DaemonCheck != "" ]]
 			then
@@ -1251,35 +1527,33 @@ echo "`date +%Y.%m.%d_%T` $WhoStamps : $Command_p - ${ProcessPkg[@]}  " >> $Hist
 				exit 0;
 			fi
 		echo "                    $WhoStamps : "#    " - $DaemonC: $DaemonLog  " >> $History_LOG
-		rm -f $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
+		sudo rm -f $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
 		let Counter=Counter+1
 	done
 }
 
-
-
 Zinst_Version(){
- echo "Zinst version" `cat /usr/bin/zinst |grep ^VERSION | sed -e 's/VERSION=//g'`
+ echo "Zinst version" `sudo cat /usr/bin/zinst |grep ^VERSION | sed -e 's/VERSION=//g'`
 }
 
 Zinst_selfupdate(){
 cd ~/;
-rm -f zinst
+sudo rm -f zinst
 wget  $Dist_server/zinst;
-chmod 755 zinst;
-chgrp wheel zinst;
+sudo chmod 755 zinst;
+sudo chgrp $zinst_group zinst;
 
-mkdir -p $ZinstBaseRoot/vault/Source/bin
+sudo mkdir -p $ZinstBaseRoot/vault/Source/bin
 Number=`ls $ZinstBaseRoot/vault/Source/bin/ |egrep ^zinst.bak. |awk '{print NR}' |tail -1`
 	if [[ $Number = ""  ]];
 	then
 		Number="0"
 	fi
-mv $ZinstBaseRoot/vault/Source/bin/zinst $ZinstBaseRoot/vault/Source/bin/zinst.bak.$Number 2> /dev/null;
-cp zinst $ZinstBaseRoot/vault/Source/bin/zinst;
-rm -f /usr/bin/zinst;
-ln -sf $ZinstBaseRoot/vault/Source/bin/zinst /usr/bin/zinst;
-ShowVersion=`cat /usr/bin/zinst |grep ^VERSION | sed -e 's/VERSION=//g'`
+sudo mv $ZinstBaseRoot/vault/Source/bin/zinst $ZinstBaseRoot/vault/Source/bin/zinst.bak.$Number 2> /dev/null;
+sudo cp zinst $ZinstBaseRoot/vault/Source/bin/zinst;
+sudo rm -f /usr/bin/zinst;
+sudo ln -sf $ZinstBaseRoot/vault/Source/bin/zinst /usr/bin/zinst;
+ShowVersion=`sudo cat /usr/bin/zinst |grep ^VERSION | sed -e 's/VERSION=//g'`
 echo "Zinst version" $ShowVersion
 
 Command_p="@ Self-update"
@@ -1300,6 +1574,7 @@ echo "				[-same]			[Package]	  "
 echo "				[-downgrade]		[Package]	  "
 echo "				[-stable]		[Package without version]	  "
 echo "		 remove					[Package]	  "
+echo "				[-force]		[Package]	  "
 echo "...................................................................................................... "
 echo "		 list					[Blank for list-up]	  "
 echo "				[-files]		[Package]	  "
@@ -1366,6 +1641,7 @@ echo "				[-same]			[Package]	  "
 echo "				[-downgrade]		[Package]	  "
 echo "				[-stable]		[Package without version for latest package]	  "
 echo "		 remove					[Package]	  "
+echo "				[-force]		[Package]	  "
 echo "...................................................................................................... "
 echo " "
 echo "  - Package view: You can see an installed packages/files/index & dependency "
@@ -1488,8 +1764,6 @@ History(){
 tail $ZPackages $History_LOG
 }
 
-
-
 Pkg_Track(){
 
 ### Set for Print screen
@@ -1508,7 +1782,7 @@ printf "%-30s %-50s %-30s \n" "Host" "Package" "Date"
 printf "%$width.${width}s \n" "$Barr$Barr"
 	
 
-ResultPack=`curl -e --url $Dist_server/track/distributed_package 2> /dev/null |egrep " ${PackageArry[0]}"`
+ResultPack=`sudo curl -e --url $Dist_server/track/distributed_package 2> /dev/null |egrep " ${PackageArry[0]}"`
 
 FileChecker=`echo $MidPackageArry | awk -F '-file' '{print $2}'`
 	if [[ $FileChecker = ""  ]]
@@ -1521,9 +1795,9 @@ FileChecker=`echo $MidPackageArry | awk -F '-file' '{print $2}'`
 
 	if [[ $ResultPack = "" ]]
 	then
-		OutTrack=`curl -e --url $Dist_server/track/distributed_package 2> /dev/null |egrep "${PackageArry[0]}" | awk '{printf("%-30s",$1); printf("%-50s",$2); printf("%-30s\n",$3)}'`
+		OutTrack=`sudo curl -e --url $Dist_server/track/distributed_package 2> /dev/null |egrep "${PackageArry[0]}" | awk '{printf("%-30s",$1); printf("%-50s",$2); printf("%-30s\n",$3)}'`
 	else
-		OutTrack=`curl -e --url $Dist_server/track/distributed_package 2> /dev/null |egrep " ${PackageArry[0]}" | awk '{printf("%-30s",$1); printf("%-50s",$2); printf("%-30s\n",$3)}'`
+		OutTrack=`sudo curl -e --url $Dist_server/track/distributed_package 2> /dev/null |egrep " ${PackageArry[0]}" | awk '{printf("%-30s",$1); printf("%-50s",$2); printf("%-30s\n",$3)}'`
 	fi
 
 	### Export data
@@ -1559,7 +1833,7 @@ printf "%$width.${width}s \n" "$Barr$Barr"
 	his*)
 		History	;;
 	self-up*)
-		Zinst_selfupdate 	;;
+		Zinst_selfupdate ;;
 	cront*)
 		Cront_Command $* ;;
 	l*s*)  
@@ -1579,8 +1853,3 @@ printf "%$width.${width}s \n" "$Barr$Barr"
 	esac
 
 exit 0;
-
-
-
-
-
