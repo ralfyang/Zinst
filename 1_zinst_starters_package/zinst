@@ -7,9 +7,6 @@ Barr="==========================================================================
 BARR="#############################################################"
 ROWW="============================================================="
 
-VERSION=3.1.0
-zinst_group=wheel
-
 ### Base information
 ### ------ Config Area -----
 Dist_server="http://DISTsERVERsET/"
@@ -18,6 +15,9 @@ ZinstBaseRoot="RootDirectorY"
 ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ### ------ Config Area -----
+
+VERSION=3.1.2
+zinst_group=wheel
 
 ### Requires server_default_setup package for the account policy
 WhoStamp=`sudo cat $ZinstBaseRoot/src/_tmp_acc 2> /dev/null`
@@ -39,6 +39,7 @@ CheckSaveDir=`ls $ZinstBaseRoot/z 2> /dev/null |grep save`
 	if [[ $CheckSaveDir = "" ]]
 	then
 		sudo mkdir -p $Save_Dir
+		sudo chgrp $zinst_group $Save_Dir
 	fi
 
 
@@ -252,7 +253,7 @@ PureOption=`echo $ZOptions | sed -e 's/-stable //g'`
 
 Allcommand="$CommandX $ZPackages $ZOptions $Zset"
 
-### Print All Value
+### Print All Value for test result
 #echo ""
 #echo CommandX: $CommandX
 #echo ZPackages: ${PackageArry[@]}
@@ -462,7 +463,6 @@ zinst find > $CurrPkgList
 ### Remove temporary file
 rm -f $CurrPkgList $CurrPkgDiR 2> /dev/null
 
-#echo $CurrPkgDiR CurrPkgDiRCurrPkgDiRCurrPkgDiRCurrPkgDiRCurrPkgDiRCurrPkgDiRCurrPkgDiR
 
 AllPkgSortedResult="${BoxPkgArry[@]}"
 }
@@ -520,7 +520,7 @@ AllPkgSortedResult="${BoxPkgArry[@]}"
 					Localhost=$HOSTNAME
 					Command_p=">   mcp  "
 					SourceFull=(`echo "$Source"`)
-					$Comm_sshpass ssh -oStrictHostKeyChecking=no $TartgetHost "echo \"`date +%Y.%m.%d_%T` $WhoStamps : $Command_p - $Localhost:${SourceFull[@]} -> $TargetDir \" >> $History_LOG"
+					$Comm_sshpass ssh -oStrictHostKeyChecking=no $TartgetHost "echo \"`date +%Y.%m.%d_%T` $WhoStamps : $Command_p - From $Localhost: ${SourceFull[@]} -> $TargetDir \" >> $History_LOG"
 				done
 		else
 			echo "$ROWW"
@@ -545,7 +545,7 @@ szinst="zinst"
 			do
 				HostF=$WhoStamp@${HostChanged[$Count]}
 				## ssh connection check
-				$Comm_sshpass ssh -oStrictHostKeyChecking=no $HostF "grep ^VERSION /usr/bin/zinst" 2>&1> $ZinstBaseRoot/vault/Source/ssh_conn_test.log
+				$Comm_sshpass ssh -oStrictHostKeyChecking=no $HostF "grep ^VERSION /usr/bin/zinst" > $ZinstBaseRoot/vault/Source/ssh_conn_test.log 2>&1
 				CheckConnection=`sudo cat $ZinstBaseRoot/vault/Source/ssh_conn_test.log |grep "No route\|not known\|Connection refused"`
 					if [[ $CheckConnection != "" ]]
 					then
@@ -580,7 +580,7 @@ szinst="zinst"
 						CheckDesDIR=`sudo grep " cannot access " $ZinstBaseRoot/vault/Source/ssh_conn_test.log`
 							if [[ $CommandX != "" ]]
 							then
-        						$Comm_sshpass ssh -t $HostF "sudo mkdir -p $ZinstBaseRoot/vault/Source" 2> /dev/null
+        						$Comm_sshpass ssh -t $HostF "sudo mkdir -p $ZinstBaseRoot/vault/Source;sudo chgrp -R $zinst_group $ZinstBaseRoot/vault" 2> /dev/null
 							fi
 
         				echo ""
@@ -755,6 +755,11 @@ CounterAll=1
 		mkdir -p $ZinstBaseRoot/vault/Source/$ZinstName
 		mkdir -p $ZinstDIRs
 		mkdir -p $ZinstBaseRoot/src
+		sudo chgrp -R $zinst_group $ZinstBaseRoot/vault/Source/$ZinstName
+		sudo chgrp $zinst_group $ZinstDIRs
+		sudo chgrp $zinst_group $ZinstBaseRoot/src
+
+
 		##If you have distribution server. you can setup as below.
 		alias cp=cp
 
@@ -798,7 +803,7 @@ CounterAll=1
 		Description=`sudo cat $ZICF |grep ^DESCRIPTION |awk '{print $0}'`
 
 		## Directory Group Permission
-		sudo chgrp -R $Group $ZinstBaseRoot/vault/Source/$ZinstName $ZinstDIRs/$ZinstOrgName
+		sudo chgrp $Group $ZinstBaseRoot/vault/Source/$ZinstName $ZinstDIRs/$ZinstOrgName
 
 		### zinst default checkr
 		## zinst set checker
@@ -807,12 +812,14 @@ CounterAll=1
 			if [[ $ZinstSetCheck != $ZinstSetTitle ]];
 			then
 				sudo mkdir -p $ZinstBaseRoot/vault/zinst/
+				sudo chgrp $zinst_group $ZinstBaseRoot/vault/zinst/
 				echo "$ZinstSetTitle" > $ZinstBaseRoot/vault/zinst/zinst_set.list
 				sudo chgrp $zinst_group $ZinstBaseRoot/vault/zinst/zinst_set.list
 				echo "   -------> $ZinstBaseRoot/vault/zinst/zinst_set.list has been created for the zinst :)"
 				echo " "
 			fi
 		sudo mkdir -p $ZinstBaseRoot/vault/Source $ZinstBaseRoot/zinst
+		sudo chgrp $zinst_group $ZinstBaseRoot/vault/Source $ZinstBaseRoot/zinst
 
 		### Dependency-checker file
 		## zinst dependency checker
@@ -821,6 +828,7 @@ CounterAll=1
 			if [[ $ZinstDepCheck = "" ]];
 			then
 				sudo mkdir -p $ZinstBaseRoot/vault/zinst/
+				sudo chgrp $zinst_group $ZinstBaseRoot/vault/zinst/
 				echo "$ZinstDepTitle" > $ZinstBaseRoot/vault/zinst/.dependency.list
 				sudo chgrp $zinst_group $ZinstBaseRoot/vault/zinst/.dependency.list
 				echo " "
@@ -868,7 +876,14 @@ CounterAll=1
 			if [[ $CPP != ""  ]]; 
 			then
 				echo "sudo mkdir -p ${CPP[*]%/*}" >> .file.list
+				echo "sudo chgrp $Group ${CPP[*]%/*}" >> .file.list
 			fi
+
+
+		## Parsing for Quotation mark encode
+		sed -i 's/"/%Q%/g' $ZICF 
+
+
 		## File copy
 		#echo "File copy" >> .file.list
 		sudo cat $ZICF |grep ^FILE | awk '{print "cp",$6,"'$ZinstBaseRoot'/"$5}' >> .file.list
@@ -891,6 +906,7 @@ CounterAll=1
 			if [[ $LNP != ""  ]]; 
 			then
 				echo "mkdir -p ${LNP[*]%/*}" >> .file.list
+				echo "chgrp $Group ${LNP[*]%/*}" >> .file.list
 			fi
 
 		## make a Symbolic
@@ -913,6 +929,7 @@ CounterAll=1
 			if [[ $CPC != ""   ]];
 			then						
 				echo "sudo mkdir -p ${CPC[*]%/*}" >> .file.list
+				echo "sudo chgrp $Group ${CPC[*]%/*}" >> .file.list
 				echo "sudo touch  ${CPC[*]%/*}""/_zinst" >> .file.list
 			fi
 		#echo "Config file set" >> .file.list
@@ -945,8 +962,12 @@ CounterAll=1
 		### Config file set
 		#### [Zinst Set parser]
 		#sudo cat $ZICF |grep '^ZINST set' |grep set | awk '{print "zinst set","'$Packagename'."$3"="$4}' >> .file.list
-		sudo cat $ZICF |grep '^ZINST set' |grep set | awk '{print "sed -i '/$Packagename.'"$3"'/'d '$ZinstBaseRoot/vault/zinst/zinst_set.list'"}' >> .file.list
-		sudo cat $ZICF |grep '^ZINST set' |grep set | awk '{print "echo \"'"$Packagename."'"$3"="$4"\" >> '$ZinstBaseRoot'/vault/zinst/zinst_set.list"}' >> .file.list
+		sudo cat $ZICF |grep '^ZINST set' | awk '{print "sed -i '/$Packagename.'"$3"'/'d '$ZinstBaseRoot/vault/zinst/zinst_set.list'"}' >> .file.list
+		sudo cat $ZICF |grep '^ZINST set' | awk '{print "echo \"'"$Packagename."'"$3"="$4"\" >> '$ZinstBaseRoot'/vault/zinst/zinst_set.list"}' >> .file.list
+
+		### Quotation mark Exception
+		sed -i 's/%Q%/\\\"/g' .file.list
+		sed -i 's/\\\\\"/\\\"/g' .file.list
 
 
 		### Package Dependency check
@@ -1007,6 +1028,9 @@ CounterAll=1
 					done;
 			#rm $Packagename.cron
 			fi
+		## Parsing for Quotation mark decode
+		sed -i 's/%Q%/"/g' $ZICF 
+
 		## Excute command list and file & package file remove
 		sudo sed -i 's/\t//g' ./.file.list
 		sudo sed -i 's/^ cp/cp/g' ./.file.list
@@ -1048,7 +1072,6 @@ CheckSetArry=($Zset)
 CheckSetNum=${#CheckSetArry[@]}
 SetValue=${CheckSetArry[1]}
 
-
 	if [[ $SetValue = "" ]];
 	then
 		sudo cat $ZinstBaseRoot/vault/zinst/zinst_set.list
@@ -1068,6 +1091,7 @@ SetValue=${CheckSetArry[1]}
 		CountSet=2
 		while [[ $CountSet -lt $CSetCount  ]]
 		do
+
 
 			SetOptionValueE=`echo "${CheckSetArry[@]}" | awk -F '-set ' '{print $'$CountSet'}' |sed -e 's/ //'  2> /dev/null`
 			CheckSetCC=`echo $SetOptionValueE |egrep " -$"`
@@ -1121,10 +1145,12 @@ SetValue=${CheckSetArry[1]}
 						fi
 					## Parsing
 					Conf_File=${Grep_Option%:*}
-
 						if [[ $CommandX = set ]];
 						then
 							Command_p=" * setup "
+						else
+							Command_p=" & setup "
+
 						fi
 
 					### Current Setting check and replace
@@ -1151,7 +1177,6 @@ SetValue=${CheckSetArry[1]}
 										fi		
 									sudo sed -i "s/%%%/\//g" $Conf_File
 								fi
-			
 								if [[ $Equiltype1 != "" ]];
 								then 
 									sudo sed -i "s/$Option=$CurrentSetCheck2$/$Option=$ZinstSet/g" $Conf_File
@@ -1171,9 +1196,8 @@ SetValue=${CheckSetArry[1]}
 											Grep_Option=`sudo grep "^$Option " $Conf_Dir/*`
 										fi
 								fi
-
-
 							realSetOption=`echo "$Grep_Option"  | awk -F ':' '{print $2}' | sed -e "s/$Option /$Option=/g" -e 's/== /=/g'`
+
 							echo "$PackageS.$realSetOption" >> $ZinstBaseRoot/vault/zinst/zinst_set.list
 							sudo cat  $ZinstBaseRoot/vault/zinst/zinst_set.list |grep ^$SetTarget
 
@@ -1362,9 +1386,10 @@ CurrentCheck=`echo $ZPackages |grep "^./"`
 	else
 		ZP=`echo "$ZinstBaseRoot" | sed -e "s/\///g"` 
 		sudo mkdir -p $ZinstBaseRoot/vault/zinst/
+		sudo chgrp $zinst_group $ZinstBaseRoot/vault/zinst/
 		export TIME_STYLE="+%Y-%m-%d %H:%M:%S %z" 
 		ls -l $ZinstDIRs/ 2> /dev/null | awk '{print $6,$7," - ", $11}' > $ZinstBaseRoot/vault/zinst/.pkglist 
-		sudo chgrp wheel $ZinstBaseRoot/vault/zinst/.pkglist
+		sudo chgrp $zinst_group $ZinstBaseRoot/vault/zinst/.pkglist
 		sudo chmod 664 $ZinstBaseRoot/vault/zinst/.pkglist
 		sudo sed -i 's/\//%/g'  $ZinstBaseRoot/vault/zinst/.pkglist
 		sudo sed -i '/   -/d'  $ZinstBaseRoot/vault/zinst/.pkglist
@@ -1544,6 +1569,7 @@ sudo chmod 755 zinst;
 sudo chgrp $zinst_group zinst;
 
 sudo mkdir -p $ZinstBaseRoot/vault/Source/bin
+sudo chgrp $zinst_group $ZinstBaseRoot/vault/Source/bin
 Number=`ls $ZinstBaseRoot/vault/Source/bin/ |egrep ^zinst.bak. |awk '{print NR}' |tail -1`
 	if [[ $Number = ""  ]];
 	then
@@ -1574,7 +1600,7 @@ echo "				[-same]			[Package]	  "
 echo "				[-downgrade]		[Package]	  "
 echo "				[-stable]		[Package without version]	  "
 echo "		 remove					[Package]	  "
-echo "				[-force]		[Package]	  "
+echo "				[-force]			[Package]	  "
 echo "...................................................................................................... "
 echo "		 list					[Blank for list-up]	  "
 echo "				[-files]		[Package]	  "
@@ -1641,7 +1667,7 @@ echo "				[-same]			[Package]	  "
 echo "				[-downgrade]		[Package]	  "
 echo "				[-stable]		[Package without version for latest package]	  "
 echo "		 remove					[Package]	  "
-echo "				[-force]		[Package]	  "
+echo "				[-force]			[Package]	  "
 echo "...................................................................................................... "
 echo " "
 echo "  - Package view: You can see an installed packages/files/index & dependency "
@@ -1713,41 +1739,41 @@ echo " "
 echo " "
 echo " "
 echo "Example)"
-echo "zinst ssh 'cat /etc/hosts;pwd' -h web[01-09].test.com	<- Send a command to seperated hosts "
+echo "zinst ssh 'cat /etc/hosts;pwd' -h web[01-09].test.com	: Send a command to seperated hosts "
 echo " "
-echo "zinst mcp ./test.* /data/var/ -h web[01-09].test.com 	<- File copy to seperated hosts "
+echo "zinst mcp ./test.* /data/var/ -h web[01-09].test.com 	: File copy to seperated hosts "
 echo " "
-echo "zinst install hwconfig -stable			<- for package apply as a latest version automatically "
+echo "zinst install hwconfig -stable			: for package apply as a latest version automatically "
 echo " "
-echo "zinst install hwconfig-1.0.2.zinst -same		<- for overwrite the package as a same version "
-echo "zinst i hwconfig-1.0.2.zinst -downgrade			<- for downgrade the package as a lower version "
+echo "zinst install hwconfig-1.0.2.zinst -same		: for overwrite the package as a same version "
+echo "zinst i hwconfig-1.0.2.zinst -downgrade			: for downgrade the package as a lower version "
 echo " "
-echo "zinst list -files hwconfig				<- list-up file of the hwconfig package "
-echo "zinst ls -files /data/bin/hwconfig			<- find a package as a file "
-echo "zinst list -zicf hwconfig				<- see the index file of package "
-echo "zinst ls -dep hwconfig 					<- package dependency check "
+echo "zinst list -files hwconfig				: list-up file of the hwconfig package "
+echo "zinst ls -files /data/bin/hwconfig			: find a package as a file "
+echo "zinst list -zicf hwconfig				: see the index file of package "
+echo "zinst ls -dep hwconfig 					: package dependency check "
 echo " "
-echo "zinst set						<- list-up of zinst current setups "
-echo "zinst set hwconfig.nameserver1=1.1.1.1			<- change the setup nameserver1=1.1.1.1 to the hwconfig "
+echo "zinst set						: list-up of zinst current setups "
+echo "zinst set hwconfig.nameserver1=1.1.1.1			: change the setup nameserver1=1.1.1.1 to the hwconfig "
 echo " "
 echo "zinst i hwconfig-1.0.2.zinst -set hwconfig.nameserver1=1.1.1.1 -set hwconfig.nameserver2=2.2.2.2 "
-echo " <- change the setup nameserver1=1.1.1.1 and nameserver2=2.2.2.2 to the hwconfig with package install "
+echo " : change the setup nameserver1=1.1.1.1 and nameserver2=2.2.2.2 to the hwconfig with package install "
 echo " "
-echo "zinst restart httpd					<- restart the httpd daemon by /etc/init.d/httpd file control "
+echo "zinst restart httpd					: restart the httpd daemon by /etc/init.d/httpd file control "
 echo " "
-echo "zinst crontab -l 					<- list-up the crontab scheduler "
-echo "zinst crontab -u root -l			<- list-up the crontab scheduler for an user "
-echo "zinst cront -e	 					<- edit the crontab scheduler "
+echo "zinst crontab -l 					: list-up the crontab scheduler "
+echo "zinst crontab -u root -l			: list-up the crontab scheduler for an user "
+echo "zinst cront -e	 					: edit the crontab scheduler "
 echo " "
-echo "zinst find						<- list-up the available file for install "
-echo "zinst find hwcon					<- list-up the available file for install as you typed "
+echo "zinst find						: list-up the available file for install "
+echo "zinst find hwcon					: list-up the available file for install as you typed "
 echo " "
-echo "zinst hist						<- show the history "
-echo "zinst hist 300						<- show the 300 lines history "
+echo "zinst hist						: show the history "
+echo "zinst hist 300						: show the 300 lines history "
 echo " "
-echo "zinst self-update					<- zinst command update( *Requires: Package dist server must has a zinst file) "
+echo "zinst self-update					: zinst command update( *Requires: Package dist server must has a zinst file) "
 echo " "
-echo "zinst help						<- Detail view the help "
+echo "zinst help						: Detail view the help "
 echo " "
 echo "=== For more detail: http://twiki.gsenext.com/bin/view/Main/TheZinst ===" 
 echo " "
