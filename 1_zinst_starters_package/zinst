@@ -1253,7 +1253,7 @@ ProcessPkg=($ZPackages)
 
 							if [[ $ZOptions != "-force" ]]
 							then
-							RmDepChecker=`sudo cat $ZinstBaseRoot/vault/zinst/.dependency.list | grep ^$ZinstOrgName |awk '{print $9}' `
+							RmDepChecker=`sudo cat $ZinstBaseRoot/vault/zinst/.dependency.list | grep "^$ZinstOrgName " |awk '{print $9}' `
 								if [[ $RmDepChecker != "" ]]
 								then
 									echo "===== You have to remove as below package(s) ===== "
@@ -1381,7 +1381,7 @@ CurrentCheck=`echo $ZPackages |grep "^./"`
 			else
 				ZinstOrgName=`echo ${PackageArry[0]}| awk -F "-" '{print $1}'`
 				cd $ZinstDIRs/$ZinstOrgName
-				sudo cat $ZinstBaseRoot/vault/zinst/.dependency.list |grep ^$ZinstOrgName
+				sudo cat $ZinstBaseRoot/vault/zinst/.dependency.list |grep "^$ZinstOrgName "
 			fi
 	else
 		ZP=`echo "$ZinstBaseRoot" | sed -e "s/\///g"` 
