@@ -16,7 +16,7 @@ ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ### ------ Config Area -----
 
-VERSION=3.1.2
+VERSION=3.1.3
 zinst_group=wheel
 
 ### Requires server_default_setup package for the account policy
@@ -1504,7 +1504,7 @@ RestoreFile_checkr=`ls $Restore_File`
 #				RestoreCount=0
 #				while [ $RestoreCount -lt ${#RemoveForRestore[@]} ]
 #				do
-					`echo zinst remove ${RemoveForRestore[@]}`
+					`echo zinst remove ${RemoveForRestore[@]} -force`
 #				let RestoreCount=$RestoreCount+1
 #				done
 				ServerDefaultFirst=`cat $RestoreFile_checkr |grep "install server_default_setting" | awk '{print $3}'`

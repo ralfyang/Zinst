@@ -89,7 +89,7 @@ mkdir -p $ZinstBaseRootO/z
 mkdir -p $ZinstBaseRootO/vault/Source/bin
 echo "set -o emacs" >> /etc/profile
 
-cp ./zinst $ZinstBaseRootO/vault/Source/bin/zinst
+cp ./zinst $ZinstBaseRootO/vault/Source/bin/zinst $ZinstBaseRootO/dist/
 ln -sf $ZinstBaseRootO/vault/Source/bin/zinst /usr/bin/zinst
 
 if [[ $Dist_IC = y ]]
