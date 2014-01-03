@@ -23,7 +23,7 @@ fi
 ZinstBaseRoot=`echo "$ZinstBaseRootO" | sed -e 's/\//\\\\\//g'`
 
 export ZinstDir="$ZinstBaseRootO"
-# RHEL 6.x에서의 list parsing을 위한 command 필요함.
+# It needs to be the set for the listing of RHEL 6.x environment
 # echo "export TIME_STYLE=\"+%b %e %R\"" >> /etc/profile
 
 

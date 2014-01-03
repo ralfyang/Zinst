@@ -16,7 +16,7 @@ ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ### ------ Config Area -----
 
-VERSION=3.1.3
+VERSION=3.1.6
 zinst_group=wheel
 
 ### Requires server_default_setup package for the account policy
@@ -954,10 +954,6 @@ CounterAll=1
 		## change direction
 		sudo sed -i 's/\.\./\./g' ./.file.list
 
-		#### [Command line parser] #####
-		## Command line excute
-		sudo cat $ZICF |grep ^COMM | awk '{print $0}' | sed -e 's/COMM //g' >> .file.list
-
 
 		### Config file set
 		#### [Zinst Set parser]
@@ -968,6 +964,11 @@ CounterAll=1
 		### Quotation mark Exception
 		sed -i 's/%Q%/\\\"/g' .file.list
 		sed -i 's/\\\\\"/\\\"/g' .file.list
+
+		#### [Command line parser] #####
+		## Command line excute
+		sudo cat $ZICF |grep ^COMM | awk '{print $0}' | sed -e 's/COMM //g' >> .file.list
+		sed -i 's/%Q%/\"/g' .file.list
 
 
 		### Package Dependency check
@@ -1107,10 +1108,10 @@ SetValue=${CheckSetArry[1]}
 
 			SetZICF="$PackageS.zicf"
 			## Check a set list in zinst
-			CurrentSet=( `sudo cat $ZinstBaseRoot/vault/zinst/zinst_set.list | grep ^$SetTarget` )
+			CurrentSet=( `sudo cat $ZinstBaseRoot/vault/zinst/zinst_set.list | grep "^$SetTarget"` )
 			CurrentSetCheck=`echo "$CurrentSet" | awk -F "=" '{print $1}'`
 			CurrentSetCheck2=`echo "$CurrentSet" | sed -e "s/$CurrentSetCheck=//g"  2> /dev/null`
-			Setchecker=`ls $ZinstDIRs 2> /dev/null |grep $PackageS`
+			Setchecker=`ls $ZinstDIRs 2> /dev/null |grep "$PackageS"`
 
 				if [[ $Setchecker != ""  ]];
 				then
@@ -1121,7 +1122,9 @@ SetValue=${CheckSetArry[1]}
 							exit 0;
 						fi
 					## Find a current set 
-					Grep_ZICF=`sudo cat $ZinstDIRs/$PackageS/$SetZICF |grep ^CONF | awk '{print "'$ZinstBaseRoot'/"$5}'`
+					Grep_ZICF=`sudo cat $ZinstDIRs/$PackageS/$SetZICF |grep "^CONF" | awk '{print "'$ZinstBaseRoot'/"$5}'`
+					Grep_ZICF_Raw=`sudo cat $ZinstDIRs/$PackageS/$SetZICF |grep "^CONF" | awk '{print "'$ZinstDIRs/$PackageS'/"$6}' | sed -e 's/\.\///g'`
+
 						if [[ $Grep_ZICF = "" ]]
 						then 
 							echo "$Barr"
@@ -1133,7 +1136,9 @@ SetValue=${CheckSetArry[1]}
 							echo "$Barr"
 							exit 0;
 						fi
-					Conf_Dir="${Grep_ZICF[*]%/*}"
+					Conf_Dir="${Grep_ZICF_Raw[*]%/*}"
+
+
 					Grep_Option=`sudo grep "^$Option=" $Conf_Dir/*`
 						if [[ $Grep_Option = "" ]]
 						then
@@ -1144,6 +1149,7 @@ SetValue=${CheckSetArry[1]}
 								fi
 						fi
 					## Parsing
+
 					Conf_File=${Grep_Option%:*}
 						if [[ $CommandX = set ]];
 						then
@@ -1153,50 +1159,58 @@ SetValue=${CheckSetArry[1]}
 
 						fi
 
+					Conf_Result_File=`echo "$Conf_File" | awk -F '/' '{print $NF}'`
+					Grep_ZICF_Source=`sudo cat $ZinstDIRs/$PackageS/$SetZICF |grep "^CONF" |grep "$Conf_Result_File$" | awk '{print "'$ZinstBaseRoot'/"$5}'`
 					### Current Setting check and replace
 						if [[ $SetTarget = $CurrentSetCheck ]];
 						then
 							sudo sed -i "/$SetTarget/d" $ZinstBaseRoot/vault/zinst/zinst_set.list
-					
-							Equiltype1=`sudo grep "$Option=$CurrentSetCheck2" $Conf_File`
-							Equiltype2=`sudo grep "$Option = $CurrentSetCheck2" $Conf_File`
-							Equiltype3=`sudo grep "$Option $CurrentSetCheck2" $Conf_File`
-							Check_Conf_File=`sudo grep \/ $Conf_File`
+							Equiltype1=`sudo grep "$Option=$CurrentSetCheck2" $Grep_ZICF_Source`
+							Equiltype2=`sudo grep "$Option = $CurrentSetCheck2" $Grep_ZICF_Source`
+							Equiltype3=`sudo grep "$Option $CurrentSetCheck2" $Grep_ZICF_Source`
+							Check_Conf_File=`sudo grep \/ $Grep_ZICF_Source`
 								if [[ $Check_Conf_File != ""  ]];
 								then
-									sudo sed -i "s/\//%%%/g" $Conf_File
+									sudo sed -i "s/\//%%%/g" $Grep_ZICF_Source
 									CurrentSetCheck2=`echo "$CurrentSetCheck2" | sed -e "s/\//%%%/g"`
 									ZinstSet=`echo "$ZinstSet" |  sed -e "s/\//%%%/g"`
 										if [[ $Equiltype1 != "" ]];
 										then 
-											sudo sed -i "s/$Option=$CurrentSetCheck2$/$Option=$ZinstSet/g" $Conf_File
+											sudo sed -i "s/$Option=$CurrentSetCheck2$/$Option=$ZinstSet/g" $Grep_ZICF_Source
 										elif [[ $Equiltype2 != "" ]]; then
-											sudo sed -i "s/$Option = $CurrentSetCheck2$/$Option = $ZinstSet/g" $Conf_File
+											sudo sed -i "s/$Option = $CurrentSetCheck2$/$Option = $ZinstSet/g" $Grep_ZICF_Source
 										elif [[ $Equiltype3 != "" ]]; then
-											sudo sed -i "s/$Option $CurrentSetCheck2$/$Option $ZinstSet/g" $Conf_File
+											sudo sed -i "s/$Option $CurrentSetCheck2$/$Option $ZinstSet/g" $Grep_ZICF_Source
 										fi		
-									sudo sed -i "s/%%%/\//g" $Conf_File
+									sudo sed -i "s/%%%/\//g" $Grep_ZICF_Source
 								fi
 								if [[ $Equiltype1 != "" ]];
 								then 
-									sudo sed -i "s/$Option=$CurrentSetCheck2$/$Option=$ZinstSet/g" $Conf_File
+									sudo sed -i "s/$Option=$CurrentSetCheck2$/$Option=$ZinstSet/g" $Grep_ZICF_Source
 								elif [[ $Equiltype2 != "" ]]; then
-									sudo sed -i "s/$Option = $CurrentSetCheck2$/$Option = $ZinstSet/g" $Conf_File
+									sudo sed -i "s/$Option = $CurrentSetCheck2$/$Option = $ZinstSet/g" $Grep_ZICF_Source
 								elif [[ $Equiltype3 != "" ]]; then
-									sudo sed -i "s/$Option $CurrentSetCheck2$/$Option $ZinstSet/g" $Conf_File
+									sudo sed -i "s/$Option $CurrentSetCheck2$/$Option $ZinstSet/g" $Grep_ZICF_Source
 								fi		
 
 							### Stamping a Set value for history
-							Grep_Option=`sudo grep "^$Option=" $Conf_Dir/*`
+							Grep_Option=`sudo grep "^$Option=" $Grep_ZICF_Source`
 								if [[ $Grep_Option = "" ]]
 								then
-									Grep_Option=`sudo grep "^$Option = " $Conf_Dir/*`
+									Grep_Option=`sudo grep "^$Option = " $Grep_ZICF_Source`
 										if [[ $Grep_Option = "" ]]
 										then 
-											Grep_Option=`sudo grep "^$Option " $Conf_Dir/*`
+											Grep_Option=`sudo grep "^$Option " $Grep_ZICF_Source`
 										fi
 								fi
-							realSetOption=`echo "$Grep_Option"  | awk -F ':' '{print $2}' | sed -e "s/$Option /$Option=/g" -e 's/== /=/g'`
+
+								### Temporary exception function
+								CheckResultParse=`echo "$Grep_Option" | grep ":"`
+								if [[ $CheckResultParse != "" ]]; then
+									realSetOption=`echo "$Grep_Option"  | awk -F ':' '{print $2}' | sed -e "s/$Option /$Option=/g" -e 's/== /=/g'`
+								else
+									realSetOption=`echo "$Grep_Option"  | sed -e "s/$Option /$Option=/g" -e 's/== /=/g'`
+								fi
 
 							echo "$PackageS.$realSetOption" >> $ZinstBaseRoot/vault/zinst/zinst_set.list
 							sudo cat  $ZinstBaseRoot/vault/zinst/zinst_set.list |grep ^$SetTarget
@@ -1210,6 +1224,7 @@ SetValue=${CheckSetArry[1]}
 									echo " ex) zinst set vipctl.onboot=yes "
 									exit 0;
 								fi
+
 							echo "$SetOptionValueE" >> $ZinstBaseRoot/vault/zinst/zinst_set.list
 							echo "`date +%Y.%m.%d_%T` $WhoStamps : $Command_p - $SetOptionValueE  " >> $History_LOG
 						fi
