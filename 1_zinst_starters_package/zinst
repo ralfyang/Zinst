@@ -16,8 +16,9 @@ ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ### ------ Config Area -----
 
-VERSION=3.1.6
+VERSION=3.1.9
 zinst_group=wheel
+
 
 ### Requires server_default_setup package for the account policy
 WhoStamp=`sudo cat $ZinstBaseRoot/src/_tmp_acc 2> /dev/null`
@@ -801,7 +802,6 @@ CounterAll=1
 		Crontab=`sudo cat $ZICF |grep ^CRON |awk 'NR==1{print $1}'`
 		CrontabRow=`sudo cat $ZICF |grep ^CRON |awk '{print NR}' |tail -1`
 		Description=`sudo cat $ZICF |grep ^DESCRIPTION |awk '{print $0}'`
-
 		## Directory Group Permission
 		sudo chgrp $Group $ZinstBaseRoot/vault/Source/$ZinstName $ZinstDIRs/$ZinstOrgName
 
@@ -837,11 +837,8 @@ CounterAll=1
 		### Make a Blank .file.list
 		echo "echo \" $Packagename-$Version package install ==>>> \" " > .file.list
 		echo "export ZinstDir=$ZinstBaseRoot " >> .file.list
-
 		sudo chgrp $zinst_group .file.list
 		sudo chmod 664 .file.list
-		#echo "echo "$Packagename-$Version has been installed" " > .file.list
-
 		## Package Dependency check - on no-over write
 		Dep_checkerNum=`sudo cat ./$ZICF  |grep "^ZINST requires pkg" | awk '{print NR}' |tail -1 `
 		DepCounter=1
@@ -875,26 +872,46 @@ CounterAll=1
 		CPP=( `sudo cat $ZICF |grep ^FILE | awk '{print "'$ZinstBaseRoot'/"$5}'` )
 			if [[ $CPP != ""  ]]; 
 			then
-				echo "sudo mkdir -p ${CPP[*]%/*}" >> .file.list
-				echo "sudo chgrp $Group ${CPP[*]%/*}" >> .file.list
+				## Copy Array Duplicate filter
+				CPCount=0
+					while [ $CPCount -le ${#CPP[*]} ]
+					do
+						if [[ ${CPP[$CPCount]%/*} = ${CPP[($CPCount+1)]%/*} ]] || [[ ${CPP[$CPCount]%/*} = ${CPP[($CPCount+2)]%/*} ]] || [[ ${CPP[$CPCount]%/*} = ${CPP[($CPCount+3)]%/*} ]] || [[ ${CPP[$CPCount]%/*} = ${CPP[($CPCount+4)]%/*} ]]  ; then
+							: 
+						else
+							RCPP[$CPCount]=${CPP[$CPCount]%/*}
+						fi
+					let CPCount=$CPCount+1
+					done
+				echo "sudo mkdir -p ${RCPP[*]}" >> .file.list
+				echo "sudo chgrp $Group ${RCPP[*]}" >> .file.list
+				echo "sudo chown $Owner ${RCPP[*]}" >> .file.list
 			fi
 
 
 		## Parsing for Quotation mark encode
 		sed -i 's/"/%Q%/g' $ZICF 
 
-
+		## Insert for uninstall command
+		if [ -f $ZinstBaseRoot/vault/Source/$ZinstName/uninstall.sh ] ; then
+			sudo chmod 775 $ZinstBaseRoot/vault/Source/$ZinstName/uninstall.sh
+			sudo chown $Owner $ZinstBaseRoot/vault/Source/$ZinstName/uninstall.sh
+			sudo chgrp $Group $ZinstBaseRoot/vault/Source/$ZinstName/uninstall.sh
+			sudo sh -c 'echo "echo \"*** Uninstall option has been activated ***\""' >> .file.list
+		fi
 		## File copy
 		#echo "File copy" >> .file.list
-		sudo cat $ZICF |grep ^FILE | awk '{print "cp",$6,"'$ZinstBaseRoot'/"$5}' >> .file.list
-
+		sudo cat $ZICF |grep ^FILE | awk '{print "cp ",$6,"'$ZinstBaseRoot'/"$5,";echo \"'$ZinstBaseRoot'/"$5"\""}' >> .file.list
+		echo " echo \" --- File Initializing .....\"" >> .file.list
 		## File Permission
 		sudo cat $ZICF |grep ^FILE | awk '{print "chmod",$2,"'$ZinstBaseRoot'/"$5}' >> .file.list
 
+		echo " echo \" --- Permission Initializing .....\"" >> .file.list
 		## File Owner 
 		#sudo cat $ZICF |grep ^FILE | awk '{print "chown",'\"$Owner\"',"'$ZinstBaseRoot'/"$5}' >> .file.list
 		sudo cat $ZICF |grep ^FILE | awk '{print "chown",$3,"'$ZinstBaseRoot'/"$5}' >> .file.list
 
+		echo " echo \" --- Setting the Group  .....\"" >> .file.list
 		## File Group 
 		sudo cat $ZICF |grep ^FILE | awk '{print "chgrp",$4,"'$ZinstBaseRoot'/"$5}' >> .file.list
 
@@ -905,31 +922,35 @@ CounterAll=1
 		LNP=( `sudo cat $ZICF |grep ^SYMB | awk '{print "'$ZinstBaseRoot'/"$5}'` )
 			if [[ $LNP != ""  ]]; 
 			then
-				echo "mkdir -p ${LNP[*]%/*}" >> .file.list
-				echo "chgrp $Group ${LNP[*]%/*}" >> .file.list
+				## Copy Array Duplicate filter
+				LNPCount=0
+					while [ $LNPCount -le ${#LNP[*]} ]
+					do
+						if [[ ${LNP[$LNPCount]%/*} = ${LNP[($LNPCount+1)]%/*} ]] || [[ ${LNP[$LNPCount]%/*} = ${LNP[($LNPCount+2)]%/*} ]] || [[ ${LNP[$LNPCount]%/*} = ${LNP[($LNPCount+3)]%/*} ]] || [[ ${LNP[$LNPCount]%/*} = ${LNP[($LNPCount+4)]%/*} ]]  ; then
+							: 
+						else
+							RLNP[$LNPCount]=${LNP[$LNPCount]%/*}
+						fi
+					let LNPCount=$LNPCount+1
+					done
+				echo "sudo mkdir -p ${RLNP[*]}" >> .file.list
+				echo "sudo chgrp $Group ${RLNP[*]}" >> .file.list
+				echo "sudo chown $Owner ${RLNP[*]}" >> .file.list
 			fi
-
 		## make a Symbolic
 		#echo "Make a symbole" >> .file.list
 		sudo cat $ZICF |grep ^SYMB | awk '{print "sudo ln -fs '$ZinstBaseRoot'/"$6, "'$ZinstBaseRoot'/"$5}' >> .file.list
 
-		## Symb Permission
-		#sudo cat $ZICF |grep ^SYMB | awk '{print "chmod",$2,"'$ZinstBaseRoot'/"$5}' >> .file.list
-		## Symb Owner 
-		#sudo cat $ZICF |grep ^SYMB | awk '{print "chown",$3,"'$ZinstBaseRoot'/"$5}' >> .file.list
-		## Symb Group 
-		#sudo cat $ZICF |grep ^SYMB | awk '{print "chgrp",$4,"'$ZinstBaseRoot'/"$5}' >> .file.list
-
 
 		#### [Configuration file parser] #####
 		### Config file set
-
 		## Directory makes for the Config
 		CPC=( `sudo cat $ZICF |grep ^CONF | awk '{print "'$ZinstBaseRoot'/"$5}'` )
 			if [[ $CPC != ""   ]];
 			then						
 				echo "sudo mkdir -p ${CPC[*]%/*}" >> .file.list
 				echo "sudo chgrp $Group ${CPC[*]%/*}" >> .file.list
+				echo "sudo chown $Owner ${CPC[*]%/*}" >> .file.list
 				echo "sudo touch  ${CPC[*]%/*}""/_zinst" >> .file.list
 			fi
 		#echo "Config file set" >> .file.list
@@ -1035,7 +1056,7 @@ CounterAll=1
 		## Excute command list and file & package file remove
 		sudo sed -i 's/\t//g' ./.file.list
 		sudo sed -i 's/^ cp/cp/g' ./.file.list
-		sudo sh ./.file.list; zinst ls -files $Packagename
+		sudo sh ./.file.list
 		echo "$Packagename-$Version package has been installed"
 		sudo rm -f $ZinstSourceDir/$Package_list 1> /dev/null
 
@@ -1240,7 +1261,6 @@ SetValue=${CheckSetArry[1]}
 
 Pkg_Remove(){
 ProcessPkg=($ZPackages)
-
 	if [[ $ZPackages = "" ]]
 	then
 		echo "=============== Please insert a package name as you need to see ============"
@@ -1279,10 +1299,14 @@ ProcessPkg=($ZPackages)
 								fi
 							fi
 						sudo sed -i '/'$ZinstOrgName'/d' $ZinstBaseRoot/vault/zinst/.dependency.list
-						`sudo cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep "^cp" | awk '{print "sudo rm -Rfv",$3}'`
+							if [ -f $ZinstDIRs/$ZinstOrgName/uninstall.sh ]; then
+								sudo sh $ZinstDIRs/$ZinstOrgName/uninstall.sh
+							fi
+						`sudo cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep "^cp" | awk '{print "sudo rm -Rfv",$3}' > removelist`
 						RmMv=`sudo cat $ZinstDIRs/$ZinstOrgName/.file.list |grep "^mv"  | awk '{print $2}' | awk -F '/' '{print $NF}'`
-						`sudo cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep "^mv" | awk '{print "sudo rm -Rfv",$3"$RmMv"}'`
-						`sudo cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep "^ln" | awk '{print "sudo rm -Rfv",$4}'`
+						`sudo cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep "^mv" | awk '{print "sudo rm -Rfv",$3"$RmMv"}' >> removelist`
+						`sudo cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep "^ln" | awk '{print "sudo rm -Rfv",$4}' >> removelist`
+						sudo sh removelist; sudo rm removelist
 						RmDir=`sudo cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep "^mkdir" |awk '{print "ls", $3}'`
 							if [[ $RmDir = "" ]];
 							then
@@ -1545,9 +1569,6 @@ Daemon_Control(){
 ProcessPkg=($ZPackages)
 ProcessPkgNum=${#ProcessPkg[@]}
 
-
-
-
 Counter=0
 Command_p="# Daemon $CommandX"
 echo "`date +%Y.%m.%d_%T` $WhoStamps : $Command_p - ${ProcessPkg[@]}  " >> $History_LOG
@@ -1580,8 +1601,6 @@ Zinst_selfupdate(){
 cd ~/;
 sudo rm -f zinst
 wget  $Dist_server/zinst;
-sudo chmod 755 zinst;
-sudo chgrp $zinst_group zinst;
 
 sudo mkdir -p $ZinstBaseRoot/vault/Source/bin
 sudo chgrp $zinst_group $ZinstBaseRoot/vault/Source/bin
@@ -1592,6 +1611,8 @@ Number=`ls $ZinstBaseRoot/vault/Source/bin/ |egrep ^zinst.bak. |awk '{print NR}'
 	fi
 sudo mv $ZinstBaseRoot/vault/Source/bin/zinst $ZinstBaseRoot/vault/Source/bin/zinst.bak.$Number 2> /dev/null;
 sudo cp zinst $ZinstBaseRoot/vault/Source/bin/zinst;
+sudo chgrp $zinst_group $ZinstBaseRoot/vault/Source/bin/zinst;
+sudo chmod 775 $ZinstBaseRoot/vault/Source/bin/zinst;
 sudo rm -f /usr/bin/zinst;
 sudo ln -sf $ZinstBaseRoot/vault/Source/bin/zinst /usr/bin/zinst;
 ShowVersion=`sudo cat /usr/bin/zinst |grep ^VERSION | sed -e 's/VERSION=//g'`
@@ -1632,6 +1653,8 @@ echo "--------------------------------------------------------------------------
 echo "		 start					[Daemon_name]	  "
 echo "		 stop					[Daemon_name]	  "
 echo "		 restart				[Daemon_name]	  "
+echo "		 on					[Daemon_name]	  "
+echo "		 off					[Daemon_name]	  "
 echo "...................................................................................................... "
 echo "		 crontab	[-e]						  "
 echo "				[-l] "
@@ -1714,6 +1737,8 @@ echo "  - Daemon control: You can control the daemon from the /etc/init.d/ direc
 echo "		 start					[Daemon_name]	  "
 echo "		 stop					[Daemon_name]	  "
 echo "		 restart				[Daemon_name]	  "
+echo "		 on					[Daemon_name]	  "
+echo "		 off					[Daemon_name]	  "
 echo "...................................................................................................... "
 echo " "
 echo "  - Crontab manage: You can touch the cron schduler by zinst "
@@ -1870,6 +1895,10 @@ printf "%$width.${width}s \n" "$Barr$Barr"
 	stop)
 		Daemon_Control $*	;;
 	restart)
+		Daemon_Control $*	;;
+	on)
+		Daemon_Control $*	;;
+	off)
 		Daemon_Control $*	;;
 	his*)
 		History	;;
