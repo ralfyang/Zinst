@@ -16,7 +16,7 @@ ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ### ------ Config Area -----
 
-VERSION=3.1.9
+VERSION=3.2.1
 zinst_group=wheel
 
 
@@ -221,7 +221,7 @@ HostCount=${#HostArry[@]}
 HostArry=(${HostArry[@]})
 
 ### Change syntax for Bash regexp
-DashParser=`echo ${HostArry[@]}| sed -e 's/-/\.\./g'`
+DashParser=`echo ${HostArry[@]}| sed -e 's/\[[[:alnum:]]*.\-/&../g' | sed -e 's/\-\.\./\.\./g' -e 's/\[[[:alnum:]]*.\.\.[[:alnum:]]*.\,/{&}/g' -e 's/\,\}/},/g'`
 Result=`echo $DashParser | sed -e 's/\[/\{/g' -e 's/\]/\}/g'`
 HostChanged=( `eval echo $Result` )
 
@@ -873,16 +873,8 @@ CounterAll=1
 			if [[ $CPP != ""  ]]; 
 			then
 				## Copy Array Duplicate filter
-				CPCount=0
-					while [ $CPCount -le ${#CPP[*]} ]
-					do
-						if [[ ${CPP[$CPCount]%/*} = ${CPP[($CPCount+1)]%/*} ]] || [[ ${CPP[$CPCount]%/*} = ${CPP[($CPCount+2)]%/*} ]] || [[ ${CPP[$CPCount]%/*} = ${CPP[($CPCount+3)]%/*} ]] || [[ ${CPP[$CPCount]%/*} = ${CPP[($CPCount+4)]%/*} ]]  ; then
-							: 
-						else
-							RCPP[$CPCount]=${CPP[$CPCount]%/*}
-						fi
-					let CPCount=$CPCount+1
-					done
+				RCPP=(`printf "%s\n" "${CPP[@]%/*}" | sort -u`)
+
 				echo "sudo mkdir -p ${RCPP[*]}" >> .file.list
 				echo "sudo chgrp $Group ${RCPP[*]}" >> .file.list
 				echo "sudo chown $Owner ${RCPP[*]}" >> .file.list
@@ -923,16 +915,8 @@ CounterAll=1
 			if [[ $LNP != ""  ]]; 
 			then
 				## Copy Array Duplicate filter
-				LNPCount=0
-					while [ $LNPCount -le ${#LNP[*]} ]
-					do
-						if [[ ${LNP[$LNPCount]%/*} = ${LNP[($LNPCount+1)]%/*} ]] || [[ ${LNP[$LNPCount]%/*} = ${LNP[($LNPCount+2)]%/*} ]] || [[ ${LNP[$LNPCount]%/*} = ${LNP[($LNPCount+3)]%/*} ]] || [[ ${LNP[$LNPCount]%/*} = ${LNP[($LNPCount+4)]%/*} ]]  ; then
-							: 
-						else
-							RLNP[$LNPCount]=${LNP[$LNPCount]%/*}
-						fi
-					let LNPCount=$LNPCount+1
-					done
+				RLNP=(`printf "%s\n" "${LNP[@]%/*}" | sort -u`)
+
 				echo "sudo mkdir -p ${RLNP[*]}" >> .file.list
 				echo "sudo chgrp $Group ${RLNP[*]}" >> .file.list
 				echo "sudo chown $Owner ${RLNP[*]}" >> .file.list
@@ -947,11 +931,15 @@ CounterAll=1
 		## Directory makes for the Config
 		CPC=( `sudo cat $ZICF |grep ^CONF | awk '{print "'$ZinstBaseRoot'/"$5}'` )
 			if [[ $CPC != ""   ]];
-			then						
-				echo "sudo mkdir -p ${CPC[*]%/*}" >> .file.list
-				echo "sudo chgrp $Group ${CPC[*]%/*}" >> .file.list
-				echo "sudo chown $Owner ${CPC[*]%/*}" >> .file.list
-				echo "sudo touch  ${CPC[*]%/*}""/_zinst" >> .file.list
+			then	
+		
+				## Copy Array Duplicate filter
+				RCPC=(`printf "%s\n" "${CPC[@]%/*}" | sort -u`)
+			
+				echo "sudo mkdir -p ${RCPC[*]}" >> .file.list
+				echo "sudo chgrp $Group ${RCPC[*]}" >> .file.list
+				echo "sudo chown $Owner ${RCPC[*]}" >> .file.list
+				echo "sudo touch  ${RCPC[*]}""/_zinst" >> .file.list
 			fi
 		#echo "Config file set" >> .file.list
 		sudo cat $ZICF |grep ^CONF | awk '{print "cp",$6,"'$ZinstBaseRoot'/"$5}' >> .file.list
@@ -1170,8 +1158,7 @@ SetValue=${CheckSetArry[1]}
 								fi
 						fi
 					## Parsing
-
-					Conf_File=${Grep_Option%:*}
+					Conf_File=${Grep_ZICF_Raw%:*}
 						if [[ $CommandX = set ]];
 						then
 							Command_p=" * setup "
@@ -1370,7 +1357,7 @@ CurrentCheck=`echo $ZPackages |grep "^./"`
 							Package_dir=`echo $File_list | awk '{print $'$CounterFM'}'`
 
 							cd $ZinstDIRs/$Package_dir
-							Package_finder=`sudo egrep "$Pkg_file_checker$" .file.list | grep "^cp" |awk '{print $3}' 2> /dev/null`
+							Package_finder=`sudo grep "^cp" .file.list | awk '{print $3}' | egrep "$Pkg_file_checker$" 2> /dev/null`
 							if [[ $Package_finder != "" ]]
 							then
 								cd $ZinstDIRs/

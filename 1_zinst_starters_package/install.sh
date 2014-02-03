@@ -41,7 +41,10 @@ if [[ $Dist_IC = y ]]
 	echo " ======================================================================================= "
 	echo "  File directory for the Distritution is $ZinstBaseRootO/dist  "
 	echo " ======================================================================================= "
-
+elif [[ $Dist_IC = "" ]]; then
+	echo " === Empty data has been inserted! ==="
+	echo " ===  Processor has been stopped   ==="
+	exit 0;
 fi
 
 echo " ======================================================================================== "
@@ -54,6 +57,7 @@ if [[ $Dist_server = "" ]]
 	then
 	echo " === Empty data has been inserted! ==="
 	echo " === You can't use the package distributer  === "
+	exit 0;
 fi
 
 echo " ======================================================================================= "
@@ -67,6 +71,7 @@ if [[ $Dist_server_IP = "" ]]
 	then
 		echo " === Empty data has been inserted! ==="
 		echo " === You can't use the package distributer  === "
+		exit 0;
 fi
 
 echo " ======================="
@@ -89,7 +94,8 @@ mkdir -p $ZinstBaseRootO/z
 mkdir -p $ZinstBaseRootO/vault/Source/bin
 echo "set -o emacs" >> /etc/profile
 
-cp ./zinst $ZinstBaseRootO/vault/Source/bin/zinst $ZinstBaseRootO/dist/
+cp ./zinst $ZinstBaseRootO/vault/Source/bin/zinst
+cp ./zinst $ZinstBaseRootO/dist/
 ln -sf $ZinstBaseRootO/vault/Source/bin/zinst /usr/bin/zinst
 
 if [[ $Dist_IC = y ]]
@@ -99,7 +105,6 @@ if [[ $Dist_IC = y ]]
 	cd $ZinstBaseRootO/vault/Source/
 
 	zinst i server_default_setting*.zinst 
-	zinst i httpd_lynx*.zinst 
 	zinst i gsshop_httpd_server*.zinst 
 	zinst i gsshop_httpd_conf_pkgdist*.zinst -set gsshop_httpd_conf_pkgdist.ServerName=$Dist_server
 	zinst set gsshop_httpd_conf_pkgdist.DocumentRoot=$ZinstBaseRootO/dist
