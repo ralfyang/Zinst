@@ -1,6 +1,7 @@
 * [*Link: zinst packages repository in github*](https://github.com/goody80/Zinst_packages)
 * Feel free to contact me if you have any Question :) (한국어 지원)
 * Contact: goody80762@gmail.com or ralf.yang@gsshop.com
+* http://ralfyang.tistory.com/
 
 * You just can download an archive file as this link - [Download Starters package file on dropox.com ](http://m-gs.kr/8Yq)
 
