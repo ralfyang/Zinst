@@ -1,4 +1,5 @@
 * [*Link: zinst packages repository in github*](https://github.com/goody80/Zinst_packages)
+* Feel free to contact me if you have any Question :)
 * Contact: goody80762@gmail.com or ralf.yang@gsshop.com
 
 * You just can download an archive file as this link - [Download Starters package file on dropox.com ](http://m-gs.kr/8Yq)
@@ -12,7 +13,7 @@
 * For the centralized package manage & distributed systems
   * Centralized control:
     * Install the Package to the destination server 
-      * *ex) zinst install apache_server-1.0.1.zinst apache_conf-1.0.1.zinst -h web0[1-9]* 
+      * *ex) zinst install apache_server-1.0.1.zinst apache_conf-1.0.1.zinst -h web0[1-7,9]* 
     * list-up the package in each server 
       * *ex) zinst ls*
     * list-up the file of package in each server 
