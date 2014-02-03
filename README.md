@@ -45,7 +45,7 @@
 
 
 ### Architecture Overview
-![Architecture Overview](http://www.ralfyang.net/Foswiki/pub/Main/TheZinst/zinst_architecture__pub.png)
+![Architecture Overview](http://cfile21.uf.tistory.com/original/2279A34252EF609A0C2519)
 
 
 ### How to install
