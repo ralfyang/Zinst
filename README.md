@@ -1,7 +1,7 @@
 * [*Link: zinst packages repository in github*](https://github.com/goody80/Zinst_packages)
 * Contact: goody80762@gmail.com or ralf.yang@gsshop.com
 
-* You just can download an archive file as this link - [Download Starters package file on Box.com ](http://m-gs.kr/Vjm)
+* You just can download an archive file as this link - [Download Starters package file on dropox.com ](http://m-gs.kr/8Yq)
 
 # Zinst
 ## What is the Zinst ?
