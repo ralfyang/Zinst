@@ -16,7 +16,7 @@ ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ### ------ Config Area -----
 
-VERSION=3.2.1
+VERSION=3.2.2
 zinst_group=wheel
 
 
@@ -1396,6 +1396,11 @@ CurrentCheck=`echo $ZPackages |grep "^./"`
 				echo "=============== Please insert a package name as you need to see ============"
 			else
 				ZinstOrgName=`echo ${PackageArry[0]}| awk -F "-" '{print $1}'`
+				CheckPkgls=`zinst ls |grep " $ZinstOrgName-"`
+					if [[ $CheckPkgls = "" ]]; then
+						echo "====== Not existed the package name.  Please make sure that package name ======"
+						exit 0;
+					fi
 				cd $ZinstDIRs/$ZinstOrgName
 				sudo cat $ZinstDIRs/$ZinstOrgName/$ZinstOrgName.zicf
 			fi
@@ -1623,7 +1628,7 @@ echo "				[-same]			[Package]	  "
 echo "				[-downgrade]		[Package]	  "
 echo "				[-stable]		[Package without version]	  "
 echo "		 remove					[Package]	  "
-echo "				[-force]			[Package]	  "
+echo "				[-force]		[Package]	  "
 echo "...................................................................................................... "
 echo "		 list					[Blank for list-up]	  "
 echo "				[-files]		[Package]	  "
@@ -1652,7 +1657,7 @@ echo "--------------------------------------------------------------------------
 echo "		 track		[Blank for list-up]			 "
 echo "				[Package or hostname]		 "
 echo "				[Package or hostname]	[-file] 	 "
-echo "				[Package or hostname]	[-file] [Export File_name]	 "
+echo "				[Package or hostname]	[-file=Export_File_name]	 "
 echo "------------------------------------------------------------------------------------------------------ "
 echo "		 history	[Number of Range] "
 echo "...................................................................................................... "
@@ -1692,7 +1697,7 @@ echo "				[-same]			[Package]	  "
 echo "				[-downgrade]		[Package]	  "
 echo "				[-stable]		[Package without version for latest package]	  "
 echo "		 remove					[Package]	  "
-echo "				[-force]			[Package]	  "
+echo "				[-force]		[Package]	  "
 echo "...................................................................................................... "
 echo " "
 echo "  - Package view: You can see an installed packages/files/index & dependency "
@@ -1746,7 +1751,7 @@ echo "  - Track the package "
 echo "		 track		[Blank for list-up]			 "
 echo "				[Package or hostname]		 "
 echo "				[Package or hostname]	[-file] 	 "
-echo "				[Package or hostname]	[-file] [Export File_name]	 "
+echo "				[Package or hostname]	[-file=Export_File_name]	 "
 echo "------------------------------------------------------------------------------------------------------ "
 echo " + View history "
 echo " "
@@ -1836,8 +1841,15 @@ printf "%$width.${width}s \n" "$Barr$Barr"
 	
 
 ResultPack=`sudo curl -e --url $Dist_server/track/distributed_package 2> /dev/null |egrep " ${PackageArry[0]}"`
+FileChecker=`echo $MidPackageArry | awk -F '-file=' '{print $2}'`
+OptionExcenptChk=`echo "$ZOptions" | grep "="`
+	
+	if [[ $OptionExcenptChk != ""  ]]
+	then
+		ZOptions=`echo "$ZOptions" | awk -F '=' '{print $1}'`
+	fi
 
-FileChecker=`echo $MidPackageArry | awk -F '-file' '{print $2}'`
+
 	if [[ $FileChecker = ""  ]]
 	then
 		OutPutFile="$PWD/host.output"
