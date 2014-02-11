@@ -1,5 +1,5 @@
 #!/bin/bash   
-# GSshop package install manager   
+# GSshop package install manager
 # Made by Ralf Yang
 # ralf.yang@gsshop.com & goody80762@gmail.com
 export TIME_STYLE="+%b %d %R"
@@ -16,7 +16,7 @@ ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ### ------ Config Area -----
 
-VERSION=3.2.1
+VERSION=3.2.3
 zinst_group=wheel
 
 
@@ -51,6 +51,28 @@ PackageAll=$@
 #########################################################################################
 ############################ zinst parsing engine start #################################
 
+## Check for the Multi-host password automation
+Check_Multi_pass=`echo "$PackageAll" |grep " \-pass"`
+	if [[ $Check_Multi_pass != "" ]]; then
+		Check_Multi_pw="OK"
+		PackageAll=`echo "$PackageAll" | sed -e 's/ -pass/ /g'` 
+	fi
+
+Pass_Checker() {
+	if [[ $Check_Multi_pw != "OK" ]]; then
+		:
+	else
+		echo " Please insert a password for a work to the destination "
+		read -s Zinst_PASSWD
+			if [[ $Zinst_PASSWD = "" ]]
+			then
+				Comm_sshpass="sshpass -p \"$Zinst_PASSWD\""
+			else
+				Comm_sshpass="sshpass -p $Zinst_PASSWD"
+			fi
+	fi
+}
+
 ### Parsing for Host list
 HostCheck=`echo "$PackageAll" |grep "\-h\|\-H"`
 	if [[ $HostCheck != "" ]]
@@ -63,32 +85,15 @@ HostCheck=`echo "$PackageAll" |grep "\-h\|\-H"`
 		Check_sshpass=`sudo grep "not found" /tmp/.sshpass_check`
 			if [[ $Check_sshpass = "" ]]
 			then
-				echo " Please insert a password for a work to the destination "
-				read -s Zinst_PASSWD
+				Pass_Checker
 
-					if [[ $Zinst_PASSWD = "" ]]
-					then
-						Comm_sshpass="sshpass -p \"$Zinst_PASSWD\""
-					else
-						Comm_sshpass="sshpass -p $Zinst_PASSWD"
-					fi
 			else 
-#				echo " You have to type the password manually on each steps while this job. Due to You don't have sshpass tool"
-#				echo " If you want to make a job easy. then you install the package \"sshpass\" "
-#				echo " ex) zinst install sshpass -stable"
 				echo $Barr$Barr
 				echo " sshpass tool will be install first in this server(local) for the password insert automation as below"
 				echo $Barr$Barr
 				zinst i sshpass -stable
-				echo " Please insert a password for a work to the destination "
-				read -s Zinst_PASSWD
+				Pass_Checker
 
-					if [[ $Zinst_PASSWD = "" ]]
-					then
-						Comm_sshpass="sshpass -p \"$Zinst_PASSWD\""
-					else
-						Comm_sshpass="sshpass -p $Zinst_PASSWD"
-					fi
 			fi
 	else 
 		PackageArry=(`echo $PackageAll`)
@@ -190,6 +195,7 @@ MidPackageArry=${PackageArry[@]}
 			HostArry=(`sudo cat ${HostArry[@]}`)
 		else 
 			echo "$Barr"
+			echo " Hostname is not correct - (${HostArry[@]}) or"
 			echo " Requires filename for listing exactly. Please make sure the filename "
 			echo "$Barr"
 			echo ""
@@ -307,7 +313,7 @@ Parse_Checker=$*
 
 
 PrintCheck(){
-Parse_Result=$@
+Parse_Result=$PackageAll
 	PkgCheckTime=`echo "$PkgCheckArry" |grep "$Parse_Result"`
 	if [[ $PkgCheckTime = "" ]]
 	then
@@ -1396,6 +1402,11 @@ CurrentCheck=`echo $ZPackages |grep "^./"`
 				echo "=============== Please insert a package name as you need to see ============"
 			else
 				ZinstOrgName=`echo ${PackageArry[0]}| awk -F "-" '{print $1}'`
+				CheckPkgls=`zinst ls |grep " $ZinstOrgName-"`
+					if [[ $CheckPkgls = "" ]]; then
+						echo "====== Not existed the package name.  Please make sure that package name ======"
+						exit 0;
+					fi
 				cd $ZinstDIRs/$ZinstOrgName
 				sudo cat $ZinstDIRs/$ZinstOrgName/$ZinstOrgName.zicf
 			fi
@@ -1623,7 +1634,7 @@ echo "				[-same]			[Package]	  "
 echo "				[-downgrade]		[Package]	  "
 echo "				[-stable]		[Package without version]	  "
 echo "		 remove					[Package]	  "
-echo "				[-force]			[Package]	  "
+echo "				[-force]		[Package]	  "
 echo "...................................................................................................... "
 echo "		 list					[Blank for list-up]	  "
 echo "				[-files]		[Package]	  "
@@ -1652,10 +1663,11 @@ echo "--------------------------------------------------------------------------
 echo "		 track		[Blank for list-up]			 "
 echo "				[Package or hostname]		 "
 echo "				[Package or hostname]	[-file] 	 "
-echo "				[Package or hostname]	[-file] [Export File_name]	 "
+echo "				[Package or hostname]	[-file=Export_File_name]	 "
 echo "------------------------------------------------------------------------------------------------------ "
 echo "		 history	[Number of Range] "
 echo "...................................................................................................... "
+echo "		 -pass					 Option for Multi-host password automation"
 echo "		 self-update			 "
 echo "		 -version			 "
 echo "		 *, help		 "
@@ -1692,7 +1704,7 @@ echo "				[-same]			[Package]	  "
 echo "				[-downgrade]		[Package]	  "
 echo "				[-stable]		[Package without version for latest package]	  "
 echo "		 remove					[Package]	  "
-echo "				[-force]			[Package]	  "
+echo "				[-force]		[Package]	  "
 echo "...................................................................................................... "
 echo " "
 echo "  - Package view: You can see an installed packages/files/index & dependency "
@@ -1746,13 +1758,14 @@ echo "  - Track the package "
 echo "		 track		[Blank for list-up]			 "
 echo "				[Package or hostname]		 "
 echo "				[Package or hostname]	[-file] 	 "
-echo "				[Package or hostname]	[-file] [Export File_name]	 "
+echo "				[Package or hostname]	[-file=Export_File_name]	 "
 echo "------------------------------------------------------------------------------------------------------ "
 echo " + View history "
 echo " "
 echo "		 history	[Number of Range] "
 echo "...................................................................................................... "
 echo " "
+echo "		 -pass					 Option for Multi-host password automation"
 echo "		 self-update			 "
 echo "		 -version			 "
 echo " "
@@ -1836,8 +1849,15 @@ printf "%$width.${width}s \n" "$Barr$Barr"
 	
 
 ResultPack=`sudo curl -e --url $Dist_server/track/distributed_package 2> /dev/null |egrep " ${PackageArry[0]}"`
+FileChecker=`echo $MidPackageArry | awk -F '-file=' '{print $2}'`
+OptionExcenptChk=`echo "$ZOptions" | grep "="`
+	
+	if [[ $OptionExcenptChk != ""  ]]
+	then
+		ZOptions=`echo "$ZOptions" | awk -F '=' '{print $1}'`
+	fi
 
-FileChecker=`echo $MidPackageArry | awk -F '-file' '{print $2}'`
+
 	if [[ $FileChecker = ""  ]]
 	then
 		OutPutFile="$PWD/host.output"
