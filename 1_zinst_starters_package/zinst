@@ -16,7 +16,7 @@ ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ### ------ Config Area -----
 
-VERSION=3.2.3
+VERSION=3.2.4
 zinst_group=wheel
 
 
@@ -57,6 +57,7 @@ Check_Multi_pass=`echo "$PackageAll" |grep " \-pass"`
 		Check_Multi_pw="OK"
 		PackageAll=`echo "$PackageAll" | sed -e 's/ -pass/ /g'` 
 	fi
+
 
 Pass_Checker() {
 	if [[ $Check_Multi_pw != "OK" ]]; then
@@ -313,7 +314,7 @@ Parse_Checker=$*
 
 
 PrintCheck(){
-Parse_Result=$PackageAll
+Parse_Result=$@
 	PkgCheckTime=`echo "$PkgCheckArry" |grep "$Parse_Result"`
 	if [[ $PkgCheckTime = "" ]]
 	then
@@ -1064,7 +1065,7 @@ CounterAll=1
 		sudo sed -i "s/%$ZP%vault%Source%/ /g"  $ZinstBaseRoot/vault/zinst/.pkglist
 
 		Command_p="+ Install"
-		echo "`date +%Y.%m.%d_%T` $WhoStamps : $Command_p - $ZinstName $PureOption" >> $History_LOG 
+		echo -e "`date +%Y.%m.%d_%T`\t $WhoStamps : $Command_p - $ZinstName $PureOption" >> $History_LOG 
 		let "Host_index=$Host_index + 1";
 
 		############################## Install end without target host ##################################################	
@@ -1229,7 +1230,7 @@ SetValue=${CheckSetArry[1]}
 							echo "$PackageS.$realSetOption" >> $ZinstBaseRoot/vault/zinst/zinst_set.list
 							sudo cat  $ZinstBaseRoot/vault/zinst/zinst_set.list |grep ^$SetTarget
 
-							echo "`date +%Y.%m.%d_%T` $WhoStamps : $Command_p - $SetOptionValueE  " >> $History_LOG
+							echo -e "`date +%Y.%m.%d_%T`\t $WhoStamps : $Command_p - $SetOptionValueE  " >> $History_LOG
 						else
 							### Cancel Setup when it meet th Empty result
 								if [[ $Grep_Option = "" ]]
@@ -1240,7 +1241,7 @@ SetValue=${CheckSetArry[1]}
 								fi
 
 							echo "$SetOptionValueE" >> $ZinstBaseRoot/vault/zinst/zinst_set.list
-							echo "`date +%Y.%m.%d_%T` $WhoStamps : $Command_p - $SetOptionValueE  " >> $History_LOG
+							echo -e "`date +%Y.%m.%d_%T`\t $WhoStamps : $Command_p - $SetOptionValueE  " >> $History_LOG
 						fi
 					Save_Restore_file $*
 				else
@@ -1321,7 +1322,7 @@ ProcessPkg=($ZPackages)
 				sudo curl -e --url $Dist_server/remove:$RmPkg_list.zinst > /dev/null  2>&1
 
 				Command_p="- Remove "
-				echo "`date +%Y.%m.%d_%T` $WhoStamps : $Command_p - $RmPkg_list  " >> $History_LOG
+				echo -e "`date +%Y.%m.%d_%T`\t $WhoStamps : $Command_p - $RmPkg_list  " >> $History_LOG
 				let Counter=Counter+1
 			done
 	fi
@@ -1471,14 +1472,14 @@ Command_p="+ Crontab - Edit"
 		crontab -l ;;
 	-e)
 		crontab -e 
-		echo "`date +%Y.%m.%d_%T` $WhoStamps : $Command_p" >> $History_LOG ;;
+		echo -e "`date +%Y.%m.%d_%T`\t $WhoStamps : $Command_p" >> $History_LOG ;;
 	-u)
 	case "$4" in
 		-l)
 			sudo crontab -u $ZPackages -l ;;
 		-e)
 			sudo crontab -u $ZPackages
-			echo "`date +%Y.%m.%d_%T` $WhoStamps : $Command_p -u $ZPackages " >> $History_LOG ;;
+			echo -e "`date +%Y.%m.%d_%T`\t $WhoStamps : $Command_p -u $ZPackages " >> $History_LOG ;;
 		*)
 			echo " - Please insert an option as you need to change correctly - "
 			echo " ex) 'zinst crontab -e' to edit crontab"
@@ -1569,25 +1570,66 @@ ProcessPkgNum=${#ProcessPkg[@]}
 
 Counter=0
 Command_p="# Daemon $CommandX"
-echo "`date +%Y.%m.%d_%T` $WhoStamps : $Command_p - ${ProcessPkg[@]}  " >> $History_LOG
+echo -e "`date +%Y.%m.%d_%T`\t $WhoStamps : $Command_p - ${ProcessPkg[@]}  " >> $History_LOG
+ColorGreen="32"
+ColorRed="31"
+ColorDark="30"
+
 	while [[ $Counter -lt $ProcessPkgNum ]]
 	do
 		DaemonC=`echo "${ProcessPkg[$Counter]}"`
-		export LANG=c
-		#/sbin/service $DaemonC $CommandX > $ZinstBaseRoot/vault/Source/Daemon_ctrl.log 2> /dev/null
+		#export LANG=c
+		export LANG="en_US.UTF-8"
 		sudo /sbin/service $DaemonC $CommandX &> $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
+		DaemLog=`sudo cat $ZinstBaseRoot/vault/Source/Daemon_ctrl.log |tail -1`
+
+		Daemon_S=$DaemLog
+
+			FailCheck=`echo $DaemLog | grep "FAILED"`
+			if [[ $FailCheck != "" ]];then
+				Daemon_S=`printf "[\033[%dm%s\033[0m]\n" $ColorRed "FAILED"`
+			fi
+			SuccCheck=`echo $DaemLog | grep "OK"`
+			if [[ $SuccCheck != "" ]];then
+				Daemon_S=`printf "[\033[%dm%s\033[0m]\n" $ColorGreen " OK "`
+			fi
+			NorCheck=`echo $DaemLog | grep -v "OK|FAILED"`
+			if [[ $NorCheck != "" ]];then
+				:
+			fi
+			DaemLog=$Daemon_S
+
 		sudo cat $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
-		#DaemonLog=`sudo cat $ZinstBaseRoot/vault/Source/Daemon_ctrl.log | awk 'NR==1'`
-		DaemonLog=`sudo cat $ZinstBaseRoot/vault/Source/Daemon_ctrl.log`
-		DaemonCheck=`echo $DaemonLog | grep "unrecognized"`
+
+		## Checking the daemon
+		sleep 1
+		DaemonPSChk=`ps aux |grep $DaemonC | egrep -v " grep" | egrep -v "zinst " |egrep -v " vi"`
+
+			if [[ $DaemonPSChk != "" ]];then
+				TextColor=$ColorGreen
+				Daemon_Status="Working"
+				## Daemon check result output
+				DaemonResult=`printf "\033[%dm%s\033[0m\n" $TextColor "$Daemon_Status";`
+				Command_Result=`echo "Daemon $DaemonResult: $DaemLog "`
+			else
+				TextColor=$ColorDark
+				Daemon_Status="Not working"
+				## Daemon check result output
+				DaemonResult=`printf "\033[%dm%s\033[0m\n" $TextColor "$Daemon_Status";`
+				Command_Result=`echo "Daemon $DaemonResult: $DaemLog"`
+				#Command_Result=`echo "$DaemLog"`
+			fi
+
+		DaemonCheck=`echo $DaemLog | grep "unrecognized"`
 			if [[ $DaemonCheck != "" ]]
 			then
 				echo "$DaemonC is unrecognized service"
 				exit 0;
 			fi
-		echo "                    $WhoStamps : "#    " - $DaemonC: $DaemonLog  " >> $History_LOG
-		sudo rm -f $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
+		echo -e "\t\t\t $WhoStamps : #     - $Command_Result " >> $History_LOG
+#		echo -e "\t\t\t $WhoStamps : #     - $DaemLog  " >> $History_LOG
 		let Counter=Counter+1
+        sudo rm -f $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
 	done
 }
 
@@ -1617,7 +1659,7 @@ ShowVersion=`sudo cat /usr/bin/zinst |grep ^VERSION | sed -e 's/VERSION=//g'`
 echo "Zinst version" $ShowVersion
 
 Command_p="@ Self-update"
-echo "`date +%Y.%m.%d_%T` $WhoStamps : $Command_p - $ShowVersion  " >> $History_LOG
+echo -e "`date +%Y.%m.%d_%T`\t $WhoStamps : $Command_p - $ShowVersion  " >> $History_LOG
 
 } 
 
