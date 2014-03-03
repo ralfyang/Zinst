@@ -16,7 +16,7 @@ ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ### ------ Config Area -----
 
-VERSION=3.2.4
+VERSION=3.2.5
 zinst_group=wheel
 
 
@@ -1578,9 +1578,10 @@ ColorDark="30"
 	while [[ $Counter -lt $ProcessPkgNum ]]
 	do
 		DaemonC=`echo "${ProcessPkg[$Counter]}"`
-		#export LANG=c
-		export LANG="en_US.UTF-8"
-		sudo /sbin/service $DaemonC $CommandX &> $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
+		export LANG=c
+		#sudo /sbin/service $DaemonC $CommandX &> $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
+		ServiceDaemonDir=`sudo cat /sbin/service | grep "SERVICEDIR=" | awk -F '=' '{print $2}' | sed -e 's/"//g'`
+		sudo $ServiceDaemonDir/$DaemonC $CommandX &> $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
 		DaemLog=`sudo cat $ZinstBaseRoot/vault/Source/Daemon_ctrl.log |tail -1`
 
 		Daemon_S=$DaemLog
@@ -1610,13 +1611,13 @@ ColorDark="30"
 				Daemon_Status="Working"
 				## Daemon check result output
 				DaemonResult=`printf "\033[%dm%s\033[0m\n" $TextColor "$Daemon_Status";`
-				Command_Result=`echo "Daemon $DaemonResult: $DaemLog "`
+				Command_Result=`echo "Daemon $DaemonResult: Command - $DaemLog "`
 			else
 				TextColor=$ColorDark
 				Daemon_Status="Not working"
 				## Daemon check result output
 				DaemonResult=`printf "\033[%dm%s\033[0m\n" $TextColor "$Daemon_Status";`
-				Command_Result=`echo "Daemon $DaemonResult: $DaemLog"`
+				Command_Result=`echo "Daemon $DaemonResult: Command - $DaemLog"`
 				#Command_Result=`echo "$DaemLog"`
 			fi
 
