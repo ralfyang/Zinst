@@ -16,7 +16,7 @@ ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ### ------ Config Area -----
 
-VERSION=3.2.5
+VERSION=3.2.6
 zinst_group=wheel
 
 
@@ -526,9 +526,11 @@ AllPkgSortedResult="${BoxPkgArry[@]}"
 					let Hcount=Hcount+1
 
 					Localhost=$HOSTNAME
-					Command_p=">   mcp  "
+					Command_p="> mcp"
 					SourceFull=(`echo "$Source"`)
-					$Comm_sshpass ssh -oStrictHostKeyChecking=no $TartgetHost "echo \"`date +%Y.%m.%d_%T` $WhoStamps : $Command_p - From $Localhost: ${SourceFull[@]} -> $TargetDir \" >> $History_LOG"
+					IPaddr=`ifconfig |grep " addr:" |grep Bcast |head -1 | awk '{print $2}'|awk  -F ':' '{print $2}'`
+					#$Comm_sshpass ssh -oStrictHostKeyChecking=no $TartgetHost "echo -e \"`date +%Y.%m.%d_%T`\t $WhoStamps : $Command_p - From `netstat -ant |grep ':22' |grep 'ESTABLISHED '| awk '{print $4}' |grep ':22' | tail -1| awk -F ':' '{print $1}'`: ${SourceFull[@]} -> $TargetDir \" >> $History_LOG"
+					$Comm_sshpass ssh -oStrictHostKeyChecking=no $TartgetHost "echo -e \"`date +%Y.%m.%d_%T`\t $WhoStamps : $Command_p - From $IPaddr:  ${SourceFull[@]} -> $TargetDir \" >> $History_LOG"
 				done
 		else
 			echo "$ROWW"
@@ -565,7 +567,6 @@ szinst="zinst"
 						## Check the Package or Distribution server
 						## Package scp to destination
 						zinst_checkDes=`sudo grep ^VERSION $ZinstBaseRoot/vault/Source/ssh_conn_test.log | sed -e 's/VERSION=//g' 2> /dev/null`
-						#zinst_emptyCheck=`grep ^VERSION $ZinstBaseRoot/vault/Source/ssh_conn_test.log | sed -e 's/VERSION=//g' 2> /dev/null`
 							if [[ $zinst_checkDes != "" ]]
 							then
 								zinst_checkLoc=`sudo cat /usr/bin/zinst 2> /dev/null |grep ^VERSION | sed -e 's/VERSION=//g'`
@@ -625,6 +626,17 @@ szinst="zinst"
 							if [[ $MultiCheck = "" ]]
 							then
 								$Comm_sshpass ssh -t $HostF "echo [ :: $HostF :: ];cd $ZinstSourceDir; source /etc/profile ;$szinst $RotaCommand" 2> /dev/null
+ 							    #$Comm_sshpass ssh -t $HostF "echo -e \"`date +%Y.%m.%d_%T`\t $WhoStamps :  >> SSH - From `netstat -ant |grep ':22' |grep 'ESTABLISHED '| awk '{print $4}' |grep ':22' | tail -1| awk -F ':' '{print $1}'`: $szinst $RotaCommand\" >> $History_LOG" 
+								IPaddr=`ifconfig |grep " addr:" |grep Bcast |head -1 | awk '{print $2}'|awk  -F ':' '{print $2}'`
+									if [[ $szinst = "" ]];then
+										DestStamp="> SSH -"
+									else
+										DestStamp=" L"
+									fi
+
+ 							    $Comm_sshpass ssh -t $HostF "echo -e \"`date +%Y.%m.%d_%T`\t $WhoStamps : $DestStamp From $IPaddr: $szinst $RotaCommand\" >> $History_LOG" 
+
+
 							else
 								### For multi-task
 								$Comm_sshpass ssh -t $HostF "echo [ :: $HostF :: ];cd $ZinstSourceDir; source /etc/profile ;$szinst $RotaCommand" & 
@@ -1611,13 +1623,13 @@ ColorDark="30"
 				Daemon_Status="Working"
 				## Daemon check result output
 				DaemonResult=`printf "\033[%dm%s\033[0m\n" $TextColor "$Daemon_Status";`
-				Command_Result=`echo "Daemon $DaemonResult: Command - $DaemLog "`
+				Command_Result=`echo "Daemon $DaemonResult: $DaemLog "`
 			else
 				TextColor=$ColorDark
 				Daemon_Status="Not working"
 				## Daemon check result output
 				DaemonResult=`printf "\033[%dm%s\033[0m\n" $TextColor "$Daemon_Status";`
-				Command_Result=`echo "Daemon $DaemonResult: Command - $DaemLog"`
+				Command_Result=`echo "Daemon $DaemonResult: $DaemLog"`
 				#Command_Result=`echo "$DaemLog"`
 			fi
 
