@@ -16,7 +16,7 @@ ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ### ------ Config Area -----
 
-VERSION=3.2.6
+VERSION=3.2.7
 zinst_group=wheel
 
 
@@ -717,7 +717,7 @@ CounterAll=1
 				Package_RC=`wget  --spider  $Dist_server/$Package_list -o $ZinstSourceDir/tmp_wget_check ;sudo cat $ZinstSourceDir/tmp_wget_check |grep Remote ;sudo rm -f $ZinstSourceDir/tmp_wget_check`
 			fi
 
-		#### check local zinst file
+			#### check local zinst file
 			if [[ $Pkg_result = $Package_list ]]
 			then
 				Package_RC="Remote file exists."
@@ -727,7 +727,9 @@ CounterAll=1
 					then
 						sudo mkdir $ZinstSourceDir/$ZinstName
 					fi
-				sudo cp -f $DIST/$Package_list $ZinstBaseRoot/vault/Source/$ZinstName/$Package_list
+ 				sudo cp -f $DIST/$Package_list $ZinstBaseRoot/vault/Source/$ZinstName/$Package_list
+	 			sudo chgrp -R $zinst_group $ZinstBaseRoot/vault/Source/$ZinstName
+	 			sudo chmod g+w $ZinstBaseRoot/vault/Source/$ZinstName
 			fi
 
 			if [[ $Package_RC = "Remote file does not exist -- broken link!!!" ]]
