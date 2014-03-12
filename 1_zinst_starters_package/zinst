@@ -4,7 +4,7 @@
 # ralf.yang@gsshop.com & goody80762@gmail.com
 export TIME_STYLE="+%b %d %R"
 Barr="==========================================================================="
-BARR="#############################################################"
+BARR="###########################################################################"
 ROWW="============================================================="
 
 ### Base information
@@ -16,7 +16,7 @@ ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ### ------ Config Area -----
 
-VERSION=3.2.7
+VERSION=3.2.8
 zinst_group=wheel
 
 
@@ -1592,7 +1592,7 @@ ColorDark="30"
 	while [[ $Counter -lt $ProcessPkgNum ]]
 	do
 		DaemonC=`echo "${ProcessPkg[$Counter]}"`
-		export LANG=c
+		export LANG=C
 		#sudo /sbin/service $DaemonC $CommandX &> $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
 		ServiceDaemonDir=`sudo cat /sbin/service | grep "SERVICEDIR=" | awk -F '=' '{print $2}' | sed -e 's/"//g'`
 		sudo $ServiceDaemonDir/$DaemonC $CommandX &> $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
