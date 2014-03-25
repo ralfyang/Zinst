@@ -2,8 +2,9 @@
 * Feel free to contact me if you have any Question :) (한국어 지원)
 * Contact: goody80762@gmail.com or ralf.yang@gsshop.com
 * http://ralfyang.com
-
 * You just can download an archive file as this link - [Download Starters package file on dropox.com ](http://m-gs.kr/8Yq)
+
+* Zinst basic lecture: https://youtu.be/30PNiJMJAgw
 
 # Zinst
 ## What is the Zinst ?
