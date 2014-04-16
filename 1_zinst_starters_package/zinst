@@ -16,7 +16,7 @@ ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ### ------ Config Area -----
 
-VERSION=3.2.8
+VERSION=3.3.2
 zinst_group=wheel
 
 
@@ -544,6 +544,7 @@ AllPkgSortedResult="${BoxPkgArry[@]}"
 RotaCommand=$Allcommand
 RotaHost=$ZHosts
 szinst="zinst"
+RotaBeacon=0
 
 	if [[ $ZHosts != "" ]]
 	then 
@@ -598,6 +599,7 @@ szinst="zinst"
 						#### Local package scp to destination ####
 						LocalPkg=`echo $RotaCommand | sed -e 's/^[a-z]* //g'`
 						LocalPkg_Num=`echo $LocalPkg | awk '{print NF}'`
+
 						CountSub=1
 							while [[ $CountSub -le $LocalPkg_Num ]]
 							do
@@ -617,16 +619,19 @@ szinst="zinst"
 
 
 							#### Check set command for destination work ########
-							if [[ $CommandX = "set" ]]
-							then
-								RotaCommand=`echo $RotaCommand | sed -e 's/ \-set//1'`
+
+							if [[ $RotaBeacon = 0 ]];then
+								if [[ $CommandX = "set" ]]
+								then
+									RotaCommand=`echo $RotaCommand | sed -e 's/ \-set//1'`
+									RotaBeacon=1
+								fi
 							fi
 
 						MultiCheck=`echo $ZOptions |grep -e "-multi"`
 							if [[ $MultiCheck = "" ]]
 							then
 								$Comm_sshpass ssh -t $HostF "echo [ :: $HostF :: ];cd $ZinstSourceDir; source /etc/profile ;$szinst $RotaCommand" 2> /dev/null
- 							    #$Comm_sshpass ssh -t $HostF "echo -e \"`date +%Y.%m.%d_%T`\t $WhoStamps :  >> SSH - From `netstat -ant |grep ':22' |grep 'ESTABLISHED '| awk '{print $4}' |grep ':22' | tail -1| awk -F ':' '{print $1}'`: $szinst $RotaCommand\" >> $History_LOG" 
 								IPaddr=`ifconfig |grep " addr:" |grep Bcast |head -1 | awk '{print $2}'|awk  -F ':' '{print $2}'`
 									if [[ $szinst = "" ]];then
 										DestStamp="> SSH -"
@@ -1197,29 +1202,13 @@ SetValue=${CheckSetArry[1]}
 							Equiltype1=`sudo grep "$Option=$CurrentSetCheck2" $Grep_ZICF_Source`
 							Equiltype2=`sudo grep "$Option = $CurrentSetCheck2" $Grep_ZICF_Source`
 							Equiltype3=`sudo grep "$Option $CurrentSetCheck2" $Grep_ZICF_Source`
-							Check_Conf_File=`sudo grep \/ $Grep_ZICF_Source`
-								if [[ $Check_Conf_File != ""  ]];
-								then
-									sudo sed -i "s/\//%%%/g" $Grep_ZICF_Source
-									CurrentSetCheck2=`echo "$CurrentSetCheck2" | sed -e "s/\//%%%/g"`
-									ZinstSet=`echo "$ZinstSet" |  sed -e "s/\//%%%/g"`
-										if [[ $Equiltype1 != "" ]];
-										then 
-											sudo sed -i "s/$Option=$CurrentSetCheck2$/$Option=$ZinstSet/g" $Grep_ZICF_Source
-										elif [[ $Equiltype2 != "" ]]; then
-											sudo sed -i "s/$Option = $CurrentSetCheck2$/$Option = $ZinstSet/g" $Grep_ZICF_Source
-										elif [[ $Equiltype3 != "" ]]; then
-											sudo sed -i "s/$Option $CurrentSetCheck2$/$Option $ZinstSet/g" $Grep_ZICF_Source
-										fi		
-									sudo sed -i "s/%%%/\//g" $Grep_ZICF_Source
-								fi
 								if [[ $Equiltype1 != "" ]];
 								then 
-									sudo sed -i "s/$Option=$CurrentSetCheck2$/$Option=$ZinstSet/g" $Grep_ZICF_Source
+									sudo sed -i "s#$Option=$CurrentSetCheck2#$Option=$ZinstSet#g" $Grep_ZICF_Source
 								elif [[ $Equiltype2 != "" ]]; then
-									sudo sed -i "s/$Option = $CurrentSetCheck2$/$Option = $ZinstSet/g" $Grep_ZICF_Source
+									sudo sed -i "s#$Option = $CurrentSetCheck2#$Option = $ZinstSet#g" $Grep_ZICF_Source
 								elif [[ $Equiltype3 != "" ]]; then
-									sudo sed -i "s/$Option $CurrentSetCheck2$/$Option $ZinstSet/g" $Grep_ZICF_Source
+									sudo sed -i "s#$Option $CurrentSetCheck2#$Option $ZinstSet#g" $Grep_ZICF_Source
 								fi		
 
 							### Stamping a Set value for history
@@ -1236,9 +1225,9 @@ SetValue=${CheckSetArry[1]}
 								### Temporary exception function
 								CheckResultParse=`echo "$Grep_Option" | grep ":"`
 								if [[ $CheckResultParse != "" ]]; then
-									realSetOption=`echo "$Grep_Option"  | awk -F ':' '{print $2}' | sed -e "s/$Option /$Option=/g" -e 's/== /=/g'`
+									realSetOption=`echo "$Grep_Option"  | awk -F ':' '{print $2}' | sed -e "s#$Option #$Option=#g" -e 's/== /=/g'`
 								else
-									realSetOption=`echo "$Grep_Option"  | sed -e "s/$Option /$Option=/g" -e 's/== /=/g'`
+									realSetOption=`echo "$Grep_Option"  | sed -e "s#$Option #$Option=#g" -e 's/== /=/g'`
 								fi
 
 							echo "$PackageS.$realSetOption" >> $ZinstBaseRoot/vault/zinst/zinst_set.list
@@ -1936,7 +1925,7 @@ OptionExcenptChk=`echo "$ZOptions" | grep "="`
 		echo "$OutTrack"
 	else
 		echo "$OutTrack"
-		echo "$OutTrack" | awk '{print $1}' > $OutPutFile
+		echo "$OutTrack" | awk '{print $1}' | sort -u > $OutPutFile
 		printf "%$width.${width}s \n" "$Barr$Barr"
 		echo " Hostlist file has been created to $OutPutFile "
 	fi
