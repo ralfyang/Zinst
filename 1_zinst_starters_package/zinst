@@ -16,7 +16,7 @@ ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ### ------ Config Area -----
 
-VERSION=3.3.2
+VERSION=3.3.3
 zinst_group=wheel
 
 
@@ -528,7 +528,7 @@ AllPkgSortedResult="${BoxPkgArry[@]}"
 					Localhost=$HOSTNAME
 					Command_p="> mcp"
 					SourceFull=(`echo "$Source"`)
-					IPaddr=`ifconfig |grep " addr:" |grep Bcast |head -1 | awk '{print $2}'|awk  -F ':' '{print $2}'`
+					IPaddr=`/sbin/ifconfig |grep " addr:" |grep Bcast |head -1 | awk '{print $2}'|awk  -F ':' '{print $2}'`
 					#$Comm_sshpass ssh -oStrictHostKeyChecking=no $TartgetHost "echo -e \"`date +%Y.%m.%d_%T`\t $WhoStamps : $Command_p - From `netstat -ant |grep ':22' |grep 'ESTABLISHED '| awk '{print $4}' |grep ':22' | tail -1| awk -F ':' '{print $1}'`: ${SourceFull[@]} -> $TargetDir \" >> $History_LOG"
 					$Comm_sshpass ssh -oStrictHostKeyChecking=no $TartgetHost "echo -e \"`date +%Y.%m.%d_%T`\t $WhoStamps : $Command_p - From $IPaddr:  ${SourceFull[@]} -> $TargetDir \" >> $History_LOG"
 				done
@@ -632,7 +632,7 @@ RotaBeacon=0
 							if [[ $MultiCheck = "" ]]
 							then
 								$Comm_sshpass ssh -t $HostF "echo [ :: $HostF :: ];cd $ZinstSourceDir; source /etc/profile ;$szinst $RotaCommand" 2> /dev/null
-								IPaddr=`ifconfig |grep " addr:" |grep Bcast |head -1 | awk '{print $2}'|awk  -F ':' '{print $2}'`
+								IPaddr=`/sbin/ifconfig |grep " addr:" |grep Bcast |head -1 | awk '{print $2}'|awk  -F ':' '{print $2}'`
 									if [[ $szinst = "" ]];then
 										DestStamp="> SSH -"
 									else
