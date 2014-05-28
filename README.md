@@ -1,12 +1,12 @@
 * Requires: BASH, curl, wget, SSH
 * Feel free to contact me if you have any Question :) (한국어 지원)
 * Contact: goody80762@gmail.com or ralf.yang@gsshop.com
-* [Download Starters package file on dropox.com ](http://m-gs.kr/8Yq)
-* [Zinst Basic lecture via Youtube](https://youtu.be/30PNiJMJAgw)
-* [Zinst Presentation](https://db.tt/TMrEqt2X)
-
-* [Official Home](]http://ralfyang.com)
-* [*Link: zinst packages repository in github*](https://github.com/goody80/Zinst_packages)
+* Links:
+ * [Download Starters package file on dropox.com ](http://m-gs.kr/8Yq)
+ * [Zinst Basic lecture via Youtube](https://youtu.be/30PNiJMJAgw)
+ * [Zinst Presentation](https://db.tt/TMrEqt2X)
+ * [Official Home](http://ralfyang.com)
+ * [*Link: zinst packages repository in github*](https://github.com/goody80/Zinst_packages)
 
 # Zinst
 ## What is the Zinst ?
