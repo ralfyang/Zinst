@@ -4,9 +4,12 @@
 * Links:
  * [Download Starters package file on dropox.com ](http://m-gs.kr/8Yq)
  * [Zinst Basic lecture via Youtube](https://youtu.be/30PNiJMJAgw)
+ * [Slide Share](http://www.slideshare.net/sprdd/zinst-20140415)
  * [Zinst Presentation](https://db.tt/TMrEqt2X)
  * [Official Home](http://ralfyang.com)
  * [*Link: zinst packages repository in github*](https://github.com/goody80/Zinst_packages)
+
+
 
 # Zinst
 ## What is the Zinst ?
