@@ -9,7 +9,7 @@ ROWW="============================================================="
 
 ### Base information
 ### ------ Config Area -----
-Dist_server="http://DISTsERVERsET/"
+Dist_server="http://DISTsERVERsET"
 sed -i "/DISTsERVERsET/d" /etc/hosts;echo "DISTsERVERIp   DISTsERVERsET" >> /etc/hosts
 ZinstBaseRoot="RootDirectorY"
 ZinstDIRs="$ZinstBaseRoot/zinst"
