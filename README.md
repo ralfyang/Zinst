@@ -1,4 +1,4 @@
-* Requires: BASH, curl, wget, SSH
+* Requires: BASH, SSH, curl, wget, bc
 * Feel free to contact me if you have any Question :) (한국어 지원)
 * Contact: goody80762@gmail.com or ralf.yang@gsshop.com
 * Links:
@@ -127,7 +127,9 @@ zinst help
 				[-dep]			[Package]	  
 ...................................................................................................... 
  
-  - Package restore: You can restore the package set as a file for restore	ex) ~/z/save/zinst-* 
+  - Package rollback: You can try a roll-back the package set by a save file	ex) ~/z/save/zinst-* 
+		 rollback	[-file]			[Order list file for roll-back as a save file]	  
+  - Package restore: You can restore the package set by a save file for restore	ex) ~/z/save/zinst-* 
 		 restore	[-file]			[Saved file_name]	  
 				[-igor]			* Not available yet 
  
@@ -148,6 +150,8 @@ zinst help
 		 start					[Daemon_name]	  
 		 stop					[Daemon_name]	  
 		 restart				[Daemon_name]	  
+		 on					[Daemon_name]	  
+		 off					[Daemon_name]	  
 ...................................................................................................... 
  
   - Crontab manage: You can touch the cron schduler by zinst 
@@ -168,14 +172,17 @@ zinst help
 		 track		[Blank for list-up]			 
 				[Package or hostname]		 
 				[Package or hostname]	[-file] 	 
-				[Package or hostname]	[-file] [Export File_name]	 
+				[Package or hostname]	[-file=Export_File_name]	 
+				"user" or "sudo_user"	 
+				[User_Package_name]	[-file] 	 
+				[User_Package_name]	[-file=Export_File_name]	 
 ------------------------------------------------------------------------------------------------------ 
  + View history 
  
 		 history	[Number of Range] 
 ...................................................................................................... 
-
-		 -pass					 Option for Multi-host password automation 
+ 
+		 -pass					 Option for Multi-host password automation
 		 self-update			 
 		 -version			 
  
@@ -193,7 +200,7 @@ zinst ssh 'cat /etc/hosts;pwd' -h web[01-09].test.com	: Send a command to sepera
  
 zinst mcp ./test.* /data/var/ -h web[01-09].test.com 	: File copy to seperated hosts 
  
-zinst install hwconfig -stable				: for package apply as a latest version automatically 
+zinst install hwconfig -stable			: for package apply as a latest version automatically 
  
 zinst install hwconfig-1.0.2.zinst -same		: for overwrite the package as a same version 
 zinst i hwconfig-1.0.2.zinst -downgrade			: for downgrade the package as a lower version 
@@ -212,7 +219,7 @@ zinst i hwconfig-1.0.2.zinst -set hwconfig.nameserver1=1.1.1.1 -set hwconfig.nam
 zinst restart httpd					: restart the httpd daemon by /etc/init.d/httpd file control 
  
 zinst crontab -l 					: list-up the crontab scheduler 
-zinst crontab -u root -l				: list-up the crontab scheduler for an user 
+zinst crontab -u root -l			: list-up the crontab scheduler for an user 
 zinst cront -e	 					: edit the crontab scheduler 
  
 zinst find						: list-up the available file for install 
@@ -223,9 +230,7 @@ zinst hist 300						: show the 300 lines history
  
 zinst self-update					: zinst command update( *Requires: Package dist server must has a zinst file) 
  
-zinst help						: Detail view the help 
- 
-=== For more detail: http://twiki.gsenext.com/bin/view/Main/TheZinst ===
+zinst help						: Detail view the help  
 
 </pre>
 
