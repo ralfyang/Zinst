@@ -18,13 +18,13 @@ ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ### ------ Config Area -----
 
-VERSION=4.0.3
+VERSION=4.0.4
 zinst_group=wheel
 
 version_redefine ()
 { echo "$@" | awk -F'.' '{printf("%03d%03d%03d\n", $1,$2,$3); }'; }
 
-function exit_abnormal() {
+exit_abnormal() {
 stty echo 
 echo " - Command has been canceled -"
 exit 1
@@ -248,9 +248,6 @@ ProcessPkgNum=${#PackageArry[@]}
 PureOption=`echo $ZOptions | sed -e 's/-stable //g'`
 Allcommand="$CommandX $ZPackages $ZOptions $Zset"
 
-
-
-
 ############################  zinst parsing engine end ##################################
 #########################################################################################
 ### History File reset for permission
@@ -278,7 +275,6 @@ Parse_Checker=$*
 		fi
 	else
 		ParsedPkgZinstFind=`cat $CurrPkgList | grep "^$Parse_Checker-" | tail -1`
-
 		if [[ $ParsedPkgZinstFind = "" ]]
 		then
 			echo "$BARR"
@@ -305,6 +301,109 @@ Parse_Result=$@
 	fi
 }
 
+################################# Hostlist checker ######################################
+RotaCommand=$Allcommand
+szinst="zinst"
+RotaBeacon=0
+	if [[ $ZHosts != "" ]]
+	then 
+		Count=0
+		Max=${#HostChanged[@]}
+			while [[ $Count -lt $Max ]];
+			do
+				HostF=$WhoStamp@${HostChanged[$Count]}
+				## ssh connection check
+				$Comm_sshpass ssh -oStrictHostKeyChecking=no $HostF "grep ^VERSION /usr/bin/zinst" > $ZinstBaseRoot/vault/Source/ssh_conn_test.log 2>&1
+				CheckConnection=`sudo cat $ZinstBaseRoot/vault/Source/ssh_conn_test.log |grep "No route\|not known\|Connection refused"`
+					if [[ $CheckConnection != "" ]]
+					then
+						echo $Barr	
+						echo "It couldn't connect this host($HostF). Please check this hostname"
+						echo $Barr	
+					else
+						## Install start with target host ##
+						## Check the Package or Distribution server
+						## Package scp to destination
+						zinst_checkDes=`sudo grep ^VERSION $ZinstBaseRoot/vault/Source/ssh_conn_test.log | sed -e 's/VERSION=//g' 2> /dev/null`
+							if [[ $zinst_checkDes != "" ]]
+							then
+								zinst_checkLoc=`sudo cat /usr/bin/zinst 2> /dev/null |grep ^VERSION | sed -e 's/VERSION=//g'`
+									if [[ $(version_redefine "$zinst_checkDes") < $(version_redefine "$zinst_checkLoc") ]];
+									then
+										$Comm_sshpass scp /usr/bin/zinst $HostF:/usr/bin
+									fi
+							else
+								$Comm_sshpass scp /usr/bin/zinst $HostF:/usr/bin/ 2> /dev/null
+							fi
+
+						#### Check SSH command ########
+							if [[ $CommandX = "ssh" ]]
+							then
+								RotaCommand=$MidPackageArry
+								szinst=""
+							fi
+
+						CheckDesDIR=`sudo grep " cannot access " $ZinstBaseRoot/vault/Source/ssh_conn_test.log`
+							if [[ $CommandX != "" ]]
+							then
+        						$Comm_sshpass ssh -t $HostF "sudo mkdir -p $ZinstBaseRoot/vault/Source;sudo chgrp -R $zinst_group $ZinstBaseRoot/vault" 2> /dev/null
+							fi
+
+        					echo ""
+						## Delete temporary connection checker file
+     						sudo rm -f $ZinstBaseRoot/vault/Source/ssh_conn_test.log
+						#### Local package scp to destination ####
+						LocalPkg=`echo $RotaCommand | sed -e 's/^[a-z]* //g'`
+						LocalPkg_Num=`echo $LocalPkg | awk '{print NF}'`
+
+						CountSub=1
+							while [[ $CountSub -le $LocalPkg_Num ]]
+							do
+								LocalRealPkg=`echo $LocalPkg | awk '{print $'$CountSub'}'`
+									if [[ $CommandX = "^ssh$" ]]
+									then
+										LocalPkg_chk=`cd $PWD;ls |grep "^$LocalRealPkg"`
+									fi
+
+									if [[ $LocalPkg_chk != "" ]]
+									then
+										$Comm_sshpass scp $LocalRealPkg $HostF:$ZinstSourceDir/
+									fi
+
+								let CountSub=CountSub+1
+							done;
+
+							#### Check set command for destination work ########
+							if [[ $RotaBeacon = 0 ]];then
+								if [[ $CommandX = "set" ]]
+								then
+									RotaCommand=`echo $RotaCommand | sed -e 's/ \-set//1'`
+									RotaBeacon=1
+								fi
+							fi
+
+						MultiCheck=`echo $ZOptions |grep -e "-multi"`
+							if [[ $MultiCheck = "" ]]
+							then
+								$Comm_sshpass ssh -t $HostF "echo [ :: $HostF :: ];cd $ZinstSourceDir; source /etc/profile ;$szinst $RotaCommand" 2> /dev/null
+								IPaddr=`/sbin/ifconfig |grep " addr:" |grep Bcast |head -1 | awk '{print $2}'|awk  -F ':' '{print $2}'`
+									if [[ $szinst = "" ]];then
+										DestStamp="> SSH -"
+									else
+										DestStamp=" L"
+									fi
+
+ 							    $Comm_sshpass ssh -t $HostF "echo -e \"`date +%Y.%m.%d_%T`\t $WhoStamps : $DestStamp From $IPaddr: $szinst $RotaCommand\" >> $History_LOG" 
+							else
+								### For multi-task
+								$Comm_sshpass ssh -t $HostF "echo [ :: $HostF :: ];cd $ZinstSourceDir; source /etc/profile ;$szinst $RotaCommand" & 
+							fi
+
+					fi
+				let Count=Count+1
+			done
+		exit 0;
+	fi
 
 Check_Package_Deps(){
 ### Package input
@@ -612,111 +711,6 @@ StableOptionCheck=`echo "${PackageArryOption[@]}" |grep "\-stable"`
 				done
 		fi
 	fi
-
-################################# Hostlist checker ######################################
-RotaCommand=$Allcommand
-szinst="zinst"
-RotaBeacon=0
-	if [[ $ZHosts != "" ]]
-	then 
-		Count=0
-		Max=${#HostChanged[@]}
-			while [[ $Count -lt $Max ]];
-			do
-				HostF=$WhoStamp@${HostChanged[$Count]}
-				## ssh connection check
-				$Comm_sshpass ssh -oStrictHostKeyChecking=no $HostF "grep ^VERSION /usr/bin/zinst" > $ZinstBaseRoot/vault/Source/ssh_conn_test.log 2>&1
-				CheckConnection=`sudo cat $ZinstBaseRoot/vault/Source/ssh_conn_test.log |grep "No route\|not known\|Connection refused"`
-					if [[ $CheckConnection != "" ]]
-					then
-						echo $Barr	
-						echo "It couldn't connect this host($HostF). Please check this hostname"
-						echo $Barr	
-					else
-						## Install start with target host ##
-						## Check the Package or Distribution server
-						## Package scp to destination
-						zinst_checkDes=`sudo grep ^VERSION $ZinstBaseRoot/vault/Source/ssh_conn_test.log | sed -e 's/VERSION=//g' 2> /dev/null`
-							if [[ $zinst_checkDes != "" ]]
-							then
-								zinst_checkLoc=`sudo cat /usr/bin/zinst 2> /dev/null |grep ^VERSION | sed -e 's/VERSION=//g'`
-									if [[ $(version_redefine "$zinst_checkDes") < $(version_redefine "$zinst_checkLoc") ]];
-									then
-										$Comm_sshpass scp /usr/bin/zinst $HostF:/usr/bin
-									fi
-							else
-								$Comm_sshpass scp /usr/bin/zinst $HostF:/usr/bin/ 2> /dev/null
-							fi
-
-						#### Check SSH command ########
-							if [[ $CommandX = "ssh" ]]
-							then
-								RotaCommand=$MidPackageArry
-								szinst=""
-							fi
-
-						CheckDesDIR=`sudo grep " cannot access " $ZinstBaseRoot/vault/Source/ssh_conn_test.log`
-							if [[ $CommandX != "" ]]
-							then
-        						$Comm_sshpass ssh -t $HostF "sudo mkdir -p $ZinstBaseRoot/vault/Source;sudo chgrp -R $zinst_group $ZinstBaseRoot/vault" 2> /dev/null
-							fi
-
-        					echo ""
-						## Delete temporary connection checker file
-     						sudo rm -f $ZinstBaseRoot/vault/Source/ssh_conn_test.log
-						#### Local package scp to destination ####
-						LocalPkg=`echo $RotaCommand | sed -e 's/^[a-z]* //g'`
-						LocalPkg_Num=`echo $LocalPkg | awk '{print NF}'`
-
-						CountSub=1
-							while [[ $CountSub -le $LocalPkg_Num ]]
-							do
-								LocalRealPkg=`echo $LocalPkg | awk '{print $'$CountSub'}'`
-									if [[ $CommandX = "^ssh$" ]]
-									then
-										LocalPkg_chk=`cd $PWD;ls |grep "^$LocalRealPkg"`
-									fi
-
-									if [[ $LocalPkg_chk != "" ]]
-									then
-										$Comm_sshpass scp $LocalRealPkg $HostF:$ZinstSourceDir/
-									fi
-
-								let CountSub=CountSub+1
-							done;
-
-							#### Check set command for destination work ########
-							if [[ $RotaBeacon = 0 ]];then
-								if [[ $CommandX = "set" ]]
-								then
-									RotaCommand=`echo $RotaCommand | sed -e 's/ \-set//1'`
-									RotaBeacon=1
-								fi
-							fi
-
-						MultiCheck=`echo $ZOptions |grep -e "-multi"`
-							if [[ $MultiCheck = "" ]]
-							then
-								$Comm_sshpass ssh -t $HostF "echo [ :: $HostF :: ];cd $ZinstSourceDir; source /etc/profile ;$szinst $RotaCommand" 2> /dev/null
-								IPaddr=`/sbin/ifconfig |grep " addr:" |grep Bcast |head -1 | awk '{print $2}'|awk  -F ':' '{print $2}'`
-									if [[ $szinst = "" ]];then
-										DestStamp="> SSH -"
-									else
-										DestStamp=" L"
-									fi
-
- 							    $Comm_sshpass ssh -t $HostF "echo -e \"`date +%Y.%m.%d_%T`\t $WhoStamps : $DestStamp From $IPaddr: $szinst $RotaCommand\" >> $History_LOG" 
-							else
-								### For multi-task
-								$Comm_sshpass ssh -t $HostF "echo [ :: $HostF :: ];cd $ZinstSourceDir; source /etc/profile ;$szinst $RotaCommand" & 
-							fi
-
-					fi
-				let Count=Count+1
-			done
-		exit 0;
-	fi
-
  
 
 Save_Restore_file(){
@@ -1810,10 +1804,10 @@ cd ~/;
 sudo rm -f zinst
 wget  $Dist_server/zinst;
 mv zinst zinst_tmp
-	if [[ -f $ZinstBaseRoot/vault/Source/bin/zinst ]];then
-		head -20 $ZinstBaseRoot/vault/Source/bin/zinst > ~/zinst
+	if [[ -f /usr/bin/zinst ]];then
+		head -19 /usr/bin/zinst > ~/zinst
 	else
-		head -20 /usr/bin/zinst > ~/zinst
+		head -19 $ZinstBaseRoot/vault/Source/bin/zinst > ~/zinst
 	fi
 tail -n +20 ./zinst_tmp >>  ~/zinst
 rm -f ./zinst_tmp
