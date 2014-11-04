@@ -109,6 +109,7 @@ if [[ $Dist_IC = y ]]
 	zinst i gsshop_httpd_conf_pkgdist*.zinst -set gsshop_httpd_conf_pkgdist.ServerName=$Dist_server
 	zinst set gsshop_httpd_conf_pkgdist.DocumentRoot=$ZinstBaseRootO/dist
 	zinst i package_tracker*.zinst
+	zinst i gs_nmap*.zinst
 	zinst start httpd
 	echo " ======================================================================================= "
 	echo "  Apache web server has been installed "

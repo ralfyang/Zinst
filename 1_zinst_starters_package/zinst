@@ -18,7 +18,7 @@ ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ### ------ Config Area -----
 
-VERSION=4.0.4
+VERSION=4.0.5
 zinst_group=wheel
 
 version_redefine ()
@@ -300,6 +300,75 @@ Parse_Result=$@
 		printf "%-60s %-1s %-10s %-1s\n" "| $Parse_Result" "|" "- Checked" "|"
 	fi
 }
+
+
+### Multi file copier command
+	if [[ $CommandX = "mcp" ]]
+	then
+		if [[ $ZHosts != "" ]]
+		then
+			TargetDir=`echo $ZPackages | awk '{print $NF}'`
+			Source=`echo $ZPackages | awk '{for (i=1;i<NF;i=i+1) print $i}'`
+			SourceNum=`echo $Source | awk '{print NF}' `
+			HostNum=`echo $ZHosts | awk '{print NF}'`
+			Hcount=1
+				while [[ $Hcount -le $HostNum ]]
+				do
+					TartgetHost=`echo $ZHosts | awk '{print $'$Hcount'}'`
+					echo ""
+					echo "[:: $TartgetHost  ::]"		
+					Scount=1
+						while [[ $Scount -le $SourceNum ]]
+						do
+							PartedSource=`echo $Source |awk '{print $'$Scount'}'`
+							Check_Files=`ls $PartedSource`
+								if [[ $Check_Files != $PartedSource  ]]
+								then
+									echo " =============  $PartedSource File not exist ============="
+									exit 0;
+								fi
+							$Comm_sshpass scp $PartedSource $TartgetHost:$TargetDir	
+							let Scount=Scount+1
+						done
+					let Hcount=Hcount+1
+					Localhost=$HOSTNAME
+					Command_p="> mcp"
+					SourceFull=(`echo "$Source"`)
+					IPaddr=`/sbin/ifconfig |grep " addr:" |grep Bcast |head -1 | awk '{print $2}'|awk  -F ':' '{print $2}'`
+					$Comm_sshpass ssh -oStrictHostKeyChecking=no $TartgetHost "echo -e \"`date +%Y.%m.%d_%T`\t $WhoStamps : $Command_p - From $IPaddr:  ${SourceFull[@]} -> $TargetDir \" >> $History_LOG"
+				done
+		else
+			echo "$ROWW"
+			echo " Hostname requires"
+			echo "$ROWW"
+		fi
+		exit 0;
+	fi
+	CheckRB=`echo "$CommandX" |grep "roll"`
+	if [[ $CheckRB != "" ]]
+	then
+		if [[ $ZHosts != "" ]]
+		then
+			TargetDir="~/"
+			Source=`echo $ZPackages | awk '{print $1}'`
+			HostNum=`echo $ZHosts | awk '{print NF}'`
+			Hcount=1
+				while [[ $Hcount -le $HostNum ]]
+				do
+					TartgetHost=`echo $ZHosts | awk '{print $'$Hcount'}'`
+					echo ""
+					echo "[:: $TartgetHost ::]"		
+					Scount=1
+					$Comm_sshpass scp $ZPackages $TartgetHost:~/
+					let Hcount=Hcount+1
+					Localhost=$HOSTNAME
+					Command_p="> Sent a rollback file"
+					SourceFull=(`echo "$Source"`)
+					IPaddr=`/sbin/ifconfig |grep " addr:" |grep Bcast |head -1 | awk '{print $2}'|awk  -F ':' '{print $2}'`
+					$Comm_sshpass ssh -oStrictHostKeyChecking=no $TartgetHost "echo -e \"`date +%Y.%m.%d_%T`\t $WhoStamps : $Command_p - From $IPaddr:  $SourceFull -> $TargetDir \" >> $History_LOG"
+				done
+		fi
+	fi
 
 ################################# Hostlist checker ######################################
 RotaCommand=$Allcommand
@@ -644,73 +713,6 @@ StableOptionCheck=`echo "${PackageArryOption[@]}" |grep "\-stable"`
 		fi
 	fi
 
-	if [[ $CommandX = "mcp" ]]
-	then
-		if [[ $ZHosts != "" ]]
-		then
-			TargetDir=`echo $ZPackages | awk '{print $NF}'`
-			Source=`echo $ZPackages | awk '{for (i=1;i<NF;i=i+1) print $i}'`
-			SourceNum=`echo $Source | awk '{print NF}' `
-			HostNum=`echo $ZHosts | awk '{print NF}'`
-			Hcount=1
-				while [[ $Hcount -le $HostNum ]]
-				do
-					TartgetHost=`echo $ZHosts | awk '{print $'$Hcount'}'`
-					echo ""
-					echo "[:: $TartgetHost  ::]"		
-					Scount=1
-						while [[ $Scount -le $SourceNum ]]
-						do
-							PartedSource=`echo $Source |awk '{print $'$Scount'}'`
-							Check_Files=`ls $PartedSource`
-								if [[ $Check_Files != $PartedSource  ]]
-								then
-									echo " =============  $PartedSource File not exist ============="
-									exit 0;
-								fi
-    
-							$Comm_sshpass scp $PartedSource $TartgetHost:$TargetDir	
-							let Scount=Scount+1
-						done
-					let Hcount=Hcount+1
-					Localhost=$HOSTNAME
-					Command_p="> mcp"
-					SourceFull=(`echo "$Source"`)
-					IPaddr=`/sbin/ifconfig |grep " addr:" |grep Bcast |head -1 | awk '{print $2}'|awk  -F ':' '{print $2}'`
-					$Comm_sshpass ssh -oStrictHostKeyChecking=no $TartgetHost "echo -e \"`date +%Y.%m.%d_%T`\t $WhoStamps : $Command_p - From $IPaddr:  ${SourceFull[@]} -> $TargetDir \" >> $History_LOG"
-				done
-		else
-			echo "$ROWW"
-			echo " Hostname requires"
-			echo "$ROWW"
-		fi
-		exit 0;
-	fi
-	CheckRB=`echo "$CommandX" |grep "roll"`
-	if [[ $CheckRB != "" ]]
-	then
-		if [[ $ZHosts != "" ]]
-		then
-			TargetDir="~/"
-			Source=`echo $ZPackages | awk '{print $1}'`
-			HostNum=`echo $ZHosts | awk '{print NF}'`
-			Hcount=1
-				while [[ $Hcount -le $HostNum ]]
-				do
-					TartgetHost=`echo $ZHosts | awk '{print $'$Hcount'}'`
-					echo ""
-					echo "[:: $TartgetHost ::]"		
-					Scount=1
-					$Comm_sshpass scp $ZPackages $TartgetHost:~/
-					let Hcount=Hcount+1
-					Localhost=$HOSTNAME
-					Command_p="> Sent a rollback file"
-					SourceFull=(`echo "$Source"`)
-					IPaddr=`/sbin/ifconfig |grep " addr:" |grep Bcast |head -1 | awk '{print $2}'|awk  -F ':' '{print $2}'`
-					$Comm_sshpass ssh -oStrictHostKeyChecking=no $TartgetHost "echo -e \"`date +%Y.%m.%d_%T`\t $WhoStamps : $Command_p - From $IPaddr:  $SourceFull -> $TargetDir \" >> $History_LOG"
-				done
-		fi
-	fi
  
 
 Save_Restore_file(){
