@@ -1884,8 +1884,9 @@ SelfConfArry=(`echo "$PackageAll"`)
 			check_new_dir=`echo ${SelfConfArry[$SelfConfCount]} | grep "dir=" |sed -e "s#dir=##g"`
 				if [[ $check_new_dir != "" ]];then
 					SelfConf_DIR=${SelfConfArry[$SelfConfCount]}
-					TargetSelfDir=`grep "^ZinstBaseRoot=" /usr/bin/zinst`
-					sudo sed -i "s#$TargetSelfDir#ZinstBaseRoot=\"$check_new_dir\"#g" /usr/bin/zinst
+					TargetSelfDir=`grep "^ZinstBaseRoot" /usr/bin/zinst`
+					sudo sed -i "s#$TargetSelfDir#ZinstBaseRoot@%@%@\"$check_new_dir\"#g" /usr/bin/zinst
+					sudo sed -i "s/@%@%@/=/g" /usr/bin/zinst
 					echo ""
 					echo " --- Zinst distribution server IP address has been changed to \"$check_new_dir\" ---"
 				fi
@@ -1912,15 +1913,6 @@ zinst -v 1> /dev/null
 
 Zinst_Selfupdate(){
 cd ~/;
-sudo curl -e --url $Dist_server > /tmp/dist_check.tmp 2>&1
-check_dist_url=`grep "couldn't connect" /tmp/dist_check.tmp`
-        if [[ $check_dist_url != "" ]];then
-                echo " ================================================================"
-                echo "  We couldn't connected with Zinst distribution server."
-                echo "  Please check the Dist server"
-                echo " ================================================================"
-                exit 0;
-        fi
 sudo rm -f zinst
 wget  $Dist_server/zinst;
 mv zinst zinst_tmp
