@@ -37,7 +37,7 @@ GrepDistHost=`grep "$FetchedDistServer" /etc/hosts`
 		fi
 	fi
 
-VERSION=4.1.0
+VERSION=4.1.1
 zinst_group=wheel
 
 version_redefine ()
@@ -1913,6 +1913,17 @@ zinst -v 1> /dev/null
 
 Zinst_Selfupdate(){
 cd ~/;
+sudo curl -e --url $Dist_server > /tmp/dist_check.tmp 2>&1
+check_dist_url=`grep "couldn't connect" /tmp/dist_check.tmp`
+	if [[ $check_dist_url != "" ]];then
+		echo " ================================================================"
+		echo "  We couldn't connected with Zinst distribution server."
+		echo "  Please check the Dist server"
+		echo " ================================================================"
+		sud orm -f /tmp/dist_check.tmp
+		exit 0;
+	fi
+
 sudo rm -f zinst
 wget  $Dist_server/zinst;
 mv zinst zinst_tmp
