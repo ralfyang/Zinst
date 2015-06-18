@@ -1920,7 +1920,7 @@ check_dist_url=`grep "couldn't connect" /tmp/dist_check.tmp`
 		echo "  We couldn't connected with Zinst distribution server."
 		echo "  Please check the Dist server"
 		echo " ================================================================"
-		sud orm -f /tmp/dist_check.tmp
+		sudo rm -f /tmp/dist_check.tmp
 		exit 0;
 	fi
 
