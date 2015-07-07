@@ -8,7 +8,7 @@ BARR="##########################################################################
 ROWW="============================================================="
 
 ### Base information
-### ------ Config Area -----
+### ------ Config Area ----- 11st line here
 #
 ManagerIP="DISTsERVERIp"
 Dist_server="http://DISTsERVERsET"
@@ -16,20 +16,31 @@ ZinstBaseRoot="RootDirectorY"
 ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 #
-### ------ Config Area -----
-Sara_Host="sara.gsenext.com"
+### ------ Config Area ----- 19th line here
+
+### Exception for Docker user
+### Docker user can changes the hosts-file to the other hosts-file  as below solution
+## RUN cp /etc/hosts /etc/hostsa
+## RUN mkdir -p -- /lib-override && cp /lib64/libnss_files.so.2 /lib-override
+## RUN sed -i 's:/etc/hosts:/etc/hostsa:g' /lib-override/libnss_files.so.2
+## ENV LD_LIBRARY_PATH /lib-override
+
+HostsFile="/tmp/hosts"
+	if [[ ! -f $HostsFile ]];then
+		HostsFile="/etc/hosts"
+	fi
 
 hosts_redefine(){
-sudo cat /etc/hosts > /tmp/hosts.tmp
+sudo cat $HostsFile > /tmp/hosts.tmp
 sudo sed -i "/$FetchedDistServer/d" /tmp/hosts.tmp
 sudo sh -c "echo $ManagerIP $FetchedDistServer >> /tmp/hosts.tmp"
-sudo sh -c "cat /tmp/hosts.tmp > /etc/hosts"
+sudo sh -c "cat /tmp/hosts.tmp > $HostsFile"
 }
 
 FetchedDistServer=`echo $Dist_server | sed -e "s#http://##g"`
-GrepDistHost=`grep "$FetchedDistServer" /etc/hosts`
+GrepDistHost=`grep "$FetchedDistServer" $HostsFile`
 	if [[ $GrepDistHost = "" ]];then
-		sudo sh -c "echo $ManagerIP $FetchedDistServer >> /etc/hosts"
+		sudo sh -c "echo $ManagerIP $FetchedDistServer >> $HostsFile"
 	else
 		DistResut=`echo "$GrepDistHost" | awk '{print $1}'`
 		if [[ $DistResut != $ManagerIP ]];then
@@ -37,7 +48,7 @@ GrepDistHost=`grep "$FetchedDistServer" /etc/hosts`
 		fi
 	fi
 
-VERSION=4.1.1
+VERSION=4.1.2
 zinst_group=wheel
 
 version_redefine ()
@@ -1853,8 +1864,8 @@ Zinst_Version(){
 
 Zinst_SelfConfig(){
 SelfConfArry=(`echo "$PackageAll"`)
-	## Mapping a /etc/hosts file to tmp for excahnge the configuration
-	sudo cat /etc/hosts > /tmp/hosts_c.tmp
+	## Mapping a HostsFile to tmp for excahnge the configuration
+	sudo cat $HostsFile > /tmp/hosts_c.tmp
 	if [[ ${SelfConfArry[1]} != "" ]];then
 		SelfConfCount=0
 		## Insert an information from command line for the IP & Host changes of the distribution server
@@ -1866,7 +1877,7 @@ SelfConfArry=(`echo "$PackageAll"`)
 					sudo sed -i "s/$TargetSelfIP/ManagerIP=\"$check_new_ip\"/g" /usr/bin/zinst
 					sudo sed -i "/$check_new_ip/d" /tmp/hosts_c.tmp
 					sudo sh -c "echo $check_new_ip $FetchedDistServer >> /tmp/hosts_c.tmp"
-					sudo sh -c "cat /tmp/hosts_c.tmp > /etc/hosts"
+					sudo sh -c "cat /tmp/hosts_c.tmp > $HostsFile"
 					echo ""
 					echo " --- Zinst distribution server IP address has been changed to \"$check_new_ip\" ---"
 				fi
@@ -1877,7 +1888,7 @@ SelfConfArry=(`echo "$PackageAll"`)
 					sudo sed -i "s#$TargetSelfHost#Dist_server=\"http://$check_new_host\"#g" /usr/bin/zinst
 					sudo sed -i "/$FetchedDistServer/d" /tmp/hosts_c.tmp
 					sudo sh -c "echo $ManagerIP $check_new_host >> /tmp/hosts_c.tmp"
-					sudo sh -c "cat /tmp/hosts_c.tmp > /etc/hosts"
+					sudo sh -c "cat /tmp/hosts_c.tmp > $HostsFile"
 					echo ""
 					echo " --- Zinst distribution server domain  has been changed to \"$check_new_host\" ---"
 				fi
@@ -1905,7 +1916,7 @@ SelfConfArry=(`echo "$PackageAll"`)
 		echo " ================================================================"
 		exit 0;
 	fi
-#Apply the configuration for /etc/hosts
+#Apply the configuration for HostsFile
 #hosts_redefine 
 zinst -v 1> /dev/null
 
@@ -1920,7 +1931,7 @@ check_dist_url=`grep "couldn't connect" /tmp/dist_check.tmp`
 		echo "  We couldn't connected with Zinst distribution server."
 		echo "  Please check the Dist server"
 		echo " ================================================================"
-		sudo rm -f /tmp/dist_check.tmp
+		sud orm -f /tmp/dist_check.tmp
 		exit 0;
 	fi
 
