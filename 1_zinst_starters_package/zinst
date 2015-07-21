@@ -27,7 +27,7 @@ Sara_Host="sara.gsenext.com"
 ## RUN sed -i 's:/etc/hosts:/etc/hostsa:g' /lib-override/libnss_files.so.2
 ## ENV LD_LIBRARY_PATH /lib-override
 
-HostsFile="/tmp/hosts"
+HostsFile="/etc/hostsa"
 	if [[ ! -f $HostsFile ]];then
 		HostsFile="/etc/hosts"
 	fi
@@ -50,7 +50,7 @@ GrepDistHost=`grep "$FetchedDistServer" $HostsFile`
 		fi
 	fi
 
-VERSION=4.1.2
+VERSION=4.1.3
 zinst_group=wheel
 
 version_redefine ()
@@ -565,7 +565,7 @@ StockPkg="/tmp/stockpkg"
 touch $StockPkg
 
 ### Package list up
-zinst find > $CurrPkgList
+zinst find sort --version-sort > $CurrPkgList
 
 	### Loop for each package sort
 	BoxCounter=0
