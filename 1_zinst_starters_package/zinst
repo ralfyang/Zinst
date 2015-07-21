@@ -18,13 +18,9 @@ ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 #
 ### ------ Config Area ----- 19th line here
 
-<<<<<<< HEAD
 Sara_Host="sara.gsenext.com"
 
 ### Exception for Docker user
-=======
-### Exception for Docker user 
->>>>>>> gh-pages
 ### Docker user can changes the hosts-file to the other hosts-file  as below solution
 ## RUN cp /etc/hosts /etc/hostsa
 ## RUN mkdir -p -- /lib-override && cp /lib64/libnss_files.so.2 /lib-override
