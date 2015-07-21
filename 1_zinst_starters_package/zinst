@@ -565,7 +565,7 @@ StockPkg="/tmp/stockpkg"
 touch $StockPkg
 
 ### Package list up
-zinst find sort --version-sort > $CurrPkgList
+zinst find | sort --version-sort > $CurrPkgList
 
 	### Loop for each package sort
 	BoxCounter=0
