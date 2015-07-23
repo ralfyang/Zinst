@@ -1,5 +1,5 @@
 
-Here is a execution file only http://bit.do/zinst
+Here is an execution file only http://bit.do/zinst
 
 ![http://ralfyang.com](http://ts.daumcdn.net/custom/blog/164/1648795/skin/images/zinst_logo_sml.png)
 * Requires: BASH, SSH, curl, wget, bc, sudo
