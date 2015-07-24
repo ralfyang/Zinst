@@ -19,7 +19,6 @@ ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ### ------ Config Area ----- 19th line here
 
 Sara_Host="sara.gsenext.com"
-
 ### Exception for Docker user
 ### Docker user can changes the hosts-file to the other hosts-file  as below solution
 ## RUN cp /etc/hosts /etc/hostsa
@@ -50,7 +49,7 @@ GrepDistHost=`grep "$FetchedDistServer" $HostsFile`
 		fi
 	fi
 
-VERSION=4.1.3
+VERSION=4.1.4
 zinst_group=wheel
 
 version_redefine ()
@@ -380,7 +379,7 @@ Parse_Result=$@
 		fi
 		exit 0;
 	fi
-	CheckRB=`echo "$CommandX" |grep "roll"`
+	CheckRB=`echo "$CommandX" |grep "sync"`
 	if [[ $CheckRB != "" ]]
 	then
 		if [[ $ZHosts != "" ]]
@@ -398,7 +397,7 @@ Parse_Result=$@
 					$Comm_sshpass scp $ZPackages $TartgetHost:~/ 2> /dev/null
 					let Hcount=Hcount+1
 					Localhost=$HOSTNAME
-					Command_p="> Sent a rollback file"
+					Command_p="> Sent a sync file"
 					SourceFull=(`echo "$Source"`)
 					IPaddr=`/sbin/ifconfig |grep " addr:" |grep Bcast |head -1 | awk '{print $2}'|awk  -F ':' '{print $2}'`
 					sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> /dev/null
@@ -1521,13 +1520,10 @@ Pkg_Find(){
 			else
 				sudo curl -e --url $Dist_server/ 2> /dev/null |grep zinst | sed 's/^.*<a href="//g' |awk -F '\"' '{print $1}' | egrep -v ^zinst$ | grep $ZPackages 
 			fi
-	
 	fi
-
 }
 
 Cront_Command(){
-
 Command_p="+ Crontab - Edit"
 	case "$2" in
 	-l)
@@ -1620,61 +1616,76 @@ Command_p="= Restore"
 echo -e "`date +%Y.%m.%d_%T`\t $WhoStamps : $Command_p - $ZPackages" >> $History_LOG 
 }
 
-Pkg_Rollback(){
+Pkg_Sync(){
 ## Define root DIR of zinst
 BaseRoot=$ZinstBaseRoot 
 Types=$ZOptions
-Rollback_File=$ZPackages
+Sync_File=$ZPackages
 	## Check Types
 	if [[ $Types != ""  ]]
 	then
-		GrepFileTypes=`echo $Types | grep "\-file"`
-			if [[ $GrepFileTypes != "" ]]; then
-					if [[ $Rollback_File = "" ]]
+			if [[ `(echo $Types | grep "\-file")` != "" ]]; then
+					if [[ $Sync_File = "" ]]
 					then
 						echo $Barr
 						echo " --- Parse error: Please insert an information exactly. ---"
-						echo " --- zinst rollback -file [Save filename]               ---"
+						echo " --- zinst sync -file [Save filename]               ---"
 						echo $Barr
 						exit 0;	
 					fi
 			fi
 
-		GrepSaraTypes=`echo $Types | grep "\-sara"`
-			if [[ $GrepSaraTypes != "" ]]; then
-				Rollback_File="temp_list.save"
-				ZPackages="$Rollback_File"
+			if [[ `(echo $Types | grep "\-sara")` != "" ]]; then
+				Sync_File="/tmp/temp_list.save"
+				ZPackages="$Sync_File"
 				NIC=`ip addr |grep "brd" | grep "inet" | head -1 | awk '{print $NF}'`
 				LocalHost="`/sbin/ifconfig $NIC |grep " addr:" |grep Bcast |head -1 | awk '{print $2}'|awk  -F ':' '{print $2}'`"
-				rm -f $Rollback_File
-				Sara_URL=`curl "http://$Sara_Host/zinst/?host=$LocalHost&user=$WhoStamp" > $Rollback_File`
+				rm -f $Sync_File
+				Sara_URL=`curl "http://$Sara_Host/zinst/?host=$LocalHost&user=$WhoStamp" > $Sync_File`
 					## Existed file check from Sara
-					CheckSaveDown=`grep "Not Found" ./$Rollback_File`
+					CheckSaveDown=`grep "Not Found" ./$Sync_File`
 					if [[ $CheckSaveDown != "" ]];then
 						echo "Save file is not exist in Sara"
 						exit 0;
 					fi
+			fi
+
+
+			if [[ `(echo $Types | grep "\-url")` != "" ]]; then
+				Temp_File="/tmp/temp_list.save"
+				rm -f $Temp_File 2> /dev/null
+				curl "$Sync_File" 2> /dev/null > $Temp_File
+				Sync_File=$Temp_File
+					## Download file check
+					if [[ `(cat $Sync_File)` = "" ]];then
+						echo "Please check this URL for Sync instruction: \"$ZPackages\""
+						exit 0;
+					elif [[ `(grep "Not Found" $Sync_File)` != ""  ]];then
+						echo "Please check this URL for Sync instruction: \"$ZPackages\""
+						exit 0;
+					fi
+				ZPackages=$Sync_File
 			fi
 	else
 		echo $Barr
 		echo " --- Parse error: Please insert a Type ---"
 		echo $Barr
 		exit 0; 
-
 	fi
-			if [[ ! -f  $Rollback_File ]];then
-				cd ~/
-				SentFileChk=`echo "$ZPackages" | awk -F"/" '{print $NF}'` 
-				ZPackages="$SentFileChk"
-					if [[ ! -f  $SentFileChk ]];then
-						echo $Barr
-						echo " --- Could not find save file as you typed.            ---"
-						echo " --- Plese insert a file name exactly.                 ---"
-						echo $Barr
-						exit 0;
-				fi
 
+	if [[ ! -f  $Sync_File ]];then
+		cd ~/
+		SentFileChk=`echo "$ZPackages" | awk -F"/" '{print $NF}'` 
+		ZPackages="$SentFileChk"
+			if [[ ! -f  $SentFileChk ]];then
+				echo $Barr
+				echo " --- Could not find save file as you typed.            ---"
+				echo " --- Plese insert a file name exactly.                 ---"
+				echo $Barr
+				exit 0;
+			fi
 	fi
+
 version_redefine ()
 { echo "$@" | awk -F'.' '{printf("%03d%03d%03d\n", $1,$2,$3); }'; }
 
@@ -1760,12 +1771,9 @@ echo ""
 Final_remove_array=(`cat $remove_zsave_list | sed -e '/setting/d' | awk '{print $4}'`)
 Final_install_array=(`cat $install_zsave_list | fgrep -v " downgrade" | sed -e 's/setting / tmp -set /g' | awk '{print $4,$5}'`)
 Final_downgrade_array=(`cat $install_zsave_list | grep " downgrade" | awk '{print $4}'`)
+Command_p="=  Sync   "
 
-BlankCheck1=`cat $install_zsave_list`
-BlankCheck2=`cat $remove_zsave_list`
-Command_p="= Rollback"
-
-	if [[ $BlankCheck1 = "" ]] && [[ $BlankCheck2 = "" ]]; then
+	if [[ `(cat $install_zsave_list)` = "" ]] && [[ `(cat $remove_zsave_list)` = "" ]]; then
 		echo " === Nothing to change... === "
 		echo -e "`date +%Y.%m.%d_%T`\t $WhoStamps : $Command_p - Nothing to changed... by $ZPackages" >> $History_LOG
 	else
@@ -1989,7 +1997,8 @@ echo "				[-files]		[/Dir/File-name]	  "
 echo "				[-zicf]			[Package]	  "
 echo "				[-dep]			[Package]	  "
 echo "...................................................................................................... "
-echo "		 rollback	[-file]			[Order list file for try a rollback as a save file]	  "
+echo "		 sync		[-file]			[Save fie for the Package set sync]	  "
+echo "		 		[-url]			[Save fie from URL for the Package set sync]	  "
 echo "		 restore	[-file]			[Saved file_name]	  "
 echo "				[-igor]			* Not available yet "
 echo "------------------------------------------------------------------------------------------------------ "
@@ -2068,8 +2077,9 @@ echo "				[-zicf]			[Package]	  "
 echo "				[-dep]			[Package]	  "
 echo "...................................................................................................... "
 echo " "
-echo "  - Package rollback: You can try a roll-back the package set by a save file	ex) ~/z/save/zinst-* "
-echo "		 rollback	[-file]			[Order list file for roll-back as a save file]	  "
+echo "  - Package sync: You can try a sync the package set by a save file	ex) ~/z/save/zinst-* "
+echo "		 sync		[-file]			[Save fie for the Package set sync]	  "
+echo "		 		[-url]			[Save fie from URL for the Package set sync]	  "
 echo "  - Package restore: You can restore the package set by a save file for restore	ex) ~/z/save/zinst-* "
 echo "		 restore	[-file]			[Saved file_name]	  "
 echo "				[-igor]			* Not available yet "
@@ -2312,8 +2322,8 @@ CurrPkgDiR="$ZinstBaseRoot/vault/zinst/index"
 		Cront_Command $* ;;
 	l*s*)  
 		Pkg_List $*	;;
-	roll*)
-		Pkg_Rollback $*	;;
+	sync*)
+		Pkg_Sync $*	;;
 	restore)
 		Pkg_Restore $*	;;
 	find)
