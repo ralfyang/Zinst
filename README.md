@@ -238,3 +238,7 @@ zinst help						: Detail view the help
 
 </pre>
 
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/goody80/ralf_dev/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
