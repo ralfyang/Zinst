@@ -49,7 +49,7 @@ GrepDistHost=`grep "$FetchedDistServer" $HostsFile`
 		fi
 	fi
 
-VERSION=4.1.5
+VERSION=4.1.6
 zinst_group=wheel
 
 version_redefine ()
@@ -527,11 +527,11 @@ Gather=( $Gather ${CheckDep[@]} )
 	### CheckDep Define
 	if [[ ! -f $CurrPkgDiR/$ChkDepFromZicf.zicf ]]
 	then
-		wget "$Dist_server/checker/$ChkDepFromZicf.zicf" --directory-prefix=$CurrPkgDiR 2> /dev/null
+		sudo wget "$Dist_server/checker/$ChkDepFromZicf.zicf" --directory-prefix=$CurrPkgDiR 2> /dev/null
 		CheckDep=(`cat $CurrPkgDiR/$ChkDepFromZicf.zicf 2> /dev/null |grep '^ZINST requires' | sed 's/ZINST requires pkg //g'`)
 	else
 		sudo rm -f $CurrPkgDiR/$ChkDepFromZicf.zicf
-		wget "$Dist_server/checker/$ChkDepFromZicf.zicf" --directory-prefix=$CurrPkgDiR 2> /dev/null
+		sudo wget "$Dist_server/checker/$ChkDepFromZicf.zicf" --directory-prefix=$CurrPkgDiR 2> /dev/null
 		CheckDep=(`cat $CurrPkgDiR/$ChkDepFromZicf.zicf 2> /dev/null |grep '^ZINST requires' | sed 's/ZINST requires pkg //g'`)
 	fi
 
@@ -578,7 +578,7 @@ zinst find  > $CurrPkgList
 			IndexFileChk=`ls $CurrPkgDiR/${BoxPkgArry[$BoxCounter]}.zicf 2> /dev/null`
 			if [[ $IndexFileChk = "" ]]
 			then
-				wget "$Dist_server/checker/${BoxPkgArry[$BoxCounter]}.zicf" --directory-prefix=$CurrPkgDiR 2> /dev/null
+				sudo wget "$Dist_server/checker/${BoxPkgArry[$BoxCounter]}.zicf" --directory-prefix=$CurrPkgDiR 2> /dev/null
 				CheckDep=(`cat $CurrPkgDiR/${BoxPkgArry[$BoxCounter]}.zicf 2> /dev/null |grep '^ZINST requires' | sed 's/ZINST requires pkg //g'`)
 			else
 				CheckDep=(`cat $CurrPkgDiR/${BoxPkgArry[$BoxCounter]}.zicf 2> /dev/null |grep '^ZINST requires' | sed 's/ZINST requires pkg //g'`)
@@ -618,7 +618,7 @@ zinst find  > $CurrPkgList
 					SubIndexFileChk=`ls $CurrPkgDiR/$SubFetchFile.zicf 2> /dev/null`
 					if [[ $SubIndexFileChk = "" ]]
 					then
-						wget "$Dist_server/checker/$SubFetchFile.zicf" --directory-prefix=$CurrPkgDiR 2> /dev/null
+						sudo wget "$Dist_server/checker/$SubFetchFile.zicf" --directory-prefix=$CurrPkgDiR 2> /dev/null
 						SudDepChk=(`cat $CurrPkgDiR/$SubFetchFile.zicf 2> /dev/null |grep '^ZINST requires' | sed 's/ZINST requires pkg //g'`)
 					else
 						SudDepChk=(`cat $CurrPkgDiR/$SubFetchFile.zicf 2> /dev/null |grep '^ZINST requires' | sed 's/ZINST requires pkg //g'`)
