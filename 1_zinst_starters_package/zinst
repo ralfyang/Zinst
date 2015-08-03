@@ -10,15 +10,15 @@ ROWW="============================================================="
 ### Base information
 ### ------ Config Area ----- 11st line here
 #
-ManagerIP="DISTsERVERIp"
-Dist_server="http://DISTsERVERsET"
-ZinstBaseRoot="RootDirectorY"
+ManagerIP="goody80.github.io/Zinst_packages"
+Dist_server="http://goody80.github.io/Zinst_packages"
+ZinstBaseRoot="/data"
 ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 #
 ### ------ Config Area ----- 19th line here
 
-Sara_Host="sara.gsenext.com"
+#Sara_Host=""
 ### Exception for Docker user
 ### Docker user can changes the hosts-file to the other hosts-file  as below solution
 ## RUN cp /etc/hosts /etc/hostsa
@@ -33,7 +33,7 @@ HostsFile="/etc/hostsa"
 
 hosts_redefine(){
 sudo cat $HostsFile > /tmp/hosts.tmp
-sudo sed -i "/$FetchedDistServer/d" /tmp/hosts.tmp
+sudo sed -i "#$FetchedDistServer#d" /tmp/hosts.tmp
 sudo sh -c "echo $ManagerIP $FetchedDistServer >> /tmp/hosts.tmp"
 sudo sh -c "cat /tmp/hosts.tmp > $HostsFile"
 }
@@ -49,7 +49,7 @@ GrepDistHost=`grep "$FetchedDistServer" $HostsFile`
 		fi
 	fi
 
-VERSION=4.1.6
+VERSION=4.1.7
 zinst_group=wheel
 
 version_redefine ()
@@ -369,7 +369,7 @@ Parse_Result=$@
 					Command_p="> mcp"
 					SourceFull=(`echo "$Source"`)
 					IPaddr=`/sbin/ifconfig |grep " addr:" |grep Bcast |head -1 | awk '{print $2}'|awk  -F ':' '{print $2}'`
-					sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> /dev/null
+					sed -i "#$TartgetHost#d" ~/.ssh/known_hosts 2> /dev/null
 					$Comm_sshpass ssh -oStrictHostKeyChecking=no $TartgetHost "echo -e \"`date +%Y.%m.%d_%T`\t $WhoStamps : $Command_p - From $IPaddr:  ${SourceFull[@]} -> $TargetDir \" >> $History_LOG"
 				done
 		else
@@ -400,7 +400,7 @@ Parse_Result=$@
 					Command_p="> Sent a sync file"
 					SourceFull=(`echo "$Source"`)
 					IPaddr=`/sbin/ifconfig |grep " addr:" |grep Bcast |head -1 | awk '{print $2}'|awk  -F ':' '{print $2}'`
-					sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> /dev/null
+					sed -i "#$TartgetHost#d" ~/.ssh/known_hosts 2> /dev/null
 					$Comm_sshpass ssh -oStrictHostKeyChecking=no $TartgetHost "echo -e \"`date +%Y.%m.%d_%T`\t $WhoStamps : $Command_p - From $IPaddr:  $SourceFull -> $TargetDir \" >> $History_LOG"
 				done
 		fi
@@ -418,7 +418,7 @@ RotaBeacon=0
 			do
 				HostF=$WhoStamp@${HostChanged[$Count]}
 				## ssh connection check
-				sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> /dev/null
+				sed -i "#$TartgetHost#d" ~/.ssh/known_hosts 2> /dev/null
 				$Comm_sshpass ssh -oStrictHostKeyChecking=no $HostF "grep ^VERSION /usr/bin/zinst" > $ZinstBaseRoot/vault/Source/ssh_conn_test.log 2>&1
 				CheckConnection=`sudo cat $ZinstBaseRoot/vault/Source/ssh_conn_test.log |grep "No route\|not known\|Connection refused"`
 					if [[ $CheckConnection != "" ]]
@@ -452,7 +452,7 @@ RotaBeacon=0
 						CheckDesDIR=`sudo grep " cannot access " $ZinstBaseRoot/vault/Source/ssh_conn_test.log`
 							if [[ $CommandX != "" ]]
 							then		
-								sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> /dev/null
+								sed -i "#$TartgetHost#d" ~/.ssh/known_hosts 2> /dev/null
         						$Comm_sshpass ssh -oStrictHostKeyChecking=no -t $HostF "sudo mkdir -p $ZinstBaseRoot/vault/Source;sudo chgrp -R $zinst_group $ZinstBaseRoot/vault" 2> /dev/null
 							fi
 
@@ -492,7 +492,7 @@ RotaBeacon=0
 						MultiCheck=`echo $ZOptions |grep -e "-multi"`
 							if [[ $MultiCheck = "" ]]
 							then
-								sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> /dev/null
+								sed -i "#$TartgetHost#d" ~/.ssh/known_hosts 2> /dev/null
 								$Comm_sshpass ssh -oStrictHostKeyChecking=no -t $HostF "echo [ :: $HostF :: ];cd $ZinstSourceDir; source /etc/profile ;$szinst $RotaCommand" 2> /dev/null
 								IPaddr=`/sbin/ifconfig |grep " addr:" |grep Bcast |head -1 | awk '{print $2}'|awk  -F ':' '{print $2}'`
 									if [[ $szinst = "" ]];then
@@ -501,11 +501,11 @@ RotaBeacon=0
 										DestStamp=" L"
 									fi
 
-								sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> /dev/null
+								sed -i "#$TartgetHost#d" ~/.ssh/known_hosts 2> /dev/null
  							    $Comm_sshpass ssh -oStrictHostKeyChecking=no -t $HostF "echo -e \"`date +%Y.%m.%d_%T`\t $WhoStamps : $DestStamp From $IPaddr: $szinst $RotaCommand\" >> $History_LOG" 
 							else
 								### For multi-task
-								sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> /dev/null
+								sed -i "#$TartgetHost#d" ~/.ssh/known_hosts 2> /dev/null
 								$Comm_sshpass ssh -oStrictHostKeyChecking=no -t $HostF "echo [ :: $HostF :: ];cd $ZinstSourceDir; source /etc/profile ;$szinst $RotaCommand" & 
 							fi
 
@@ -1505,6 +1505,8 @@ CurrentCheck=`echo $ZPackages |grep "^./"`
 
 Pkg_Find(){
 
+Repo_chk=`sudo curl -e --url $Dist_server/ 2> /dev/null | grep " zinst"`
+
 	if [[ $ZOptions = "-local" ]]
 	then
 		    if [[ $ZPackages = "" ]]
@@ -1514,13 +1516,27 @@ Pkg_Find(){
 			   ls $ZinstSourceDir | grep $ZPackages  | grep .zinst 
 		    fi
 	else
-			if [[ $ZPackages = "" ]];
-			then
-				sudo curl -e --url $Dist_server/ 2> /dev/null |grep zinst | sed 's/^.*<a href="//g' |awk -F '\"' '{print $1}' | egrep -v ^zinst$ | sort --version-sort
+			if [[ $Repo_chk != "" ]];then	
+				if [[ $ZPackages = "" ]];
+				then
+					sudo curl -e --url $Dist_server/ 2> /dev/null |grep zinst | sed 's/^.*<a href="//g' |awk -F '\"' '{print $1}' | egrep -v ^zinst$ | sort --version-sort
+				else
+					sudo curl -e --url $Dist_server/ 2> /dev/null |grep zinst | sed 's/^.*<a href="//g' |awk -F '\"' '{print $1}' | egrep -v ^zinst$ | grep $ZPackages | sort --version-sort
+				fi
 			else
-				sudo curl -e --url $Dist_server/ 2> /dev/null |grep zinst | sed 's/^.*<a href="//g' |awk -F '\"' '{print $1}' | egrep -v ^zinst$ | grep $ZPackages | sort --version-sort
+				if [[ $ZPackages = "" ]];
+				then
+					sudo curl -e --url $Dist_server/pkglist 2> /dev/null |grep zinst | egrep -v ^zinst$ | sort --version-sort
+				else
+					sudo curl -e --url $Dist_server/pkglist 2> /dev/null |grep zinst | egrep -v ^zinst$ | grep $ZPackages | sort --version-sort
+				fi
 			fi
 	fi
+
+	
+    
+
+
 }
 
 Cront_Command(){
@@ -1880,23 +1896,23 @@ SelfConfArry=(`echo "$PackageAll"`)
 		SelfConfCount=0
 		## Insert an information from command line for the IP & Host changes of the distribution server
 		while [[ $SelfConfCount -le ${#SelfConfArry[@]}  ]];do
-			check_new_ip=`echo ${SelfConfArry[$SelfConfCount]} | grep "ip=" |sed -e "s/ip=//g"`
+			check_new_ip=`echo ${SelfConfArry[$SelfConfCount]} | grep "ip=" |sed -e "s#ip=##g"`
 				if [[ $check_new_ip != "" ]];then
 					SelfConf_IP=${SelfConfArry[$SelfConfCount]}
 					TargetSelfIP=`grep "^ManagerIP=" /usr/bin/zinst`
-					sudo sed -i "s/$TargetSelfIP/ManagerIP=\"$check_new_ip\"/g" /usr/bin/zinst
-					sudo sed -i "/$check_new_ip/d" /tmp/hosts_c.tmp
+					sudo sed -i "s#$TargetSelfIP#ManagerIP=\"$check_new_ip\"#g" /usr/bin/zinst
+					sudo sed -i "#$check_new_ip#d" /tmp/hosts_c.tmp
 					sudo sh -c "echo $check_new_ip $FetchedDistServer >> /tmp/hosts_c.tmp"
 					sudo sh -c "cat /tmp/hosts_c.tmp > $HostsFile"
 					echo ""
 					echo " --- Zinst distribution server IP address has been changed to \"$check_new_ip\" ---"
 				fi
-			check_new_host=`echo ${SelfConfArry[$SelfConfCount]} | grep "host=" |sed -e "s/host=//g"`
+			check_new_host=`echo ${SelfConfArry[$SelfConfCount]} | grep "host=" |sed -e "s#host=##g" -e "s#http://##g"`
 				if [[ $check_new_host != "" ]];then
 					SelfConf_Host=${SelfConfArry[$SelfConfCount]}
 					TargetSelfHost=`grep "^Dist_server=" /usr/bin/zinst`
 					sudo sed -i "s#$TargetSelfHost#Dist_server=\"http://$check_new_host\"#g" /usr/bin/zinst
-					sudo sed -i "/$FetchedDistServer/d" /tmp/hosts_c.tmp
+					sudo sed -i "#$FetchedDistServer#d" /tmp/hosts_c.tmp
 					sudo sh -c "echo $ManagerIP $check_new_host >> /tmp/hosts_c.tmp"
 					sudo sh -c "cat /tmp/hosts_c.tmp > $HostsFile"
 					echo ""
@@ -1907,7 +1923,7 @@ SelfConfArry=(`echo "$PackageAll"`)
 					SelfConf_DIR=${SelfConfArry[$SelfConfCount]}
 					TargetSelfDir=`grep "^ZinstBaseRoot" /usr/bin/zinst`
 					sudo sed -i "s#$TargetSelfDir#ZinstBaseRoot@%@%@\"$check_new_dir\"#g" /usr/bin/zinst
-					sudo sed -i "s/@%@%@/=/g" /usr/bin/zinst
+					sudo sed -i "s#@%@%@#=#g" /usr/bin/zinst
 					echo ""
 					echo " --- Zinst distribution server IP address has been changed to \"$check_new_dir\" ---"
 				fi
@@ -1915,7 +1931,6 @@ SelfConfArry=(`echo "$PackageAll"`)
 		done
 		Print_Hi=( `echo ${SelfConfArry[@]} | awk '{for (i=2;i<NF+1;i=i+1) print $i","}'`)
 		PrintHist=`echo "${Print_Hi[@]}" |sed -e 's/,$//g'`
-		echo -e "`date +%Y.%m.%d_%T`\t $WhoStamps :  ! Zinst config has been changed > ${PrintHist[@]} " >> $History_LOG
 	else
 		echo " ================================================================"
 		echo " You can change the configuration on zinst for IP,Host & RootDIR." 
@@ -1941,7 +1956,7 @@ check_dist_url=`grep "couldn't connect" /tmp/dist_check.tmp`
 		echo "  We couldn't connected with Zinst distribution server."
 		echo "  Please check the Dist server"
 		echo " ================================================================"
-		sud orm -f /tmp/dist_check.tmp
+		sudo rm -f /tmp/dist_check.tmp
 		exit 0;
 	fi
 
@@ -2005,18 +2020,15 @@ echo "--------------------------------------------------------------------------
 echo "		 set					[Blank for list-up]			  "
 echo "		 [Package]	-set 			[Package.option=value]  "
 echo "------------------------------------------------------------------------------------------------------ "
-echo "		 start					[Daemon_name]	  "
-echo "		 stop					[Daemon_name]	  "
-echo "		 restart				[Daemon_name]	  "
-echo "		 on					[Daemon_name]	  "
-echo "		 off					[Daemon_name]	  "
+echo "		 start/stop/restart			[Daemon_name]	  "
+echo "		 on/off					[Daemon_name]	  "
 echo "...................................................................................................... "
 echo "		 crontab	[-e]						  "
 echo "				[-l] "
 echo "------------------------------------------------------------------------------------------------------ "
 echo "		 find		[Blank for list-up]			 "
 echo "				[Package]		 "
-echo "		 getset		[Package]			 "
+echo "		 getset		[Package with version exactly]			 "
 echo "------------------------------------------------------------------------------------------------------ "
 echo "		 track		[Blank for list-up]			 "
 echo "				[Package or hostname]		 "
@@ -2030,7 +2042,7 @@ echo "		 history	[Number of Range] "
 echo "...................................................................................................... "
 echo "		 -pass					 Option for Multi-host password automation"
 echo "		 self-update			 "
-echo "		 self-config	ip=x.x.x.x host=xxx.xxx.xxx			 "
+echo "		 self-config	ip=x.x.x.x host=xxx.xxx.xxx dir=xxx"
 echo "		 -version			 "
 echo "		 *, help		 "
 echo "------------------------------------------------------------------------------------------------------ "
@@ -2038,6 +2050,10 @@ echo " -h is target host, -H is targe file of hostlist "
 echo " ex) zinst i sample-1.0.0.zinst -h web01.news.kr[1,3]  web[03-12].news[1,3] "
 echo " ex) zinst i sample-1.0.0.zinst -H ./server_list.txt "
 echo "------------------------------------------------------------------------------------------------------ "
+echo " * Current zinst setup: [ Repo: $Dist_server - $ManagerIP ], [ ROOT-DIR: $ZinstBaseRoot ]"
+echo "------------------------------------------------------------------------------------------------------ "
+
+
 echo " "
 ### Hidden function for Multi-tasking on multiful host -multi option
 ### But it's not stable on some function
@@ -2098,11 +2114,8 @@ echo "--------------------------------------------------------------------------
 echo " + For System manage "
 echo " "
 echo "  - Daemon control: You can control the daemon from the /etc/init.d/ directory "
-echo "		 start					[Daemon_name]	  "
-echo "		 stop					[Daemon_name]	  "
-echo "		 restart				[Daemon_name]	  "
-echo "		 on					[Daemon_name]	  "
-echo "		 off					[Daemon_name]	  "
+echo "		 start/stop/restart			[Daemon_name]	  "
+echo "		 on/off					[Daemon_name]	  "
 echo "...................................................................................................... "
 echo " "
 echo "  - Crontab manage: You can touch the cron schduler by zinst "
@@ -2185,7 +2198,7 @@ echo "zinst  self-config ip=x.x.x.x host=xxx.xxx.xxx	: you can change the config
 echo " "
 echo "zinst help						: Detail view the help "
 echo " "
-echo "=== For more detail: http://twiki.gsenext.com/bin/view/Main/TheZinst ===" 
+echo "=== For more detail: https://github.com/goody80/Ralf_Dev ===" 
 echo " "
 echo " "
 
