@@ -1750,8 +1750,8 @@ diff $Sorted_org_zsave $Sorted_tgt_zsave|fgrep -v " #" | egrep  -v "^[0-9]" | so
 cat $tmp_results | grep ">" | sed -e 's/ settting / setting /g' > $remove_zsave_list
 cat $tmp_results | grep "<" | sed -e 's/ settting / setting /g' > $install_zsave_list
 
-current_array=(`cat $remove_zsave_list | sed -e 's/> Package install //g' | sed -e '/setting/d'`)
-changing_array=(`cat $install_zsave_list | sed -e 's/< Package install //g' | sed -e '/setting/d'`)
+current_array=(`cat $remove_zsave_list | sed -e 's/> Package install //g' | sed -e '/ setting/d'`)
+changing_array=(`cat $install_zsave_list | sed -e 's/< Package install //g' | sed -e '/ setting/d'`)
 	## loop for version check
 	xCount=0
 	while [[ $xCount -lt ${#current_array[@]} ]]; do
@@ -1793,7 +1793,7 @@ cat $install_zsave_list
 echo "$Block"
 echo ""
 
-Final_remove_array=(`cat $remove_zsave_list | sed -e '/setting/d' | awk '{print $4}'`)
+Final_remove_array=(`cat $remove_zsave_list | sed -e '/ setting/d' | awk '{print $4}'`)
 Final_install_array=(`cat $install_zsave_list | fgrep -v " downgrade" | sed -e 's/setting / tmp -set /g' | awk '{print $4,$5}'`)
 Final_downgrade_array=(`cat $install_zsave_list | grep " downgrade" | awk '{print $4}'`)
 Command_p="=  Sync   "
