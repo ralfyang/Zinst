@@ -49,7 +49,7 @@ GrepDistHost=`grep "$FetchedDistServer" $HostsFile`
 		fi
 	fi
 
-VERSION=4.1.7
+VERSION=4.1.9
 zinst_group=wheel
 
 version_redefine ()
@@ -308,18 +308,23 @@ Parse_Checker=$*
 			Parse_Result="$ParsedPkgZinstFind"
 		fi
 	else
+		if [[ `(echo  "$ProcessPkg" |grep "$Parse_Checker")` = "" ]];then
 		ParsedPkgZinstFind=`cat $CurrPkgList | grep "^$Parse_Checker-" | tail -1`
-		if [[ $ParsedPkgZinstFind = "" ]]
-		then
-			echo "$BARR"
-			echo "Which one is correct as you want in below list ( $Parse_Checker )"
-			echo "$ROWW"
-			zinst find $Parse_Checker
-			echo "$BARR"
-			exit 0
+			if [[ $ParsedPkgZinstFind = "" ]]
+			then
+				echo "$BARR"
+				echo "Which one is correct as you want in below list ( $Parse_Checker )"
+				echo "$ROWW"
+				zinst find $Parse_Checker
+				echo "$BARR"
+				exit 0
+			else
+				Parse_Result="$ParsedPkgZinstFind"
+			fi
 		else
-			Parse_Result="$ParsedPkgZinstFind"
+			Parse_Result=`zinst find $Parse_Checker | tail -1`
 		fi
+	
 	fi
 }
 
@@ -1362,11 +1367,11 @@ ProcessPkg=($ZPackages)
 							if [ -f $ZinstDIRs/$ZinstOrgName/uninstall.sh ]; then
 								sudo sh $ZinstDIRs/$ZinstOrgName/uninstall.sh
 							fi
-						`sudo cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep "^cp" | awk '{print "sudo rm -Rfv",$3}' > ~/removelist`
+						`sudo cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep "^cp" | awk '{print "sudo rm -Rfv",$3}' > /tmp/removelist`
 						RmMv=`sudo cat $ZinstDIRs/$ZinstOrgName/.file.list |grep "^mv"  | awk '{print $2}' | awk -F '/' '{print $NF}'`
-						`sudo cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep "^mv" | awk '{print "sudo rm -Rfv",$3"$RmMv"}' >> ~/removelist`
-						`sudo cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep "^ln" | awk '{print "sudo rm -Rfv",$4}' >> ~/removelist`
-						sudo sh ~/removelist; sudo rm ~/removelist
+						`sudo cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep "^mv" | awk '{print "sudo rm -Rfv",$3"$RmMv"}' >> /tmp/removelist`
+						`sudo cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep "^ln" | awk '{print "sudo rm -Rfv",$4}' >> /tmp/removelist`
+						sudo sh /tmp/removelist; sudo rm /tmp/removelist
 						RmDir=`sudo cat $ZinstDIRs/$ZinstOrgName/.file.list  | grep "^mkdir" |awk '{print "ls", $3}'`
 							if [[ $RmDir = "" ]];
 							then
@@ -1499,7 +1504,11 @@ CurrentCheck=`echo $ZPackages |grep "^./"`
 			then
 				echo "=============== Package dose Not-existed here ============"
 			fi
-		echo "$PkgListZ"
+		if [[ $ZPackages = "" ]];then
+			echo "$PkgListZ"
+		else
+			echo "$PkgListZ" |grep "$ZPackages"
+		fi
 	fi
 }
 
@@ -1948,7 +1957,8 @@ zinst -v 1> /dev/null
 }
 
 Zinst_Selfupdate(){
-cd ~/;
+#cd ~/;
+cd /tmp;
 sudo curl -e --url $Dist_server > /tmp/dist_check.tmp 2>&1
 check_dist_url=`grep "couldn't connect" /tmp/dist_check.tmp`
 	if [[ $check_dist_url != "" ]];then
@@ -1964,11 +1974,11 @@ sudo rm -f zinst
 wget  $Dist_server/zinst;
 mv zinst zinst_tmp
 	if [[ -f /usr/bin/zinst ]];then
-		head -19 /usr/bin/zinst > ~/zinst
+		sudo head -19 /usr/bin/zinst > /tmp/zinst
 	else
-		head -19 $ZinstBaseRoot/vault/Source/bin/zinst > ~/zinst
+		sudo head -19 $ZinstBaseRoot/vault/Source/bin/zinst > /tmp/zinst
 	fi
-tail -n +20 ./zinst_tmp >>  ~/zinst
+tail -n +20 ./zinst_tmp >> /tmp/zinst
 rm -f ./zinst_tmp
 sudo mkdir -p $ZinstBaseRoot/vault/Source/bin
 sudo chgrp $zinst_group $ZinstBaseRoot/vault/Source/bin
@@ -2006,9 +2016,8 @@ echo "				[-stable]		[Package without version]	  "
 echo "		 remove					[Package]	  "
 echo "				[-force]		[Package]	  "
 echo "...................................................................................................... "
-echo "		 list					[Blank for list-up]	  "
-echo "				[-files]		[Package]	  "
-echo "				[-files]		[/Dir/File-name]	  "
+echo "		 list					[Blank for list-up] or [Package]  "
+echo "				[-files]		[Package] or [/DIR/File-name]	  "
 echo "				[-zicf]			[Package]	  "
 echo "				[-dep]			[Package]	  "
 echo "...................................................................................................... "
@@ -2023,11 +2032,9 @@ echo "--------------------------------------------------------------------------
 echo "		 start/stop/restart			[Daemon_name]	  "
 echo "		 on/off					[Daemon_name]	  "
 echo "...................................................................................................... "
-echo "		 crontab	[-e]						  "
-echo "				[-l] "
+echo "		 crontab	[-e] or [-l]					  "
 echo "------------------------------------------------------------------------------------------------------ "
-echo "		 find		[Blank for list-up]			 "
-echo "				[Package]		 "
+echo "		 find		[Blank for list-up] or [Package]	 "
 echo "		 getset		[Package with version exactly]			 "
 echo "------------------------------------------------------------------------------------------------------ "
 echo "		 track		[Blank for list-up]			 "
@@ -2040,19 +2047,18 @@ echo "				[User_Package_name]	[-file=Export_File_name]	 "
 echo "------------------------------------------------------------------------------------------------------ "
 echo "		 history	[Number of Range] "
 echo "...................................................................................................... "
-echo "		 -pass					 Option for Multi-host password automation"
-echo "		 self-update			 "
+echo "		 -pass		Option for Multi-host password automation"
 echo "		 self-config	ip=x.x.x.x host=xxx.xxx.xxx dir=xxx"
+echo "		 self-update			 "
 echo "		 -version			 "
 echo "		 *, help		 "
 echo "------------------------------------------------------------------------------------------------------ "
 echo " -h is target host, -H is targe file of hostlist "
-echo " ex) zinst i sample-1.0.0.zinst -h web01.news.kr[1,3]  web[03-12].news[1,3] "
-echo " ex) zinst i sample-1.0.0.zinst -H ./server_list.txt "
+echo " ex) zinst i sample_a sample_b -stable -set sample_a.key=111 -H ./server_list.txt "
+echo " ex) zinst i sample-1.0.0.zinst -h web01.news.kr[1,3] web[03-12].news[1,3] "
 echo "------------------------------------------------------------------------------------------------------ "
 echo " * Current zinst setup: [ Repo: $Dist_server - $ManagerIP ], [ ROOT-DIR: $ZinstBaseRoot ]"
 echo "------------------------------------------------------------------------------------------------------ "
-
 
 echo " "
 ### Hidden function for Multi-tasking on multiful host -multi option
