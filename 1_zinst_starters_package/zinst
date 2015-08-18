@@ -32,34 +32,6 @@ HostsFile="/etc/hostsa"
 		HostsFile="/etc/hosts"
 	fi
 
-hosts_redefine(){
-## Setting the hosts file for Not uses a DNS environment
-$sudo_base cat $HostsFile > /tmp/hosts.tmp
-$sudo_base sed -i "s#/#@Q@#g" /tmp/hosts.tmp
-Rev_FetchedDistServer=`echo "$FetchedDistServer" | sed -e "s#/#@Q@#g"`
-$sudo_base sed -i "/$Rev_FetchedDistServer/d" /tmp/hosts.tmp
-$sudo_base sh -c "echo $ManagerIP $Rev_FetchedDistServer >> /tmp/hosts.tmp"
-$sudo_base sed -i "s#@Q@#/#g" /tmp/hosts.tmp
-$sudo_base sh -c "cat /tmp/hosts.tmp > $HostsFile"
-}
-
-FetchedDistServer=`echo $Dist_server | sed -e "s#http://##g"`
-GrepDistHost=`grep "$FetchedDistServer" $HostsFile`
-	if [[ $GrepDistHost = "" ]];then
-		$sudo_base sh -c "echo $ManagerIP $FetchedDistServer >> $HostsFile"
-	else
-		DistResut=`echo "$GrepDistHost" | awk '{print $1}'`
-		if [[ $DistResut != $ManagerIP ]];then
-			hosts_redefine 
-		fi
-	fi
-
-VERSION=4.2.0
-zinst_group=wheel
-
-version_redefine ()
-{ echo "$@" | awk -F'.' '{printf("%03d%03d%03d\n", $1,$2,$3); }'; }
-
 OS_Checker(){
 	## OS Check
 	ChkOS=`cat /etc/*-release 2> /dev/null | head -1`
@@ -112,7 +84,35 @@ ComPkg=($@)
 
 
 ## Requires commanc check & install
-Requires_Pkg_install tar bc sudo
+Requires_Pkg_install sudo
+Requires_Pkg_install tar bc
+
+hosts_redefine(){
+$sudo_base cat $HostsFile > /tmp/hosts.tmp
+$sudo_base sed -i "s#/#@Q@#g" /tmp/hosts.tmp
+Rev_FetchedDistServer=`echo "$FetchedDistServer" | sed -e "s#/#@Q@#g"`
+$sudo_base sed -i "/$Rev_FetchedDistServer/d" /tmp/hosts.tmp
+$sudo_base sh -c "echo $ManagerIP $Rev_FetchedDistServer >> /tmp/hosts.tmp"
+$sudo_base sed -i "s#@Q@#/#g" /tmp/hosts.tmp
+$sudo_base sh -c "cat /tmp/hosts.tmp > $HostsFile"
+}
+
+FetchedDistServer=`echo $Dist_server | sed -e "s#http://##g"`
+GrepDistHost=`grep "$FetchedDistServer" $HostsFile`
+	if [[ $GrepDistHost = "" ]];then
+		$sudo_base sh -c "echo $ManagerIP $FetchedDistServer >> $HostsFile"
+	else
+		DistResut=`echo "$GrepDistHost" | awk '{print $1}'`
+		if [[ $DistResut != $ManagerIP ]];then
+			hosts_redefine 
+		fi
+	fi
+
+VERSION=4.2.0
+zinst_group=wheel
+
+version_redefine ()
+{ echo "$@" | awk -F'.' '{printf("%03d%03d%03d\n", $1,$2,$3); }'; }
 
 
 exit_abnormal() {
