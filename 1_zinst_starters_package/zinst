@@ -610,7 +610,7 @@ zinst find  > $CurrPkgList
 			IndexFileChk=`ls $CurrPkgDiR/${BoxPkgArry[$BoxCounter]}.zicf 2> /dev/null`
 			if [[ $IndexFileChk = "" ]]
 			then
-				$sudo_base sh -c "curl \"$Dist_server/checker/${BoxPkgArry[$BoxCounter]}.zicf\" 2> /dev/null > $CurrPkgDiR/${BoxPkgArry[$BoxCounter]}.zicf"
+				$sudo_base sh -c "curl -sL \"$Dist_server/checker/${BoxPkgArry[$BoxCounter]}.zicf\" 2> /dev/null > $CurrPkgDiR/${BoxPkgArry[$BoxCounter]}.zicf"
 
 				CheckDep=(`cat $CurrPkgDiR/${BoxPkgArry[$BoxCounter]}.zicf 2> /dev/null |grep '^ZINST requires' | sed 's/ZINST requires pkg //g'`)
 			else
@@ -651,7 +651,7 @@ zinst find  > $CurrPkgList
 					SubIndexFileChk=`ls $CurrPkgDiR/$SubFetchFile.zicf 2> /dev/null`
 					if [[ $SubIndexFileChk = "" ]]
 					then
-						$sudo_base sh -c "curl \"$Dist_server/checker/$SubFetchFile.zicf\" 2> /dev/null > $CurrPkgDiR/$SubFetchFile.zicf"
+						$sudo_base sh -c "curl -sL \"$Dist_server/checker/$SubFetchFile.zicf\" 2> /dev/null > $CurrPkgDiR/$SubFetchFile.zicf"
 						SudDepChk=(`cat $CurrPkgDiR/$SubFetchFile.zicf 2> /dev/null |grep '^ZINST requires' | sed 's/ZINST requires pkg //g'`)
 					else
 						SudDepChk=(`cat $CurrPkgDiR/$SubFetchFile.zicf 2> /dev/null |grep '^ZINST requires' | sed 's/ZINST requires pkg //g'`)
@@ -913,7 +913,7 @@ Pkg_Install(){
 		cd $ZinstSourceDir/$ZinstName/
 			if [[ $Pkg_result != $Package_list ]]
 			then
-				$sudo_base sh -c "curl \"$Dist_server/$Package_list\" 2> /dev/null > ./$Package_list"
+				$sudo_base sh -c "curl -sL \"$Dist_server/$Package_list\" 2> /dev/null > ./$Package_list"
 			fi
 
 			#########  -same -live option check  ################
@@ -923,7 +923,7 @@ Pkg_Install(){
 				$sudo_base rm -f $ZinstSourceDir/$ZinstName/$Package_list
 					if [[ $Pkg_result != $Package_list ]]
 					then
-						$sudo_base sh -c "curl \"$Dist_server/$Package_list\" 2> /dev/null > ./$Package_list"
+						$sudo_base sh -c "curl -sL \"$Dist_server/$Package_list\" 2> /dev/null > ./$Package_list"
 					else
 						$sudo_base mv -f $DIST/$Package_list $ZinstBaseRoot/vault/Source/$ZinstName/$Package_list	### local file copy
 					fi
@@ -1999,7 +1999,7 @@ check_dist_url=`grep "couldn't connect" /tmp/dist_check.tmp`
 	fi
 
 $sudo_base rm -f zinst
-curl $Dist_server/zinst 2> /dev/null > ./zinst;
+curl -sL $Dist_server/zinst 2> /dev/null > ./zinst;
 mv zinst zinst_tmp
 	if [[ -f /usr/bin/zinst ]];then
 		$sudo_base head -19 /usr/bin/zinst > /tmp/zinst
