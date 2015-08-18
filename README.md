@@ -1,4 +1,4 @@
-Simple install Video: http://showterm.io/7be62fa683041b973b306#fast
+Simple install Video: http://showterm.io/db13ffbceede20208e828#fast
 <iframe src="http://showterm.io/7b5f8d42ba021511e627e#fast" width="640" height="480"></iframe> 
 
 Here is an execution file only http://bit.do/zinst
