@@ -1,7 +1,8 @@
 Simple install Video: http://showterm.io/db13ffbceede20208e828#fast
 <iframe src="http://showterm.io/7b5f8d42ba021511e627e#fast" width="640" height="480"></iframe> 
 
-Here is an execution file only http://bit.do/zinst
+* You just can type this command
+ * curl -sL http://bit.do/online-install | sh
 
 ![http://ralfyang.com](http://ts.daumcdn.net/custom/blog/164/1648795/skin/images/zinst_logo_sml.png)
 * Requires: sudo, BASH, SSH
