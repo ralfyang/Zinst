@@ -138,7 +138,7 @@ WhoStamp=`$sudo_base cat $ZinstBaseRoot/src/_tmp_acc 2> /dev/null`
 
 $sudo_base rm $ZinstBaseRoot/src/_tmp_acc 2> /dev/null
 export ZinstDir=$ZinstBaseRoot
-
+CurrPkgDiR="$ZinstBaseRoot/vault/zinst/index"
 WhoStamps=`printf "%-14s" "$WhoStamp"`
 
 ### Config about of Save file
@@ -590,14 +590,13 @@ BoxPkg=$ZPackages
 BoxPkgArry=( $BoxPkg )
 
 CurrPkgList="$ZinstBaseRoot/vault/Source/.current_package.list"
-CurrPkgDiR="$ZinstBaseRoot/vault/zinst/index"
 
 StockPkg="/tmp/stockpkg"
 touch $StockPkg
 
 ### Package list up
 zinst find  > $CurrPkgList
-
+sudo mkdir -p $CurrPkgDiR
 	### Loop for each package sort
 	BoxCounter=0
 	while [ $BoxCounter -lt ${#BoxPkgArry[@]} ]
@@ -611,7 +610,6 @@ zinst find  > $CurrPkgList
 			if [[ $IndexFileChk = "" ]]
 			then
 				$sudo_base sh -c "curl -sL \"$Dist_server/checker/${BoxPkgArry[$BoxCounter]}.zicf\" 2> /dev/null > $CurrPkgDiR/${BoxPkgArry[$BoxCounter]}.zicf"
-
 				CheckDep=(`cat $CurrPkgDiR/${BoxPkgArry[$BoxCounter]}.zicf 2> /dev/null |grep '^ZINST requires' | sed 's/ZINST requires pkg //g'`)
 			else
 				CheckDep=(`cat $CurrPkgDiR/${BoxPkgArry[$BoxCounter]}.zicf 2> /dev/null |grep '^ZINST requires' | sed 's/ZINST requires pkg //g'`)
@@ -692,6 +690,7 @@ zinst find  > $CurrPkgList
 						ChkinArry=`echo "$CheckBoxPkg" |grep -w "${CheckDep[$SubBoxCounter]}"`
 							if [[ $ChkinArry != "" ]]; then
 								echo "${CheckDep[$SubBoxCounter]} ${BoxPkgArry[$BoxCounter]}" >> $StockPkg
+
 							else
 							### Require package check in local
 							CurrSubSecPkgChk=`zinst ls -w |grep "${CheckDep[$SubBoxCounter]}" | awk '{print $4}' `
@@ -988,7 +987,6 @@ Pkg_Install(){
 				$sudo_base chgrp $zinst_group $ZinstBaseRoot/vault/zinst/.dependency.list
 				echo " "
 			fi
-		
 		### Make a Blank .file.list
 		echo "echo \" $Packagename-$Version package install ==>>> \" " > .file.list
 		echo "export ZinstDir=$ZinstBaseRoot " >> .file.list
@@ -2310,7 +2308,6 @@ Pkg_Getset(){
 ### Set value get from the package
 GetSPkg=$ZPackages
 GetSPkgArry=( $GetSPkg )
-CurrPkgDiR="$ZinstBaseRoot/vault/zinst/index"
 	### Package list up
 	### Loop for each package sort
 	GetSCounter=0
