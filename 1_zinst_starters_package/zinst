@@ -52,7 +52,7 @@ ComPkg=($@)
 	## Requires check
 	Ccount=0
 	while [ $Ccount -lt ${#ComPkg[@]} ];do
-		if [[ `(whereis ${ComPkg[$Ccount]} | awk '{print $2}' 2> /dev/null)` = "" ]];then
+		if [[ `(whereis ${ComPkg[$Ccount]} | awk '{print $2}' | fgrep -v "." 2> /dev/null)` = "" ]];then
 			ReqPkg[$Ccount]=${ComPkg[$Ccount]}
 		fi
 	let Ccount=$Ccount+1
@@ -70,7 +70,7 @@ ComPkg=($@)
 					$sudo_base apt-get install ${ReqPkg[@]} -y ;;
 			esac
     
-			if [[ `(whereis ${ReqPkg[@]} | awk '{print $2}' 2> /dev/null)` = "" ]];then
+			if [[ `(whereis ${ReqPkg[@]} | awk '{print $2}' | fgrep -v "." 2> /dev/null)` = "" ]];then
 				echo "$BARR"
 					echo " You need to install the ${ReqPkg[@]} command!!"
 				echo "$BARR"
