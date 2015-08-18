@@ -52,7 +52,6 @@ ComPkg=($@)
 	## Requires check
 	Ccount=0
 	while [ $Ccount -lt ${#ComPkg[@]} ];do
-echo ComPkgComPkgComPkgComPkgComPkgComPkg ${ComPkg[@]}
 		if [[ `(whereis ${ComPkg[$Ccount]} | awk '{print $2}' 2> /dev/null)` = "" ]];then
 			ReqPkg[$Ccount]=${ComPkg[$Ccount]}
 		fi
@@ -61,7 +60,7 @@ echo ComPkgComPkgComPkgComPkgComPkgComPkg ${ComPkg[@]}
 
 	if [[ ${ReqPkg[@]} != "" ]];then
 		echo "$BARR"
-		echo " You need to install the \"${ReqPkg[@]}\" command...."
+		echo " You need to install the \"${ReqPkg[@]}\" command. Let's try to install that package..."
 		echo "$BARR"
 		OS_Checker
 			case $OS_name in
