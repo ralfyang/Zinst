@@ -112,7 +112,7 @@ GrepDistHost=`grep "$FetchedDistServer" $HostsFile`
 		fi
 	fi
 
-VERSION=4.2.0
+VERSION=4.2.1
 zinst_group=wheel
 
 version_redefine ()
@@ -361,7 +361,7 @@ Parse_Checker=$*
 			echo "$BARR"
 			echo "Which one is correct as you want in below list ( $Parse_Checker )"
 			echo "$ROWW"
-			zinst find $Parse_Checker
+			zinst find "^$Parse_Checker-"
 			echo "$BARR"
 			echo ""
 			exit 0
@@ -376,14 +376,14 @@ Parse_Checker=$*
 				echo "$BARR"
 				echo "Which one is correct as you want in below list ( $Parse_Checker )"
 				echo "$ROWW"
-				zinst find $Parse_Checker
+				zinst find "^$Parse_Checker-"
 				echo "$BARR"
 				exit 0
 			else
 				Parse_Result="$ParsedPkgZinstFind"
 			fi
 		else
-			Parse_Result=`zinst find $Parse_Checker | tail -1`
+			Parse_Result=`zinst find "^$Parse_Checker-" | tail -1`
 		fi
 	
 	fi
@@ -979,9 +979,8 @@ Pkg_Install(){
 
 		### Dependency-checker file
 		## zinst dependency checker
-		ZinstDepCheck=`ls -ali  $ZinstBaseRoot/vault/zinst/ |grep .dependency.list`
 		ZinstDepTitle="#==========================ZinstDep==========================="
-			if [[ $ZinstDepCheck = "" ]];
+			if [[ ! -f $ZinstBaseRoot/vault/zinst/.dependency.list ]];
 			then
 				$sudo_base mkdir -p $ZinstBaseRoot/vault/zinst/
 				$sudo_base chgrp $zinst_group $ZinstBaseRoot/vault/zinst/
@@ -1004,7 +1003,6 @@ Pkg_Install(){
 				Dep_list_check=`zinst ls |awk -F '-   ' '{print $2}' | awk -F '-' '{print $1}' | egrep "^$Dep_checker$"`
 					if [[ $Dep_checker != "" ]]
 					then    
-
 						if [[ $Dep_list_check = "" ]]
 						then
 							echo ""
@@ -1016,7 +1014,7 @@ Pkg_Install(){
 				### Dependency comment check
 				echo "# Dependency package: $Dep_checker"  >> .file.list
 				let DepCounter=DepCounter+1
-			done;
+			done
 		#### [File parser] #####
 		### File set
 		## Directory make for the File copy
