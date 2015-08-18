@@ -10,9 +10,9 @@ ROWW="============================================================="
 ### Base information
 ### ------ Config Area ----- 11st line here
 #
-ManagerIP="DISTsERVERIp"
-Dist_server="http://DISTsERVERsET"
-ZinstBaseRoot="RootDirectorY"
+ManagerIP="goody80.github.io/Zinst_packages"
+Dist_server="http://goody80.github.io/Zinst_packages"
+ZinstBaseRoot="/data"
 ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 #
