@@ -4,7 +4,7 @@ Simple install Video: http://showterm.io/7be62fa683041b973b306#fast
 Here is an execution file only http://bit.do/zinst
 
 ![http://ralfyang.com](http://ts.daumcdn.net/custom/blog/164/1648795/skin/images/zinst_logo_sml.png)
-* Requires: BASH, SSH, curl, wget, bc, sudo
+* Requires: sudo, BASH, SSH
 * Feel free to contact me if you have any Question :) (한국어 지원)
 * Contact: goody80762@gmail.com or ralf.yang@gsshop.com
 * Links:
