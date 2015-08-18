@@ -27,10 +27,6 @@ ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ## ENV LD_LIBRARY_PATH /lib-override
 
 sudo_base="sudo"
-HostsFile="/etc/hostsa"
-	if [[ ! -f $HostsFile ]];then
-		HostsFile="/etc/hosts"
-	fi
 
 OS_Checker(){
 	## OS Check
@@ -52,10 +48,12 @@ OS_Checker(){
 
 Requires_Pkg_install(){
 ComPkg=($@)
+
 	## Requires check
 	Ccount=0
 	while [ $Ccount -lt ${#ComPkg[@]} ];do
-		if [[ `(whereis ${ComPkg[$Ccount]} 2> /dev/null)` = "" ]];then
+echo ComPkgComPkgComPkgComPkgComPkgComPkg ${ComPkg[@]}
+		if [[ `(whereis ${ComPkg[$Ccount]} | awk '{print $2}' 2> /dev/null)` = "" ]];then
 			ReqPkg[$Ccount]=${ComPkg[$Ccount]}
 		fi
 	let Ccount=$Ccount+1
@@ -73,7 +71,7 @@ ComPkg=($@)
 					$sudo_base apt-get install ${ReqPkg[@]} -y ;;
 			esac
     
-			if [[ `(whereis ${ReqPkg[@]} 2> /dev/null)` = "" ]];then
+			if [[ `(whereis ${ReqPkg[@]} | awk '{print $2}' 2> /dev/null)` = "" ]];then
 				echo "$BARR"
 					echo " You need to install the ${ReqPkg[@]} command!!"
 				echo "$BARR"
@@ -86,6 +84,13 @@ ComPkg=($@)
 ## Requires commanc check & install
 Requires_Pkg_install sudo
 Requires_Pkg_install tar bc
+
+
+HostsFile="/etc/hostsa"
+	if [[ ! -f $HostsFile ]];then
+		HostsFile="/etc/hosts"
+	fi
+
 
 hosts_redefine(){
 $sudo_base cat $HostsFile > /tmp/hosts.tmp
