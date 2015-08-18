@@ -1,3 +1,4 @@
 #!/bin/bash
 curl -sL http://bit.do/zinst > /usr/bin/zinst; chmod 755 /usr/bin/zinst
 yum install sudo -y
+zinst i server_default_setting-1.2.8.zinst
