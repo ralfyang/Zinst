@@ -1,5 +1,5 @@
 Simple install Video: http://showterm.io/db13ffbceede20208e828#fast
-<iframe src="http://showterm.io/7b5f8d42ba021511e627e#fast" width="640" height="480"></iframe> 
+   [![asciicast](https://asciinema.org/a/14.png)](https://asciinema.org/a/3b6111luruun70bmui5n887gf)
 
 * You just can type this command
  * curl -sL http://bit.do/online-install | sh
