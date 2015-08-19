@@ -1,5 +1,5 @@
-Simple install Video: http://showterm.io/db13ffbceede20208e828#fast
-   [![asciicast](https://asciinema.org/a/14.png)](https://asciinema.org/a/3b6111luruun70bmui5n887gf)
+[![asciicast](https://asciinema.org/a/14.png)](https://asciinema.org/a/3b6111luruun70bmui5n887gf)
+Simple install Video URL: https://asciinema.org/a/3b6111luruun70bmui5n887gf
 
 * You just can type this command
  * curl -sL http://bit.do/online-install | sh
