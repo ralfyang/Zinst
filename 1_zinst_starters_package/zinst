@@ -18,7 +18,6 @@ ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 #
 ### ------ Config Area ----- 19th line here
 
-#Sara_Host=""
 ### Exception for Docker user
 ### Docker user can changes the hosts-file to the other hosts-file  as below solution
 ## RUN cp /etc/hosts /etc/hostsa
@@ -26,11 +25,16 @@ ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ## RUN sed -i 's:/etc/hosts:/etc/hostsa:g' /lib-override/libnss_files.so.2
 ## ENV LD_LIBRARY_PATH /lib-override
 
+## Base information
+VERSION=4.2.2
+zinst_group="wheel"
 sudo_base="sudo"
+zinst_log="/dev/null"
+#Sara_Host=""
 
 OS_Checker(){
 	## OS Check
-	ChkOS=`cat /etc/*-release 2> /dev/null | head -1`
+	ChkOS=`cat /etc/*-release 2> $zinst_log | head -1`
         if [[ $(uname) == Linux ]];then
                 if [[ $(cat /etc/*-release | head -1 |grep Ubuntu) != "" ]];then
 			OS_name="Ubuntu"
@@ -52,7 +56,7 @@ ComPkg=($@)
 	## Requires check
 	Ccount=0
 	while [ $Ccount -lt ${#ComPkg[@]} ];do
-		if [[ `(whereis ${ComPkg[$Ccount]} | awk '{print $2}' | fgrep -v "." 2> /dev/null)` = "" ]];then
+		if [[ `(whereis ${ComPkg[$Ccount]} | awk '{print $2}' | fgrep -v "." 2> $zinst_log)` = "" ]];then
 			ReqPkg[$Ccount]=${ComPkg[$Ccount]}
 		fi
 	let Ccount=$Ccount+1
@@ -70,7 +74,7 @@ ComPkg=($@)
 					$sudo_base apt-get install ${ReqPkg[@]} -y ;;
 			esac
     
-			if [[ `(whereis ${ReqPkg[@]} | awk '{print $2}' | fgrep -v "." 2> /dev/null)` = "" ]];then
+			if [[ `(whereis ${ReqPkg[@]} | awk '{print $2}' | fgrep -v "." 2> $zinst_log)` = "" ]];then
 				echo "$BARR"
 					echo " You need to install the ${ReqPkg[@]} command!!"
 				echo "$BARR"
@@ -80,7 +84,7 @@ ComPkg=($@)
 }
 
 
-## Requires commanc check & install
+## Requires command check & install
 Requires_Pkg_install sudo
 Requires_Pkg_install tar bc
 
@@ -112,8 +116,6 @@ GrepDistHost=`grep "$FetchedDistServer" $HostsFile`
 		fi
 	fi
 
-VERSION=4.2.1
-zinst_group=wheel
 
 version_redefine ()
 { echo "$@" | awk -F'.' '{printf("%03d%03d%03d\n", $1,$2,$3); }'; }
@@ -130,13 +132,13 @@ trap exit_abnormal SIGINT SIGTERM SIGKILL
 
 
 ### Requires server_default_setup package for the account policy
-WhoStamp=`$sudo_base cat $ZinstBaseRoot/src/_tmp_acc 2> /dev/null`
+WhoStamp=`$sudo_base cat $ZinstBaseRoot/src/_tmp_acc 2> $zinst_log`
 	if [[ $WhoStamp = "" ]]
 	then
 		WhoStamp=`whoami`
 	fi
 
-$sudo_base rm $ZinstBaseRoot/src/_tmp_acc 2> /dev/null
+$sudo_base rm $ZinstBaseRoot/src/_tmp_acc 2> $zinst_log
 export ZinstDir=$ZinstBaseRoot
 CurrPkgDiR="$ZinstBaseRoot/vault/zinst/index"
 WhoStamps=`printf "%-14s" "$WhoStamp"`
@@ -144,7 +146,7 @@ WhoStamps=`printf "%-14s" "$WhoStamp"`
 ### Config about of Save file
 Save_Dir="$ZinstBaseRoot/z/save"
 Save_Filename="zinst-save"
-CheckSaveDir=`ls $ZinstBaseRoot/z 2> /dev/null |grep save`
+CheckSaveDir=`ls $ZinstBaseRoot/z 2> $zinst_log |grep save`
 	if [[ $CheckSaveDir = "" ]]
 	then
 		$sudo_base mkdir -p $Save_Dir
@@ -278,7 +280,7 @@ MidPackageArry=${PackageArry[@]}
 	### Hostlist file check
 	if [[ $HostlistV = "1" ]]
 	then
-		HostFileCheck=`$sudo_base cat ${HostArry[@]} |sed -e  '/^$/d' -e '/^#/d'  | fgrep -v "^#" |fgrep -v "^$" 2> $ZinstDIRs/.Hostcheck 1> /dev/null ;sudo cat $ZinstDIRs/.Hostcheck`
+		HostFileCheck=`$sudo_base cat ${HostArry[@]} |sed -e  '/^$/d' -e '/^#/d'  | fgrep -v "^#" |fgrep -v "^$" 2> $ZinstDIRs/.Hostcheck 1> $zinst_log ;sudo cat $ZinstDIRs/.Hostcheck`
 		if [[ $HostFileCheck = "" ]]
 		then
 			HostArry=(`$sudo_base cat ${HostArry[@]} |sed -e  '/^$/d' -e '/^#/d'  `)
@@ -346,8 +348,8 @@ Allcommand="$CommandX $ZPackages $ZOptions $Zset"
 ############################  zinst parsing engine end ##################################
 #########################################################################################
 ### History File reset for permission
-$sudo_base chmod 664 $History_LOG 2> /dev/null
-$sudo_base chgrp $zinst_group $History_LOG 2> /dev/null
+$sudo_base chmod 664 $History_LOG 2> $zinst_log
+$sudo_base chgrp $zinst_group $History_LOG 2> $zinst_log
 
 Package_Parse_Check(){
 ### Package name check 
@@ -435,7 +437,7 @@ Parse_Result=$@
 					Command_p="> mcp"
 					SourceFull=(`echo "$Source"`)
 					IPaddr=`/sbin/ifconfig |grep " addr:" |grep Bcast |head -1 | awk '{print $2}'|awk  -F ':' '{print $2}'`
-					sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> /dev/null
+					sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> $zinst_log
 					$Comm_sshpass ssh -oStrictHostKeyChecking=no $TartgetHost "echo -e \"`date +%Y.%m.%d_%T`\t $WhoStamps : $Command_p - From $IPaddr:  ${SourceFull[@]} -> $TargetDir \" >> $History_LOG"
 				done
 		else
@@ -460,13 +462,13 @@ Parse_Result=$@
 					echo ""
 					echo "[:: $TartgetHost ::]"		
 					Scount=1
-					$Comm_sshpass scp $ZPackages $TartgetHost:~/ 2> /dev/null
+					$Comm_sshpass scp $ZPackages $TartgetHost:~/ 2> $zinst_log
 					let Hcount=Hcount+1
 					Localhost=$HOSTNAME
 					Command_p="> Sent a sync file"
 					SourceFull=(`echo "$Source"`)
 					IPaddr=`/sbin/ifconfig |grep " addr:" |grep Bcast |head -1 | awk '{print $2}'|awk  -F ':' '{print $2}'`
-					sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> /dev/null
+					sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> $zinst_log
 					$Comm_sshpass ssh -oStrictHostKeyChecking=no $TartgetHost "echo -e \"`date +%Y.%m.%d_%T`\t $WhoStamps : $Command_p - From $IPaddr:  $SourceFull -> $TargetDir \" >> $History_LOG"
 				done
 		fi
@@ -484,7 +486,7 @@ RotaBeacon=0
 			do
 				HostF=$WhoStamp@${HostChanged[$Count]}
 				## ssh connection check
-				sed -i "#$TartgetHost#d" ~/.ssh/known_hosts 2> /dev/null
+				sed -i "#$TartgetHost#d" ~/.ssh/known_hosts 2> $zinst_log
 				$Comm_sshpass ssh -oStrictHostKeyChecking=no $HostF "grep ^VERSION /usr/bin/zinst" > $ZinstBaseRoot/vault/Source/ssh_conn_test.log 2>&1
 				CheckConnection=`$sudo_base cat $ZinstBaseRoot/vault/Source/ssh_conn_test.log |grep "No route\|not known\|Connection refused"`
 					if [[ $CheckConnection != "" ]]
@@ -496,16 +498,16 @@ RotaBeacon=0
 						## Install start with target host ##
 						## Check the Package or Distribution server
 						## Package scp to destination
-						zinst_checkDes=`$sudo_base grep ^VERSION $ZinstBaseRoot/vault/Source/ssh_conn_test.log | sed -e 's/VERSION=//g' 2> /dev/null`
+						zinst_checkDes=`$sudo_base grep ^VERSION $ZinstBaseRoot/vault/Source/ssh_conn_test.log | sed -e 's/VERSION=//g' 2> $zinst_log`
 							if [[ $zinst_checkDes != "" ]]
 							then
-								zinst_checkLoc=`$sudo_base cat /usr/bin/zinst 2> /dev/null |grep ^VERSION | sed -e 's/VERSION=//g'`
+								zinst_checkLoc=`$sudo_base cat /usr/bin/zinst 2> $zinst_log |grep ^VERSION | sed -e 's/VERSION=//g'`
 									if [[ $(version_redefine "$zinst_checkDes") < $(version_redefine "$zinst_checkLoc") ]];
 									then
 										$Comm_sshpass scp /usr/bin/zinst $HostF:/usr/bin
 									fi
 							else
-								$Comm_sshpass scp /usr/bin/zinst $HostF:/usr/bin/ 2> /dev/null
+								$Comm_sshpass scp /usr/bin/zinst $HostF:/usr/bin/ 2> $zinst_log
 							fi
 
 						#### Check SSH command ########
@@ -518,8 +520,8 @@ RotaBeacon=0
 						CheckDesDIR=`$sudo_base grep " cannot access " $ZinstBaseRoot/vault/Source/ssh_conn_test.log`
 							if [[ $CommandX != "" ]]
 							then		
-								sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> /dev/null
-        						$Comm_sshpass ssh -oStrictHostKeyChecking=no -t $HostF "$sudo_base mkdir -p $ZinstBaseRoot/vault/Source;sudo chgrp -R $zinst_group $ZinstBaseRoot/vault" 2> /dev/null
+								sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> $zinst_log
+        						$Comm_sshpass ssh -oStrictHostKeyChecking=no -t $HostF "$sudo_base mkdir -p $ZinstBaseRoot/vault/Source;sudo chgrp -R $zinst_group $ZinstBaseRoot/vault" 2> $zinst_log
 							fi
 
         					echo ""
@@ -558,8 +560,8 @@ RotaBeacon=0
 						MultiCheck=`echo $ZOptions |grep -e "-multi"`
 							if [[ $MultiCheck = "" ]]
 							then
-								sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> /dev/null
-								$Comm_sshpass ssh -oStrictHostKeyChecking=no -t $HostF "echo [ :: $HostF :: ];cd $ZinstSourceDir; source /etc/profile ;$szinst $RotaCommand" 2> /dev/null
+								sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> $zinst_log
+								$Comm_sshpass ssh -oStrictHostKeyChecking=no -t $HostF "echo [ :: $HostF :: ];cd $ZinstSourceDir; source /etc/profile ;$szinst $RotaCommand" 2> $zinst_log
 								IPaddr=`/sbin/ifconfig |grep " addr:" |grep Bcast |head -1 | awk '{print $2}'|awk  -F ':' '{print $2}'`
 									if [[ $szinst = "" ]];then
 										DestStamp="> SSH -"
@@ -567,11 +569,11 @@ RotaBeacon=0
 										DestStamp=" L"
 									fi
 
-								sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> /dev/null
+								sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> $zinst_log
  							    $Comm_sshpass ssh -oStrictHostKeyChecking=no -t $HostF "echo -e \"`date +%Y.%m.%d_%T`\t $WhoStamps : $DestStamp From $IPaddr: $szinst $RotaCommand\" >> $History_LOG" 
 							else
 								### For multi-task
-								sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> /dev/null
+								sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> $zinst_log
 								$Comm_sshpass ssh -oStrictHostKeyChecking=no -t $HostF "echo [ :: $HostF :: ];cd $ZinstSourceDir; source /etc/profile ;$szinst $RotaCommand" & 
 							fi
 
@@ -606,13 +608,13 @@ sudo mkdir -p $CurrPkgDiR
 		PrintCheck $Parse_Result
 		#### Start here for fetch the information
 		### Dependency check by zicf file from distribution server
-			IndexFileChk=`ls $CurrPkgDiR/${BoxPkgArry[$BoxCounter]}.zicf 2> /dev/null`
+			IndexFileChk=`ls $CurrPkgDiR/${BoxPkgArry[$BoxCounter]}.zicf 2> $zinst_log`
 			if [[ $IndexFileChk = "" ]]
 			then
-				$sudo_base sh -c "curl -sL \"$Dist_server/checker/${BoxPkgArry[$BoxCounter]}.zicf\" 2> /dev/null > $CurrPkgDiR/${BoxPkgArry[$BoxCounter]}.zicf"
-				CheckDep=(`cat $CurrPkgDiR/${BoxPkgArry[$BoxCounter]}.zicf 2> /dev/null |grep '^ZINST requires' | sed 's/ZINST requires pkg //g'`)
+				$sudo_base sh -c "curl -sL \"$Dist_server/checker/${BoxPkgArry[$BoxCounter]}.zicf\" -o $CurrPkgDiR/${BoxPkgArry[$BoxCounter]}.zicf 2> $zinst_log "
+				CheckDep=(`cat $CurrPkgDiR/${BoxPkgArry[$BoxCounter]}.zicf 2> $zinst_log |grep '^ZINST requires' | sed 's/ZINST requires pkg //g'`)
 			else
-				CheckDep=(`cat $CurrPkgDiR/${BoxPkgArry[$BoxCounter]}.zicf 2> /dev/null |grep '^ZINST requires' | sed 's/ZINST requires pkg //g'`)
+				CheckDep=(`cat $CurrPkgDiR/${BoxPkgArry[$BoxCounter]}.zicf 2> $zinst_log |grep '^ZINST requires' | sed 's/ZINST requires pkg //g'`)
 			fi
 		
 
@@ -646,13 +648,13 @@ sudo mkdir -p $CurrPkgDiR
 				CurrCheckBoxPkg=`zinst ls |grep -w \`echo "${CheckDep[$SubBoxCounter]}" | awk -F'-' '{print $1}'\``
 				SubFetchFile=`echo "${CheckDep[$SubBoxCounter]}"`
 
-					SubIndexFileChk=`ls $CurrPkgDiR/$SubFetchFile.zicf 2> /dev/null`
+					SubIndexFileChk=`ls $CurrPkgDiR/$SubFetchFile.zicf 2> $zinst_log`
 					if [[ $SubIndexFileChk = "" ]]
 					then
-						$sudo_base sh -c "curl -sL \"$Dist_server/checker/$SubFetchFile.zicf\" 2> /dev/null > $CurrPkgDiR/$SubFetchFile.zicf"
-						SudDepChk=(`cat $CurrPkgDiR/$SubFetchFile.zicf 2> /dev/null |grep '^ZINST requires' | sed 's/ZINST requires pkg //g'`)
+						$sudo_base sh -c "curl -sL \"$Dist_server/checker/$SubFetchFile.zicf\" -o $CurrPkgDiR/$SubFetchFile.zicf 2> $zinst_log "
+						SudDepChk=(`cat $CurrPkgDiR/$SubFetchFile.zicf 2> $zinst_log |grep '^ZINST requires' | sed 's/ZINST requires pkg //g'`)
 					else
-						SudDepChk=(`cat $CurrPkgDiR/$SubFetchFile.zicf 2> /dev/null |grep '^ZINST requires' | sed 's/ZINST requires pkg //g'`)
+						SudDepChk=(`cat $CurrPkgDiR/$SubFetchFile.zicf 2> $zinst_log |grep '^ZINST requires' | sed 's/ZINST requires pkg //g'`)
 					fi
 		
 				### Package version check & define
@@ -762,7 +764,7 @@ sudo mkdir -p $CurrPkgDiR
 BoxPkgArry=( `tsort $StockPkg | sed -e '/tmp_beacon/d'`)
 
 ### Remove temporary file
-rm -f $CurrPkgList $CurrPkgDiR 2> /dev/null
+rm -f $CurrPkgList $CurrPkgDiR 2> $zinst_log
 rm -f $StockPkg
 
 AllPkgSortedResult="${BoxPkgArry[@]}"
@@ -809,7 +811,7 @@ echo "- - - " >> $Save_Dir/$Naming
 zinst set | awk 'NR>1{print "Package setting",$1}' >> $Save_Dir/$Naming
     if [[ $Save_File_num != "0"  ]];
     then
-		CheckSameSave=`diff $Save_Dir/$Save_Filename.$Save_File_num  $Save_Dir/$Naming 2> /dev/null`
+		CheckSameSave=`diff $Save_Dir/$Save_Filename.$Save_File_num  $Save_Dir/$Naming 2> $zinst_log`
 			if [[ $CheckSameSave = "" ]]
 			then
 				$sudo_base rm -f $Save_Dir/$Naming
@@ -842,7 +844,7 @@ Pkg_Install(){
 			if [[ $Pkg_result != $Package_list ]]
 			then
 				###  check package by curl ###
-				Package_RC=`curl --head --silent $Dist_server/$Package_list 2> /dev/null |awk '{print $3}' | head -1`
+				Package_RC=`curl --head --silent $Dist_server/$Package_list 2> $zinst_log |awk '{print $3}' | head -1`
 			fi
 
 			#### check local zinst file
@@ -868,7 +870,7 @@ Pkg_Install(){
 				exit 0;
 			fi
 		## Check a same version Package
-		Existed_pkg=`ls -l $ZinstDIRs 2> /dev/null |grep ^l | grep "/$Package_orgS-" | awk  '{print $11}' | awk -F '/' '{print $NF}'`
+		Existed_pkg=`ls -l $ZinstDIRs 2> $zinst_log |grep ^l | grep "/$Package_orgS-" | awk  '{print $11}' | awk -F '/' '{print $NF}'`
 		Existed_pkg_version=`echo "$Existed_pkg" | awk -F'-' '{print $2}'`
 		Origin_pkg_version=`echo "$Package_org" | awk -F'-' '{print $2}'`
 		echo ""
@@ -910,10 +912,6 @@ Pkg_Install(){
 		alias cp=cp
 
 		cd $ZinstSourceDir/$ZinstName/
-			if [[ $Pkg_result != $Package_list ]]
-			then
-				$sudo_base sh -c "curl -sL \"$Dist_server/$Package_list\" 2> /dev/null > ./$Package_list"
-			fi
 
 			#########  -same -live option check  ################
 			if [[ $PureOption != "-same" ]]
@@ -922,7 +920,8 @@ Pkg_Install(){
 				$sudo_base rm -f $ZinstSourceDir/$ZinstName/$Package_list
 					if [[ $Pkg_result != $Package_list ]]
 					then
-						$sudo_base sh -c "curl -sL \"$Dist_server/$Package_list\" 2> /dev/null > ./$Package_list"
+						printf "%s" "Downloading"
+						$sudo_base sh -c "curl -L --progress-bar \"$Dist_server/$Package_list\" -o ./$Package_list"
 					else
 						$sudo_base mv -f $DIST/$Package_list $ZinstBaseRoot/vault/Source/$ZinstName/$Package_list	### local file copy
 					fi
@@ -962,7 +961,7 @@ Pkg_Install(){
 
 		### zinst default checkr
 		## zinst set checker
-		ZinstSetCheck=`$sudo_base cat $ZinstBaseRoot/vault/zinst/zinst_set.list 2> /dev/null | grep ZinstSet | awk '{print $1}'`
+		ZinstSetCheck=`$sudo_base cat $ZinstBaseRoot/vault/zinst/zinst_set.list 2> $zinst_log | grep ZinstSet | awk '{print $1}'`
 		ZinstSetTitle="#==========================ZinstSet==========================="
 			if [[ $ZinstSetCheck != $ZinstSetTitle ]];
 			then
@@ -1157,7 +1156,7 @@ Pkg_Install(){
 							fi
 						TargetCron=/var/spool/cron/$CronUser
 						echo "#### $TargetCron"  >> .file.list
-						Result=`$sudo_base cat $TargetCron  2> /dev/null |grep $Packagename`
+						Result=`$sudo_base cat $TargetCron  2> $zinst_log |grep $Packagename`
 							if [[ $Counter = "1" ]];
 							then
 								if [[ $Result != "" ]];
@@ -1185,7 +1184,7 @@ Pkg_Install(){
 		$sudo_base sed -i 's/^ cp/cp/g' ./.file.list
 		$sudo_base sh ./.file.list
 		echo "$Packagename-$Version package has been installed"
-		$sudo_base rm -f $ZinstSourceDir/$Package_list 1> /dev/null
+		$sudo_base rm -f $ZinstSourceDir/$Package_list 1> $zinst_log
 
 ## Out of 3 steps older package clean - Todo
 
@@ -1240,9 +1239,9 @@ CheckSetNum=${#CheckSetArry[@]}
 			CountSet=2
 			while [[ $CountSet -lt $CSetCount  ]]
 			do
-				SetOptionValueE=`echo "${CheckSetArry[@]}" | awk -F '-set ' '{print $'$CountSet'}' |sed -e 's# ##'  2> /dev/null`
+				SetOptionValueE=`echo "${CheckSetArry[@]}" | awk -F '-set ' '{print $'$CountSet'}' |sed -e 's# ##'  2> $zinst_log`
 				SetTarget=`echo "$SetOptionValueE" | awk -F "=" '{print $1}'`	
-				ZinstSet=`echo "$SetOptionValueE" | sed -e "s#$SetTarget=##g" 2> /dev/null`
+				ZinstSet=`echo "$SetOptionValueE" | sed -e "s#$SetTarget=##g" 2> $zinst_log`
 				OptSwt=`echo $SetTarget | awk -F '.' '{print $1}'`
 				Option=`echo $SetTarget | sed -e "s#$OptSwt.##g"`
 				PackageS=`echo $SetTarget | awk -F '.' '{print $1}'`
@@ -1250,8 +1249,8 @@ CheckSetNum=${#CheckSetArry[@]}
 				## Check a set list in zinst
 				CurrentSet=( `$sudo_base cat $ZinstBaseRoot/vault/zinst/zinst_set.list | grep "^$SetTarget"` )
 				CurrentSetCheck=`echo "$CurrentSet" | awk -F "=" '{print $1}'`
-				CurrentSetCheck2=`echo "$CurrentSet" | sed -e "s#$CurrentSetCheck=##g"  2> /dev/null`
-					Setchecker=`ls $ZinstDIRs 2> /dev/null |grep "$PackageS"`
+				CurrentSetCheck2=`echo "$CurrentSet" | sed -e "s#$CurrentSetCheck=##g"  2> $zinst_log`
+					Setchecker=`ls $ZinstDIRs 2> $zinst_log |grep "$PackageS"`
 					if [[ $Setchecker != ""  ]]; then
 						ConfCounter=0
 						Grep_ZICF_Raw=(`$sudo_base cat $ZinstDIRs/$PackageS/$SetZICF |grep "^CONF" | awk '{print "'$ZinstDIRs/$PackageS'/"$6}' | sed -e 's#\.\/##g'`)
@@ -1414,7 +1413,7 @@ ProcessPkg=($ZPackages)
 						echo "============= $ZPackages package has not installed =================="
 					fi
 				### Remove action stamps to Dist
-				$sudo_base curl -e --url $Dist_server/remove:$RmPkg_list.zinst > /dev/null  2>&1
+				$sudo_base curl -e --url $Dist_server/remove:$RmPkg_list.zinst > $zinst_log  2>&1
 
 				Command_p="- Remove "
 				echo -e "`date +%Y.%m.%d_%T`\t $WhoStamps : $Command_p - $RmPkg_list  " >> $History_LOG
@@ -1455,7 +1454,7 @@ CurrentCheck=`echo $ZPackages |grep "^./"`
 							Package_dir=`echo $File_list | awk '{print $'$CounterFM'}'`
 
 							cd $ZinstDIRs/$Package_dir
-							Package_finder=`$sudo_base grep "^cp" .file.list | awk '{print $3}' | egrep "$Pkg_file_checker$" 2> /dev/null`
+							Package_finder=`$sudo_base grep "^cp" .file.list | awk '{print $3}' | egrep "$Pkg_file_checker$" 2> $zinst_log`
 							if [[ $Package_finder != "" ]]
 							then
 								cd $ZinstDIRs/
@@ -1464,7 +1463,7 @@ CurrentCheck=`echo $ZPackages |grep "^./"`
 							fi
 
 							cd $ZinstDIRs/$Package_dir
-							Symb_finder=`$sudo_base egrep "$Pkg_file_checker$" .file.list | grep "^ln" |awk '{print $4}' 2> /dev/null`
+							Symb_finder=`$sudo_base egrep "$Pkg_file_checker$" .file.list | grep "^ln" |awk '{print $4}' 2> $zinst_log`
 							if [[ $Symb_finder != "" ]]
 							then
 								cd $ZinstDIRs/
@@ -1483,9 +1482,9 @@ CurrentCheck=`echo $ZPackages |grep "^./"`
 					exit 0;
 				fi
 		ZinstOrgName=`echo $ZPackages| awk -F "-" '{print $1}'`
-		cd $ZinstDIRs/$ZinstOrgName 2> /dev/null
-		$sudo_base cat $ZinstDIRs/$ZinstOrgName/.file.list 2> /dev/null | grep "^cp" | awk '{print $3}'
-		$sudo_base cat $ZinstDIRs/$ZinstOrgName/.file.list 2> /dev/null | grep "^ln" | awk '{print $5,"<- " $4}'
+		cd $ZinstDIRs/$ZinstOrgName 2> $zinst_log
+		$sudo_base cat $ZinstDIRs/$ZinstOrgName/.file.list 2> $zinst_log | grep "^cp" | awk '{print $3}'
+		$sudo_base cat $ZinstDIRs/$ZinstOrgName/.file.list 2> $zinst_log | grep "^ln" | awk '{print $5,"<- " $4}'
 	fi
 	elif [[ $ZOptions = "-zicf" ]]
 	then
@@ -1517,13 +1516,13 @@ CurrentCheck=`echo $ZPackages |grep "^./"`
 		$sudo_base mkdir -p $ZinstBaseRoot/vault/zinst/
 		$sudo_base chgrp $zinst_group $ZinstBaseRoot/vault/zinst/
 		export TIME_STYLE="+%Y-%m-%d %H:%M:%S %z" 
-		ls -l $ZinstDIRs/ 2> /dev/null | awk '{print $6,$7," - ", $11}' > $ZinstBaseRoot/vault/zinst/.pkglist 
+		ls -l $ZinstDIRs/ 2> $zinst_log | awk '{print $6,$7," - ", $11}' > $ZinstBaseRoot/vault/zinst/.pkglist 
 		$sudo_base chgrp $zinst_group $ZinstBaseRoot/vault/zinst/.pkglist
 		$sudo_base chmod 664 $ZinstBaseRoot/vault/zinst/.pkglist
 		$sudo_base sed -i 's/\//%/g'  $ZinstBaseRoot/vault/zinst/.pkglist
 		$sudo_base sed -i '/   -/d'  $ZinstBaseRoot/vault/zinst/.pkglist
 		$sudo_base sed -i "s/%$ZP%vault%Source%/ /g"  $ZinstBaseRoot/vault/zinst/.pkglist
-		PkgListZ=`$sudo_base cat $ZinstBaseRoot/vault/zinst/.pkglist 2> /dev/null`
+		PkgListZ=`$sudo_base cat $ZinstBaseRoot/vault/zinst/.pkglist 2> $zinst_log`
 			if [[ $PkgListZ = "" ]]
 			then
 				echo "=============== Package dose Not-existed here ============"
@@ -1538,7 +1537,7 @@ CurrentCheck=`echo $ZPackages |grep "^./"`
 
 Pkg_Find(){
 
-Repo_chk=`$sudo_base curl -e --url $Dist_server/ 2> /dev/null | grep " zinst"`
+Repo_chk=`$sudo_base curl -e --url $Dist_server/ 2> $zinst_log | grep " zinst"`
 
 	if [[ $ZOptions = "-local" ]]
 	then
@@ -1552,16 +1551,16 @@ Repo_chk=`$sudo_base curl -e --url $Dist_server/ 2> /dev/null | grep " zinst"`
 			if [[ $Repo_chk != "" ]];then	
 				if [[ $ZPackages = "" ]];
 				then
-					$sudo_base curl -e --url $Dist_server/ 2> /dev/null |grep zinst | sed 's/^.*<a href="//g' |awk -F '\"' '{print $1}' | egrep -v ^zinst$ | sort --version-sort
+					$sudo_base curl -e --url $Dist_server/ 2> $zinst_log |grep zinst | sed 's/^.*<a href="//g' |awk -F '\"' '{print $1}' | egrep -v ^zinst$ | sort --version-sort
 				else
-					$sudo_base curl -e --url $Dist_server/ 2> /dev/null |grep zinst | sed 's/^.*<a href="//g' |awk -F '\"' '{print $1}' | egrep -v ^zinst$ | grep $ZPackages | sort --version-sort
+					$sudo_base curl -e --url $Dist_server/ 2> $zinst_log |grep zinst | sed 's/^.*<a href="//g' |awk -F '\"' '{print $1}' | egrep -v ^zinst$ | grep $ZPackages | sort --version-sort
 				fi
 			else
 				if [[ $ZPackages = "" ]];
 				then
-					$sudo_base curl -e --url $Dist_server/pkglist 2> /dev/null |grep zinst | egrep -v ^zinst$ | sort --version-sort
+					$sudo_base curl -e --url $Dist_server/pkglist 2> $zinst_log |grep zinst | egrep -v ^zinst$ | sort --version-sort
 				else
-					$sudo_base curl -e --url $Dist_server/pkglist 2> /dev/null |grep zinst | egrep -v ^zinst$ | grep $ZPackages | sort --version-sort
+					$sudo_base curl -e --url $Dist_server/pkglist 2> $zinst_log |grep zinst | egrep -v ^zinst$ | grep $ZPackages | sort --version-sort
 				fi
 			fi
 	fi
@@ -1702,8 +1701,8 @@ Sync_File=$ZPackages
 
 			if [[ `(echo $Types | grep "\-url")` != "" ]]; then
 				Temp_File="/tmp/temp_list.save"
-				rm -f $Temp_File 2> /dev/null
-				curl "$Sync_File" 2> /dev/null > $Temp_File
+				rm -f $Temp_File 2> $zinst_log
+				curl "$Sync_File" 2> $zinst_log > $Temp_File
 				Sync_File=$Temp_File
 					## Download file check
 					if [[ `(cat $Sync_File)` = "" ]];then
@@ -1976,7 +1975,7 @@ SelfConfArry=(`echo "$PackageAll"`)
 	fi
 #Apply the configuration for HostsFile
 #hosts_redefine 
-zinst -v 1> /dev/null
+zinst -v 1> $zinst_log
 
 }
 
@@ -1995,7 +1994,7 @@ check_dist_url=`grep "couldn't connect" /tmp/dist_check.tmp`
 	fi
 
 $sudo_base rm -f zinst
-curl -sL $Dist_server/zinst 2> /dev/null > ./zinst;
+curl -L --progress-bar $Dist_server/zinst -o ./zinst;
 mv zinst zinst_tmp
 	if [[ -f /usr/bin/zinst ]];then
 		$sudo_base head -19 /usr/bin/zinst > /tmp/zinst
@@ -2011,7 +2010,7 @@ Number=`ls $ZinstBaseRoot/vault/Source/bin/ |egrep ^zinst.bak. |awk '{print NR}'
 	then
 		Number="0"
 	fi
-$sudo_base mv $ZinstBaseRoot/vault/Source/bin/zinst $ZinstBaseRoot/vault/Source/bin/zinst.bak.$Number 2> /dev/null;
+$sudo_base mv $ZinstBaseRoot/vault/Source/bin/zinst $ZinstBaseRoot/vault/Source/bin/zinst.bak.$Number 2> $zinst_log;
 $sudo_base cp zinst $ZinstBaseRoot/vault/Source/bin/zinst;
 $sudo_base chgrp $zinst_group $ZinstBaseRoot/vault/Source/bin/zinst;
 $sudo_base chmod 775 $ZinstBaseRoot/vault/Source/bin/zinst;
@@ -2267,7 +2266,7 @@ UserChecker=`echo "${PackageArry[0]}" |grep "user"`
 		Distributed_package="distributed_package_users"
 	fi
 
-ResultPack=`$sudo_base curl -e --url $Dist_server/$TrackManager/$Distributed_package 2> /dev/null |egrep "${PackageArry[0]}"`
+ResultPack=`$sudo_base curl -e --url $Dist_server/$TrackManager/$Distributed_package 2> $zinst_log |egrep "${PackageArry[0]}"`
 FileChecker=`echo $MidPackageArry | awk -F '-file=' '{print $2}'`
 OptionExcenptChk=`echo "$ZOptions" | grep "="`
 	if [[ $OptionExcenptChk != ""  ]]
@@ -2284,7 +2283,7 @@ OptionExcenptChk=`echo "$ZOptions" | grep "="`
 
 	if [[ $ResultPack = "" ]]
 	then
-		OutTrack=`$sudo_base curl -e --url $Dist_server/$TrackManager/$Distributed_package 2> /dev/null |egrep " ${PackageArry[0]}" | awk '{printf("%-30s",$1); printf("%-50s",$2); printf("%-30s\n",$3)}'`
+		OutTrack=`$sudo_base curl -e --url $Dist_server/$TrackManager/$Distributed_package 2> $zinst_log |egrep " ${PackageArry[0]}" | awk '{printf("%-30s",$1); printf("%-50s",$2); printf("%-30s\n",$3)}'`
 	else
 		OutTrack=`echo "$ResultPack" | awk '{printf("%-30s",$1); printf("%-50s",$2); printf("%-30s\n",$3)}'`
 	fi
@@ -2313,14 +2312,14 @@ GetSPkgArry=( $GetSPkg )
 	GetSCounter=0
 	while [ $GetSCounter -lt ${#GetSPkgArry[@]} ]
 	do
-			IndexFileChk=`ls $CurrPkgDiR/${GetSPkgArry[$GetSCounter]}.zicf 2> /dev/null`
+			IndexFileChk=`ls $CurrPkgDiR/${GetSPkgArry[$GetSCounter]}.zicf 2> $zinst_log`
 			PackageReal=`echo "${GetSPkgArry[$GetSCounter]}" | awk -F'-' '{print $1}'`
 			if [[ $IndexFileChk = "" ]]
 			then
-				$sudo_base sh -c "curl \"$Dist_server/checker/${GetSPkgArry[$GetSCounter]}.zicf\" 2> /dev/null > $CurrPkgDiR/${GetSPkgArry[$GetSCounter]}.zicf"
-				CheckSet=(`cat $CurrPkgDiR/${GetSPkgArry[$GetSCounter]}.zicf 2> /dev/null |grep "^ZINST set " | sed -e 's/ZINST set //g' | awk '{for (i=2;i<=NF;i=i+1) print "'$PackageReal'."$1"="$i}'`)
+				$sudo_base sh -c "curl \"$Dist_server/checker/${GetSPkgArry[$GetSCounter]}.zicf\" 2> $zinst_log > $CurrPkgDiR/${GetSPkgArry[$GetSCounter]}.zicf"
+				CheckSet=(`cat $CurrPkgDiR/${GetSPkgArry[$GetSCounter]}.zicf 2> $zinst_log |grep "^ZINST set " | sed -e 's/ZINST set //g' | awk '{for (i=2;i<=NF;i=i+1) print "'$PackageReal'."$1"="$i}'`)
 			else
-				CheckSet=(`cat $CurrPkgDiR/${GetSPkgArry[$GetSCounter]}.zicf 2> /dev/null |grep "^ZINST set " | sed -e 's/ZINST set //g' | awk '{for (i=2;i<=NF;i=i+1) print "'$PackageReal'."$1"="$i}'`)
+				CheckSet=(`cat $CurrPkgDiR/${GetSPkgArry[$GetSCounter]}.zicf 2> $zinst_log |grep "^ZINST set " | sed -e 's/ZINST set //g' | awk '{for (i=2;i<=NF;i=i+1) print "'$PackageReal'."$1"="$i}'`)
 			fi
 
 	let GetSCounter=$GetSCounter+1
