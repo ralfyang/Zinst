@@ -1,5 +1,5 @@
 [![asciicast](https://asciinema.org/a/3b6111luruun70bmui5n887gf.png)](https://asciinema.org/a/3b6111luruun70bmui5n887gf)
-Simple install Video URL: https://asciinema.org/a/3b6111luruun70bmui5n887gf
+Simple install Video by asciinema
 
 * You just can type this command
  * curl -sL http://bit.do/online-install | sh
