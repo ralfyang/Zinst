@@ -26,7 +26,7 @@ ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ## ENV LD_LIBRARY_PATH /lib-override
 
 ## Base information
-VERSION=4.2.4
+VERSION=4.2.5
 zinst_group="wheel"
 sudo_base="sudo"
 zinst_log="/dev/null"
@@ -386,6 +386,11 @@ Parse_Checker=$*
 			fi
 		else
 			Parse_Result=`zinst find "^$Parse_Checker-" | tail -1`
+			if [[ $Parse_Result = "" ]];then
+				PkgCheckArry="$PkgCheckArry $Parse_Result"
+				printf "%-59s %-1s %-10s %-1s\n" "| $Parse_Checker" "|" "Not existed" "|"
+				exit 0
+			fi
 		fi
 	
 	fi
@@ -395,11 +400,9 @@ Parse_Checker=$*
 PrintCheck(){
 Parse_Result=$@
 	PkgCheckTime=`echo "$PkgCheckArry" |grep " $Parse_Result"`
-#echo "echo \"$PkgCheckArry\" |grep \" $Parse_Result\""
-	if [[ $PkgCheckTime = "" ]]
-	then
+	if [[ $PkgCheckTime = "" ]];then
 		PkgCheckArry="$PkgCheckArry $Parse_Result"
-		printf "%-60s %-1s %-10s %-1s\n" "| $Parse_Result" "|" "- Checked" "|"
+		printf "%-59s %-1s %-10s %-1s\n" "| $Parse_Result" "|" "- Checked " " |"
 	fi
 }
 
@@ -1974,7 +1977,7 @@ zinst -v 1> $zinst_log
 Zinst_Selfupdate(){
 #cd ~/;
 cd /tmp;
-$sudo_base curl -e --url $Dist_server > /tmp/dist_check.tmp 2>&1
+$sudo_base sh -c "curl -e --url $Dist_server > /tmp/dist_check.tmp 2>&1"
 check_dist_url=`grep "couldn't connect" /tmp/dist_check.tmp`
 	if [[ $check_dist_url != "" ]];then
 		echo " ================================================================"
