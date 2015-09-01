@@ -4,7 +4,7 @@ Simple install Video by asciinema
 * You just can type this command
  * curl -sL http://bit.do/online-install | sh
 
-![http://ralfyang.com](http://ts.daumcdn.net/custom/blog/164/1648795/skin/images/zinst_logo_sml.png)
+![http://ralfyang.com](http://cfile2.uf.tistory.com/image/2163D43A55E52C3F16B27B)
 * Requires: sudo, BASH, SSH
 * Feel free to contact me if you have any Question :) (한국어 지원)
 * Contact: goody80762@gmail.com or ralf.yang@gsshop.com
