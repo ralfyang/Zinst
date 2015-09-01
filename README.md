@@ -1,10 +1,11 @@
+![http://ralfyang.com](http://cfile1.uf.tistory.com/image/2565453E55E52DFF1DACD6)
+
 [![asciicast](https://asciinema.org/a/3b6111luruun70bmui5n887gf.png)](https://asciinema.org/a/3b6111luruun70bmui5n887gf)
 Simple install Video by asciinema
 
 * You just can type this command
  * curl -sL http://bit.do/online-install | sh
 
-![http://ralfyang.com](http://cfile1.uf.tistory.com/image/2565453E55E52DFF1DACD6)
 * Requires: sudo, BASH, SSH
 * Feel free to contact me if you have any Question :) (한국어 지원)
 * Contact: goody80762@gmail.com or ralf.yang@gsshop.com
@@ -16,7 +17,6 @@ Simple install Video by asciinema
  * [Official Home](http://ralfyang.com)
  * [*Link: zinst packages repository in github*](https://github.com/goody80/Zinst_packages)
 
-![http://ralfyang.com](http://cfile1.uf.tistory.com/image/2565453E55E52DFF1DACD6)
 # Zinst 메뉴얼
 ## 개요
 * zinst는 분산된 서버군의 효율적인 관리와 제어를 위해 개발 되었습니다. 예를 들어 특정 리눅스 장비 하나를 관리용도의 메니저 서버로 구성 한 다음, 해당 서버에서 다른 서버로 ssh를 통해 접속이 가능하다면, 한번의 명령어를 바탕으로 복수개의 서버를 관리 할 수 있습니다.
