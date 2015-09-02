@@ -26,7 +26,7 @@ ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ## ENV LD_LIBRARY_PATH /lib-override
 
 ## Base information
-VERSION=4.2.5
+VERSION=4.2.6
 zinst_group="wheel"
 sudo_base="sudo"
 zinst_log="/dev/null"
@@ -1928,6 +1928,7 @@ SelfConfArry=(`echo "$PackageAll"`)
 					SelfConf_IP=${SelfConfArry[$SelfConfCount]}
 					TargetSelfIP=`grep "^ManagerIP=" /usr/bin/zinst`
 					$sudo_base sed -i "s#$TargetSelfIP#ManagerIP=\"$check_new_ip\"#g" /usr/bin/zinst
+					check_new_ip=`echo "$check_new_ip" | sed -e 's#/#\\\/#g'`
 					$sudo_base sed -i "/$check_new_ip/d" /tmp/hosts_c.tmp
 					$sudo_base sh -c "echo $check_new_ip $FetchedDistServer >> /tmp/hosts_c.tmp"
 					$sudo_base sh -c "cat /tmp/hosts_c.tmp > $HostsFile"
@@ -1939,6 +1940,7 @@ SelfConfArry=(`echo "$PackageAll"`)
 					SelfConf_Host=${SelfConfArry[$SelfConfCount]}
 					TargetSelfHost=`grep "^Dist_server=" /usr/bin/zinst`
 					$sudo_base sed -i "s#$TargetSelfHost#Dist_server=\"http://$check_new_host\"#g" /usr/bin/zinst
+					FetchedDistServer=`echo "$FetchedDistServer" | sed -e 's#/#\\\/#g'`
 					$sudo_base sed -i "/$FetchedDistServer/d" /tmp/hosts_c.tmp
 					$sudo_base sh -c "echo $ManagerIP $check_new_host >> /tmp/hosts_c.tmp"
 					$sudo_base sh -c "cat /tmp/hosts_c.tmp > $HostsFile"
