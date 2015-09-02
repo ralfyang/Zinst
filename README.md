@@ -453,3 +453,7 @@ $ zinst i sudo_user_test002-0.0.1.zinst user_test002-0.0.1.zinst -stable -H web_
 
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/goody80/ralf_dev/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/goody80/ralf_dev/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
