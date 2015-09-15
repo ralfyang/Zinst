@@ -26,7 +26,7 @@ ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ## ENV LD_LIBRARY_PATH /lib-override
 
 ## Base information
-VERSION=4.2.6
+VERSION=4.2.7
 zinst_group="wheel"
 sudo_base="sudo"
 zinst_log="/dev/null"
@@ -186,8 +186,8 @@ HostCheck=`echo "$PackageAll" |grep " \-h \| \-H "`
 		PackageArry=(`echo "$PackageAll" | awk -F ' -[h|H]' '{print $1}'`)
 		HostArry=(`echo "$PackageAll" | awk -F ' -[h|H]' '{print $2}'`)
 		### check sshpass
-		$sudo_base sh -c "sshpass -V &> /tmp/.sshpass_check"
-		Check_sshpass=`$sudo_base grep "not found" /tmp/.sshpass_check`
+		$sudo_base sh -c "sshpass -V 2> /tmp/.sshpass_check"
+		Check_sshpass=`cat /tmp/.sshpass_check`
 			if [[ $Check_sshpass = "" ]]
 			then
 				Pass_Checker
