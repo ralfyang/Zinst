@@ -186,7 +186,7 @@ HostCheck=`echo "$PackageAll" |grep " \-h \| \-H "`
 		PackageArry=(`echo "$PackageAll" | awk -F ' -[h|H]' '{print $1}'`)
 		HostArry=(`echo "$PackageAll" | awk -F ' -[h|H]' '{print $2}'`)
 		### check sshpass
-		$sudo_base sh -c "sshpass -V 2> /tmp/.sshpass_check"
+		$sudo_base sh -c "sshpass -V sshpass -V 1> $zinst_log 2> /tmp/.sshpass_check"
 		Check_sshpass=`cat /tmp/.sshpass_check`
 			if [[ $Check_sshpass = "" ]]
 			then
