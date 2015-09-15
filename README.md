@@ -451,7 +451,7 @@ vipctl-1.0.5  <-------   /data/bin/vipctl
 ```
 $ zinst ls -zicf vipctl
 
-## Package infomation
+## Package information
 PACKAGENAME = vipctl
 VERSION = 1.0.5
 AUTHORIZED = ralf.yang@gsshop.com
