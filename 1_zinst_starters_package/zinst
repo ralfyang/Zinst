@@ -26,7 +26,7 @@ ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ## ENV LD_LIBRARY_PATH /lib-override
 
 ## Base information
-VERSION=4.2.7
+VERSION=4.2.8
 zinst_group="wheel"
 sudo_base="sudo"
 zinst_log="/dev/null"
@@ -440,7 +440,7 @@ Parse_Result=$@
 					Command_p="> mcp"
 					SourceFull=(`echo "$Source"`)
 					IPaddr=`/sbin/ifconfig |grep " addr:" |grep Bcast |head -1 | awk '{print $2}'|awk  -F ':' '{print $2}'`
-					sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> $zinst_log
+#					sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> $zinst_log
 					$Comm_sshpass ssh -oStrictHostKeyChecking=no $TartgetHost "echo -e \"`date +%Y.%m.%d_%T`\t $WhoStamps : $Command_p - From $IPaddr:  ${SourceFull[@]} -> $TargetDir \" >> $History_LOG"
 				done
 		else
@@ -471,7 +471,7 @@ Parse_Result=$@
 					Command_p="> Sent a sync file"
 					SourceFull=(`echo "$Source"`)
 					IPaddr=`/sbin/ifconfig |grep " addr:" |grep Bcast |head -1 | awk '{print $2}'|awk  -F ':' '{print $2}'`
-					sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> $zinst_log
+#					sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> $zinst_log
 					$Comm_sshpass ssh -oStrictHostKeyChecking=no $TartgetHost "echo -e \"`date +%Y.%m.%d_%T`\t $WhoStamps : $Command_p - From $IPaddr:  $SourceFull -> $TargetDir \" >> $History_LOG"
 				done
 		fi
@@ -489,7 +489,7 @@ RotaBeacon=0
 			do
 				HostF=$WhoStamp@${HostChanged[$Count]}
 				## ssh connection check
-				sed -i "#$TartgetHost#d" ~/.ssh/known_hosts 2> $zinst_log
+#				sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> $zinst_log
 				$Comm_sshpass ssh -oStrictHostKeyChecking=no $HostF "grep ^VERSION /usr/bin/zinst" > $ZinstBaseRoot/vault/Source/ssh_conn_test.log 2>&1
 				CheckConnection=`$sudo_base cat $ZinstBaseRoot/vault/Source/ssh_conn_test.log |grep "No route\|not known\|Connection refused"`
 					if [[ $CheckConnection != "" ]]
@@ -523,7 +523,7 @@ RotaBeacon=0
 						CheckDesDIR=`$sudo_base grep " cannot access " $ZinstBaseRoot/vault/Source/ssh_conn_test.log`
 							if [[ $CommandX != "" ]]
 							then		
-								sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> $zinst_log
+#								sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> $zinst_log
         						$Comm_sshpass ssh -oStrictHostKeyChecking=no -t $HostF "$sudo_base mkdir -p $ZinstBaseRoot/vault/Source;sudo chgrp -R $zinst_group $ZinstBaseRoot/vault" 2> $zinst_log
 							fi
 
@@ -563,7 +563,7 @@ RotaBeacon=0
 						MultiCheck=`echo $ZOptions |grep -e "-multi"`
 							if [[ $MultiCheck = "" ]]
 							then
-								sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> $zinst_log
+#								sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> $zinst_log
 								$Comm_sshpass ssh -oStrictHostKeyChecking=no -t $HostF "echo [ :: $HostF :: ];cd $ZinstSourceDir; source /etc/profile ;$szinst $RotaCommand" 2> $zinst_log
 								IPaddr=`/sbin/ifconfig |grep " addr:" |grep Bcast |head -1 | awk '{print $2}'|awk  -F ':' '{print $2}'`
 									if [[ $szinst = "" ]];then
@@ -572,11 +572,11 @@ RotaBeacon=0
 										DestStamp=" L"
 									fi
 
-								sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> $zinst_log
+#								sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> $zinst_log
  							    $Comm_sshpass ssh -oStrictHostKeyChecking=no -t $HostF "echo -e \"`date +%Y.%m.%d_%T`\t $WhoStamps : $DestStamp From $IPaddr: $szinst $RotaCommand\" >> $History_LOG" 
 							else
 								### For multi-task
-								sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> $zinst_log
+#								sed -i "/$TartgetHost/d" ~/.ssh/known_hosts 2> $zinst_log
 								$Comm_sshpass ssh -oStrictHostKeyChecking=no -t $HostF "echo [ :: $HostF :: ];cd $ZinstSourceDir; source /etc/profile ;$szinst $RotaCommand" & 
 							fi
 
