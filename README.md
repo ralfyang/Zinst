@@ -18,6 +18,8 @@ If you want to show detail video please click the GIF image :)
 ![http://ralfyang.com](http://cfile1.uf.tistory.com/image/2565453E55E52DFF1DACD6)
 # Zinst 메뉴얼
 ## 개요
+[![RecordIt](http://g.recordit.co/5oNjDo9r60.gif)](http://recordit.co/5oNjDo9r60)
+
 * zinst는 분산된 서버군의 효율적인 관리와 제어를 위해 개발 되었으며, 이를 위해 별도의 agent의 설치를 필요로 하지 않습니다. 
 * 예를 들어 특정 리눅스 장비 하나를 관리용도의 메니저 서버로 구성 한 다음, 해당 서버에서 다른 서버로 ssh를 통해 접속이 가능하다면, 한번의 명령어를 바탕으로 복수개의 서버를 관리 할 수 있습니다.
  * 예) 192.168.1.101 서버부터 192.168.1.199 까지 하드웨어 스펙을 확인하는 command 
@@ -110,6 +112,8 @@ $ install.sh
 ```
 $ zinst i server_default_setting -stable
 ```
+[![RecordIt](http://g.recordit.co/N6I4U1ywD9.gif)](http://recordit.co/N6I4U1ywD9)
+
 * zinst는 `man-page` 대신, 자체 manual을 command를 통해 확인 할 수 있습니다.
 ```
 $ zinst
@@ -390,6 +394,7 @@ mysql_server_test_tool-0.1.0.zinst
 ```
 
 ### install
+[![RecordIt](http://g.recordit.co/zZwHeiiRqh.gif)](http://recordit.co/zZwHeiiRqh)
 * `zinst find`를 통해 설치가능한 package가 확인되면 해당 package를 `install` 명령을 통해 설치가 가능합니다.
 ```
 $ zinst i hwconfig-1.3.3.zinst
