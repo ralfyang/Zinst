@@ -1,5 +1,5 @@
-[![asciicast](https://asciinema.org/a/3b6111luruun70bmui5n887gf.png)](https://asciinema.org/a/3b6111luruun70bmui5n887gf)
-Simple install Video by asciinema
+[![RecordIt](http://g.recordit.co/DNo5wZmAmp.gif)](http://recordit.co/DNo5wZmAmp)
+If you want to show detail video please click the GIF image :)
 
 * You just can type this command
  * curl -sL http://bit.ly/online-install | sh
