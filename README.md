@@ -2,7 +2,7 @@
 Simple install Video by asciinema
 
 * You just can type this command
- * curl -sL http://bit.do/online-install | sh
+ * curl -sL http://bit.ly/online-install | sh
 
 * Requires: sudo, BASH, SSH
 * Feel free to contact me if you have any Question :) (한국어 지원)
@@ -87,7 +87,7 @@ $ zinst i httpd_server \
 * zinst는 두가지 형태로 설치가 가능합니다.
 * 쉬운 구성 설치를 위해 github.io를 repository화 하여 사용이 가능합니다.
 ```
-curl -sL bit.do/online-install | sh
+curl -sL bit.ly/online-install | sh
 ```
 * 위와 같이 설치 진행 시, sudo package가 필요하여 yum을 통해 자동 설치 진행 됩니다.
  * RedHat계열의 OS의 경우, yum을 통한 sudo 설치가 가능하나, Ubuntu 또는 Darwin의 경우는 그에 맞게 설치 command를 수정 하여 진행 해야 합니다.
@@ -380,7 +380,7 @@ cloudera_flume_node-0.9.4+25.40-1.zinst
 * 특정 package에 대한 검색은 아래와 같습니다.
 ```
 $ zinst find mysql
-gsshop_mysql_backup-1.0.2.zinst
+ralfyang_mysql_backup-1.0.2.zinst
 mysql_check_realtime_select-1.0.0.zinst
 mysql_check_slow_query-1.0.0.zinst
 mysql_client_55-1.0.2.zinst
@@ -454,9 +454,9 @@ $ zinst ls -zicf vipctl
 ## Package information
 PACKAGENAME = vipctl
 VERSION = 1.0.5
-AUTHORIZED = ralf.yang@gsshop.com
+AUTHORIZED = ralf.yang@ralfyang.com
 DESCRIPTION = 'Create the loopback and network startup for the vip grouping - update for status page'
-CUSTODIAN = gsshop-eit-team
+CUSTODIAN = ralfyang-eit-team
 
 #Global setting of the files
 OWNER = root
@@ -475,7 +475,7 @@ PERM = 775
 ```
 $ zinst ls -dep server_default_setting
 
-server_default_setting - package has a dependency with ( gsshop_account_policy )
+server_default_setting - package has a dependency with ( ralfyang_account_policy )
 ```
 
 ### remove
@@ -663,10 +663,10 @@ Package install docker_engine-1.7.1.zinst
 Package install git_tool-1.0.1.zinst
 Package install gs_nmap-0.0.1.zinst
 Package install gs_nodejs-0.0.1.zinst
-Package install gsshop_account_policy-1.0.7.zinst
-Package install gsshop_authorize_client-1.0.2.zinst
-Package install gsshop_httpd_conf_pkgdist-1.0.3.zinst
-Package install gsshop_httpd_server-2.4.12.zinst
+Package install ralfyang_account_policy-1.0.7.zinst
+Package install ralfyang_authorize_client-1.0.2.zinst
+Package install ralfyang_httpd_conf_pkgdist-1.0.3.zinst
+Package install ralfyang_httpd_server-2.4.12.zinst
 Package install hwconfig-1.3.3.zinst
 Package install ldap_server-1.0.5.zinst
 Package install libcgroup-0.4.0.zinst
@@ -694,15 +694,15 @@ Package setting server_default_setting.name1=8.8.8.8
 Package setting server_default_setting.name2=168.126.63.1
 Package setting package_tracker.RotateCycle=30
 Package setting package_tracker.Downcheck=14
-Package setting gsshop_authorize_client.BaseDN=dc=gravity,dc=gs
-Package setting zinst_making_tool.mailing=gsshop.com
+Package setting ralfyang_authorize_client.BaseDN=dc=gravity,dc=gs
+Package setting zinst_making_tool.mailing=ralfyang.com
 Package setting git_tool.Branch=gh-pages
 Package setting hwconfig.nameserver1=8.8.8.8
 Package setting hwconfig.nameserver2=168.126.63.1
-Package setting gsshop_httpd_conf_pkgdist.ServerName=package.dist.gsshop.com
-Package setting gsshop_httpd_conf_pkgdist.DocumentRoot=/data/dist
+Package setting ralfyang_httpd_conf_pkgdist.ServerName=package.dist.ralfyang.com
+Package setting ralfyang_httpd_conf_pkgdist.DocumentRoot=/data/dist
 Package setting ldap_server.BindDN="dc=gravity,dc=gs"
-Package setting gsshop_authorize_client.LDAPserver=192.168.59.104
+Package setting ralfyang_authorize_client.LDAPserver=192.168.59.104
 ```
 * 위 save file을 통해 해당 시점에 마지막으로 실행 된 command와 설치가 된 이후의 package 및 설정의 내역을 기록하여 두었습니다.
 * 이를 바탕으로, package 및 set을 동기화 할 수 있습니다.
@@ -742,10 +742,10 @@ zinst install docker_engine-1.7.1.zinst
 zinst install git_tool-1.0.1.zinst
 zinst install gs_nmap-0.0.1.zinst
 zinst install gs_nodejs-0.0.1.zinst
-zinst install gsshop_account_policy-1.0.7.zinst
-zinst install gsshop_authorize_client-1.0.2.zinst
-zinst install gsshop_httpd_conf_pkgdist-1.0.3.zinst
-zinst install gsshop_httpd_server-2.4.12.zinst
+zinst install ralfyang_account_policy-1.0.7.zinst
+zinst install ralfyang_authorize_client-1.0.2.zinst
+zinst install ralfyang_httpd_conf_pkgdist-1.0.3.zinst
+zinst install ralfyang_httpd_server-2.4.12.zinst
 zinst install hwconfig-1.3.3.zinst
 zinst install ldap_server-1.0.5.zinst
 zinst install libcgroup-0.4.0.zinst
@@ -772,15 +772,15 @@ zinst set server_default_set.name1=8.8.8.8
 zinst set server_default_set.name2=168.126.63.1
 zinst set package_tracker.RotateCycle=30
 zinst set package_tracker.Downcheck=14
-zinst set gsshop_authorize_client.BaseDN=dc=gravity,dc=gs
-zinst set zinst_making_tool.mailing=gsshop.com
+zinst set ralfyang_authorize_client.BaseDN=dc=gravity,dc=gs
+zinst set zinst_making_tool.mailing=ralfyang.com
 zinst set git_tool.Branch=gh-pages
 zinst set hwconfig.nameserver1=8.8.8.8
 zinst set hwconfig.nameserver2=168.126.63.1
-zinst set gsshop_httpd_conf_pkgdist.ServerName=package.dist.gsshop.com
-zinst set gsshop_httpd_conf_pkgdist.DocumentRoot=/data/dist
+zinst set ralfyang_httpd_conf_pkgdist.ServerName=package.dist.ralfyang.com
+zinst set ralfyang_httpd_conf_pkgdist.DocumentRoot=/data/dist
 zinst set ldap_server.BindDN="dc=gravity,dc=gs"
-zinst set gsshop_authorize_client.LDAPserver=192.168.59.104
+zinst set ralfyang_authorize_client.LDAPserver=192.168.59.104
 zinst set vipctl.name=DEFAULT
 zinst set vipctl.vips=VIPS
 zinst set vipctl.onboot=yes
@@ -800,15 +800,15 @@ $ zinst set
 
 package_tracker.RotateCycle=30
 package_tracker.Downcheck=14
-gsshop_authorize_client.BaseDN=dc=gravity,dc=gs
-zinst_making_tool.mailing=gsshop.com
+ralfyang_authorize_client.BaseDN=dc=gravity,dc=gs
+zinst_making_tool.mailing=ralfyang.com
 git_tool.Branch=gh-pages
 hwconfig.nameserver1=211.44.62.40
 hwconfig.nameserver2=168.126.63.1
-gsshop_httpd_conf_pkgdist.ServerName=package.dist.gsshop.com
-gsshop_httpd_conf_pkgdist.DocumentRoot=/data/dist
+ralfyang_httpd_conf_pkgdist.ServerName=package.dist.ralfyang.com
+ralfyang_httpd_conf_pkgdist.DocumentRoot=/data/dist
 ldap_server.BindDN="dc=gravity,dc=gs"
-gsshop_authorize_client.LDAPserver=192.168.59.104
+ralfyang_authorize_client.LDAPserver=192.168.59.104
 vipctl.name=DEFAULT
 vipctl.vips=VIPS
 vipctl.onboot=yes
@@ -927,7 +927,7 @@ $ zinst on vipctl
 $ zinst hist 100
 2015.09.01_14:00:36	 ralf.yang      : + Install - user_canopus-0.0.1 -stable
 2015.09.01_14:00:37	 ralf.yang      : + Install - sudo_user_canopus-0.0.1 -stable
-2015.09.01_14:01:13	 ralf.yang      :  * setup  - gsshop_authorize_client.LDAPserver=192.168.59.104  
+2015.09.01_14:01:13	 ralf.yang      :  * setup  - ralfyang_authorize_client.LDAPserver=192.168.59.104  
 2015.09.01_14:01:24	 ralf.yang      : # Daemon restart - ldap_client  
 			 ralf.yang      : #     - Daemon Not working: [ OK ] 
 2015.09.03_11:15:59	 ralf.yang      : # Daemon stop - docker  
@@ -977,19 +977,19 @@ Package has been released to below list - Sort by ""
 ====================================================================================================== 
 Host                           Package                                        Date                           
 ======================================================================================================
-110.52.167.188                 gsshop_deploy_agent-0.0.9.zinst                 [06/Aug/2015:20:12:48]        
+110.52.167.188                 ralfyang_deploy_agent-0.0.9.zinst                 [06/Aug/2015:20:12:48]        
 110.52.167.224                 vipctl-1.0.5.zinst                              [06/Aug/2015:20:13:27]        
-110.52.167.224                 gsshop_deploy_agent-0.0.9.zinst                 [06/Aug/2015:20:13:29]        
+110.52.167.224                 ralfyang_deploy_agent-0.0.9.zinst                 [06/Aug/2015:20:13:29]        
 110.52.167.238                 vipctl-1.0.5.zinst                              [06/Aug/2015:20:14:06]        
-110.52.167.238                 gsshop_deploy_agent-0.0.9.zinst                 [06/Aug/2015:20:14:08]        
+110.52.167.238                 ralfyang_deploy_agent-0.0.9.zinst                 [06/Aug/2015:20:14:08]        
 110.52.167.161                 vipctl-1.0.5.zinst                              [06/Aug/2015:20:14:45]        
-110.52.167.161                 gsshop_deploy_agent-0.0.9.zinst                 [06/Aug/2015:20:14:46]        
+110.52.167.161                 ralfyang_deploy_agent-0.0.9.zinst                 [06/Aug/2015:20:14:46]        
 110.52.167.175                 vipctl-1.0.5.zinst                              [06/Aug/2015:20:15:19]        
-110.52.167.175                 gsshop_deploy_agent-0.0.9.zinst                 [06/Aug/2015:20:15:21]        
+110.52.167.175                 ralfyang_deploy_agent-0.0.9.zinst                 [06/Aug/2015:20:15:21]        
 110.52.167.189                 vipctl-1.0.5.zinst                              [06/Aug/2015:20:15:56]        
-110.52.167.189                 gsshop_deploy_agent-0.0.9.zinst                 [06/Aug/2015:20:15:57]        
+110.52.167.189                 ralfyang_deploy_agent-0.0.9.zinst                 [06/Aug/2015:20:15:57]        
 110.52.167.225                 vipctl-1.0.5.zinst                              [06/Aug/2015:20:16:31]        
-110.52.167.225                 gsshop_deploy_agent-0.0.9.zinst                 [06/Aug/2015:20:16:33]        
+110.52.167.225                 ralfyang_deploy_agent-0.0.9.zinst                 [06/Aug/2015:20:16:33]        
 110.52.167.239                 vipctl-1.0.5.zinst                              [06/Aug/2015:20:17:09]
 110.53.15.171                  vipctl-1.0.5.zinst                              [15/Sep/2015:18:14:48]        
 ====================================================================================================== 
@@ -1018,12 +1018,12 @@ Host                           Package                                         D
 ====================================================================================================== 
 110.52.167.189                 hwconfig-1.3.3.zinst                            [05/Aug/2015:12:20:23]        
 110.52.167.189                 server_default_setting-1.3.0.zinst              [05/Aug/2015:12:20:24]        
-110.52.167.189                 gsshop_account_policy-1.0.7.zinst               [05/Aug/2015:12:20:25]        
-110.52.167.189                 gsshop_authorize_client-1.0.6.zinst             [05/Aug/2015:12:20:27]        
+110.52.167.189                 ralfyang_account_policy-1.0.7.zinst               [05/Aug/2015:12:20:25]        
+110.52.167.189                 ralfyang_authorize_client-1.0.6.zinst             [05/Aug/2015:12:20:27]        
 110.52.167.189                 hosts_file_creator-0.0.2.zinst                  [05/Aug/2015:20:07:09]        
-110.52.167.189                 gsshop_tomcat-7.0.33.zinst                      [06/Aug/2015:14:55:11]        
-110.52.167.189                 gsshop_jennifer_agent-0.0.2.zinst               [06/Aug/2015:14:55:17]        
-110.52.167.189                 gsshop_jennifer_conf-0.0.2.zinst                [06/Aug/2015:14:55:20]        
+110.52.167.189                 ralfyang_tomcat-7.0.33.zinst                      [06/Aug/2015:14:55:11]        
+110.52.167.189                 ralfyang_jennifer_agent-0.0.2.zinst               [06/Aug/2015:14:55:17]        
+110.52.167.189                 ralfyang_jennifer_conf-0.0.2.zinst                [06/Aug/2015:14:55:20]        
 110.52.167.189                 vipctl-1.0.5.zinst                              [06/Aug/2015:20:15:56]        
 ======================================================================================================
 ```
