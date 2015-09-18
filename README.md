@@ -558,7 +558,7 @@ removed directory: `/data/vault/Source/vipctl-1.0.5'
 
 
 ### pkg_gen
-[![asciicast](https://asciinema.org/a/69qmenjn0ag9zsgmtgyzbptjw.png)](https://asciinema.org/a/69qmenjn0ag9zsgmtgyzbptjw)
+[![asciicast](https://asciinema.org/a/9lxngabxyei2ticl44gqkm8tz.png)](https://asciinema.org/a/9lxngabxyei2ticl44gqkm8tz)
 * 위에서 다뤘던 zicf 파일에 대한 이해가 충분 할 경우, Package를 만드는데 어려움이 없을것입니다.
 * 하지만, 좀 더 쉬운 Package 제작을 위해 zicf를 자동으로 생성 해 주는 명령어가 있습니다.
 * `zinst_making_tool` Package 설치 후 사용 할 수 있습니다.
