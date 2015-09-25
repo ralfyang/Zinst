@@ -26,7 +26,7 @@ ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ## ENV LD_LIBRARY_PATH /lib-override
 
 ## Base information
-VERSION=4.2.8
+VERSION=4.2.9
 zinst_group="wheel"
 sudo_base="sudo"
 zinst_log="/dev/null"
@@ -1863,7 +1863,11 @@ ColorDark="30"
 		DaemonC=`echo "${ProcessPkg[$Counter]}"`
 		export LANG=C
 		ServiceDaemonDir=`$sudo_base cat /sbin/service | grep "SERVICEDIR=" | awk -F '=' '{print $2}' | sed -e 's/"//g'`
-		$sudo_base $ServiceDaemonDir/$DaemonC $CommandX &> $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
+			if [[ $CommandX = "run" ]];then
+				$sudo_base $ServiceDaemonDir/$DaemonC $CommandX
+			else
+				$sudo_base $ServiceDaemonDir/$DaemonC $CommandX &> $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
+			fi
 		DaemLog=`$sudo_base cat $ZinstBaseRoot/vault/Source/Daemon_ctrl.log |tail -1`
 		Daemon_S=$DaemLog
 			FailCheck=`echo $DaemLog | grep "FAILED"`
@@ -2050,7 +2054,7 @@ echo "--------------------------------------------------------------------------
 echo "		 set					[Blank for list-up]			  "
 echo "		 [Package]	-set 			[Package.option=value]  "
 echo "------------------------------------------------------------------------------------------------------ "
-echo "		 start/stop/restart			[Daemon_name]	  "
+echo "		 start/stop/restart/run			[Daemon_name]	  "
 echo "		 on/off					[Daemon_name]	  "
 echo "...................................................................................................... "
 echo "		 crontab	[-e] or [-l]					  "
@@ -2141,7 +2145,7 @@ echo "--------------------------------------------------------------------------
 echo " + For System manage "
 echo " "
 echo "  - Daemon control: You can control the daemon from the /etc/init.d/ directory "
-echo "		 start/stop/restart			[Daemon_name]	  "
+echo "		 start/stop/restart/run			[Daemon_name]	  "
 echo "		 on/off					[Daemon_name]	  "
 echo "...................................................................................................... "
 echo " "
@@ -2344,6 +2348,8 @@ GetSPkgArry=( $GetSPkg )
 	start)
 		Daemon_Control $*	;;
 	stop)
+		Daemon_Control $*	;;
+	run)
 		Daemon_Control $*	;;
 	restart)
 		Daemon_Control $*	;;
