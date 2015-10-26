@@ -493,11 +493,12 @@ Parse_Result=$@
             Source=`echo $ZPackages | awk '{for (i=1;i<NF;i=i+1) print $i}'`
             HostNum=`echo $ZHosts | awk '{print NF}'`
 			UserID=`whoami`
-			AuthKey="$ZinstBaseRoot/var/authorized_keys"
+			#AuthKey="$ZinstBaseRoot/var/authorized_keys"
+			AuthKey="~/authorized_keys"
 				if [[ ! -f $AuthKey ]]; then
 				    sudo touch $AuthKey
 				fi
-			PUBKEY=`cat $ZinstBaseRoot/var/authorized_keys 2> /dev/null`
+			PUBKEY=`cat $AuthKey 2> /dev/null`
 				if [[ $PUBKEY = "" ]];then
 				    echo $ROWW
 				    echo " Please insert a public key to $AuthKey !!!"
