@@ -10,9 +10,9 @@ ROWW="============================================================="
 ### Base information
 ### ------ Config Area ----- 11st line here
 #
-ManagerIP="goody80.github.io/Zinst_packages"
-Dist_server="http://goody80.github.io/Zinst_packages"
-ZinstBaseRoot="/data"
+ManagerIP="DISTsERVERIp"
+Dist_server="http://DISTsERVERsET"
+ZinstBaseRoot="RootDirectorY"
 ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 #
@@ -49,8 +49,8 @@ OS_Checker(){
 			OS_name="freeBSD"
 		fi
 }
-OS_Checker
 
+OS_Checker
 	case $OS_name in
 		RHEL )
 			OS_type="" ;;
@@ -494,15 +494,15 @@ Parse_Result=$@
             HostNum=`echo $ZHosts | awk '{print NF}'`
 			UserID=`whoami`
 			#AuthKey="$ZinstBaseRoot/var/authorized_keys"
-			AuthKey="~/authorized_keys"
+			AuthKey="/home/$UserID/authorized_keys"
 				if [[ ! -f $AuthKey ]]; then
 				    sudo touch $AuthKey
 				fi
 			PUBKEY=`cat $AuthKey 2> /dev/null`
 				if [[ $PUBKEY = "" ]];then
-				    echo $ROWW
+				    echo $Barr
 				    echo " Please insert a public key to $AuthKey !!!"
-                	echo $ROWW
+                	echo $Barr
 				    exit 0
 				fi
 				if [[ `(zinst ls sshpass)` = "" ]];then
@@ -2172,7 +2172,8 @@ echo "..........................................................................
 echo " "
 echo "  - File copy to remote: You can send a file(s) to seperated hosts(mcp = Multi CoPier) "
 echo "		 mcp		[local-files]		[Destination DIR]		*Host requires "
-echo " "
+echo "  - ssh-key copy to remote: You can send a ssh-key file to seperated hosts "
+echo "		 keydeploy								*Host requires "
 echo "------------------------------------------------------------------------------------------------------ "
 echo " + For Package "
 echo " "
