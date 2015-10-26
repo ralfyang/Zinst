@@ -520,6 +520,7 @@ removed directory: `/data/vault/Source/vipctl-1.0.5'
 
 ### Zicf 구조
 #### Package 기본 정보
+* `OS`: 해당 Package가 설치 될 OS의 종류를 입력 합니다. rhel, ubuntu, osx, freebsd중 하나를 입력 합니다.
 * `PACKAGENAME`: 해당 Package의 이름이며, zicf파일과 같아야 합니다. vipctl.zicf 일 경우, 해당 `PACKAGENAME`은 vipctl이 됩니다.
 * `VERSION`: 현재 Package의 Version을 나타내며 0.1.2와 같이 점 세개로 Major-Minor를 update를 구분 합니다.
 * `AUTHORIZED`: Package의 제작자 또는 최종 수정자의 email을 입력합니다.
@@ -610,7 +611,7 @@ TOTAL: 0.120000 sec
 * 이때 해당 zicf가 있는 경로에서 실행하며, 디렉토리 구문자는 사용하지 않습니다.(ex. /home/test/aaa.zicf -> cd /home/test;zinst_creatore aaa.zicf)
 
 
-### rpm2zinst
+### rpm2zinst: Redhat계열  or deb2zinst: debian계열
 * 현재 설치가 된 RPM package를 zinst package로 con-version 할 수 있습니다.
 ```
 $ rpm2zinst wget
@@ -649,6 +650,7 @@ wget_custom
  * [ y/n : Default=n ] = 
 
 ```
+* ※ 데비안 계열에서는 deb2zinst로 사용
 
 ## 설치된 패키지 구성 관리하기
 ### sync
