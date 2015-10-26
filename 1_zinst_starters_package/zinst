@@ -49,8 +49,8 @@ OS_Checker(){
 			OS_name="freeBSD"
 		fi
 }
-
 OS_Checker
+
 	case $OS_name in
 		RHEL )
 			OS_type="" ;;
