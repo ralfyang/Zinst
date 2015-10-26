@@ -124,6 +124,7 @@ $ zinst
 		 ssh		[Command]						*Host requires	  
 ...................................................................................................... 
 		 mcp		[local-files]		[Destination DIR]		*Host requires 
+		 keydeploy								*Host requires 
 ------------------------------------------------------------------------------------------------------ 
 		 install				[Package]   
 				[-same]			[Package]	  
@@ -133,7 +134,7 @@ $ zinst
 				[-force]		[Package]	  
 ...................................................................................................... 
 		 list					[Blank for list-up] or [Package]  
-				[-files]		[Package] or [/DIR/File-name]	  
+				[-file]			[Package] or [/DIR/File-name]	  
 				[-zicf]			[Package]	  
 				[-dep]			[Package]	  
 ...................................................................................................... 
@@ -145,7 +146,7 @@ $ zinst
 		 set					[Blank for list-up]			  
 		 [Package]	-set 			[Package.option=value]  
 ------------------------------------------------------------------------------------------------------ 
-		 start/stop/restart			[Daemon_name]	  
+		 start/stop/restart/run			[Daemon_name]	  
 		 on/off					[Daemon_name]	  
 ...................................................................................................... 
 		 crontab	[-e] or [-l]					  
@@ -172,7 +173,7 @@ $ zinst
  -h is target host, -H is targe file of hostlist 
  ex) zinst i sample_a sample_b -stable -set sample_a.key=111 -H ./server_list.txt 
  ex) zinst i sample-1.0.0.zinst -h web01.news.kr[1,3] web[03-12].news[1,3] 
------------------------------------------------------------------------------------------------------- 
+------------------------------------------------------------------------------------------------------
  * Current zinst setup: [ Repo: http://goody80.github.io/Zinst_packages - goody80.github.io/Zinst_packages ], [ ROOT-DIR: /data ]
 ------------------------------------------------------------------------------------------------------ 
 ```
@@ -192,7 +193,8 @@ $ zinst -help
  
   - File copy to remote: You can send a file(s) to seperated hosts(mcp = Multi CoPier) 
 		 mcp		[local-files]		[Destination DIR]		*Host requires 
- 
+  - ssh-key copy to remote: You can send a ssh-key file to seperated hosts 
+		 keydeploy								*Host requires  
 ------------------------------------------------------------------------------------------------------ 
  + For Package 
  
