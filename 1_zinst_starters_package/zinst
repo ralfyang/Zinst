@@ -10,9 +10,9 @@ ROWW="============================================================="
 ### Base information
 ### ------ Config Area ----- 11st line here
 #
-ManagerIP="DISTsERVERIp"
-Dist_server="http://DISTsERVERsET"
-ZinstBaseRoot="RootDirectorY"
+ManagerIP="goody80.github.io/Zinst_packages"
+Dist_server="http://goody80.github.io/Zinst_packages"
+ZinstBaseRoot="/data"
 ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 #
@@ -118,7 +118,7 @@ $sudo_base sed -i "s#@Q@#/#g" /tmp/hosts.tmp
 $sudo_base sh -c "cat /tmp/hosts.tmp > $HostsFile"
 }
 
-FetchedDistServer=`echo $Dist_URL | sed -e "s#http://##g"`
+FetchedDistServer=`echo $Dist_server | sed -e "s#http://##g"`
 GrepDistHost=`grep "$FetchedDistServer" $HostsFile`
 	if [[ $GrepDistHost = "" ]];then
 		$sudo_base sh -c "echo $ManagerIP $FetchedDistServer >> $HostsFile"
@@ -2011,7 +2011,8 @@ SelfConfArry=(`echo "$PackageAll"`)
 				if [[ $check_new_host != "" ]];then
 					SelfConf_Host=${SelfConfArry[$SelfConfCount]}
 					TargetSelfHost=`grep "^Dist_URL=" /usr/bin/zinst`
-					$sudo_base sed -i "s#$TargetSelfHost#Dist_URL=\"http://$check_new_host\"#g" /usr/bin/zinst
+					#$sudo_base sed -i "s#$TargetSelfHost#Dist_URL=\"http://$check_new_host\"#g" /usr/bin/zinst
+					$sudo_base sed -i "s#Dist_server=\"$Dist_server\"#Dist_server=\"http://$check_new_host\"#g" /usr/bin/zinst
 					FetchedDistServer=`echo "$FetchedDistServer" | sed -e 's#/#\\\/#g'`
 					$sudo_base sed -i "/$FetchedDistServer/d" /tmp/hosts_c.tmp
 					$sudo_base sh -c "echo $ManagerIP $check_new_host >> /tmp/hosts_c.tmp"
