@@ -26,7 +26,7 @@ ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ## ENV LD_LIBRARY_PATH /lib-override
 
 ## Base information
-VERSION=5.0.2
+VERSION=5.0.3
 zinst_group="wheel"
 sudo_base="sudo"
 zinst_log="/dev/null"
@@ -494,7 +494,11 @@ Parse_Result=$@
             HostNum=`echo $ZHosts | awk '{print NF}'`
 			UserID=`whoami`
 			#AuthKey="$ZinstBaseRoot/var/authorized_keys"
-			AuthKey="/home/$UserID/authorized_keys"
+				if [[ $UserID = "root" ]];then
+					AuthKey="/root/authorized_keys"
+				else
+					AuthKey="/home/$UserID/authorized_keys"
+				fi
 				if [[ ! -f $AuthKey ]]; then
 				    sudo touch $AuthKey
 				fi
@@ -879,18 +883,19 @@ zinst set | awk 'NR>1{print "Package setting",$1}' >> $Save_Dir/$Naming
 			fi
 	fi
 }
-
 Pkg_Install(){
 	CounterAll=1
-
 	while [[ $CounterAll -le $ProcessPkgNum ]]
 	do
 		Package_list=`echo $ProcessPkg |awk '{print $'$CounterAll'}'`
-		Package_org=`echo "$Package_list" |awk -F ".zinst" '{print $1}'`
-		Package_orgS=`echo "$Package_list" |awk -F "-" '{print $1}'`
+			if [[ `( echo "$Package_list" |grep "[a-z].*--" )` != "" ]];then
+				Package_list_conv=`echo "$Package_list" | sed -e 's/[a-z].*--//g'`
+				cp -vf $Package_list ./$Package_list_conv
+				Package_list=$Package_list_conv
+			fi
 
 		## Check the Package or Distribution server
-		Pkg_result=`cd $PWD;ls |grep $Package_list`
+		Pkg_result=`cd $PWD;ls |grep "^$Package_list"`
 			if [[ $Pkg_result = "" ]];
 			then
 				DIST=$Dist_URL
@@ -898,8 +903,8 @@ Pkg_Install(){
 				DIST=`pwd`
 			fi
 		############################## Install start without target host ##################################################
-		ZinstName=`echo $Package_list | awk -F ".zinst" '{print $1}'`;
-		ZinstOrgName=`echo $Package_list | awk -F "-" '{print $1}'`;
+		ZinstName=`echo "$Package_list" |awk -F ".zinst" '{print $1}'`
+		ZinstOrgName=`echo "$Package_list" |awk -F "-" '{print $1}'`
 			if [[ $Pkg_result != $Package_list ]]
 			then
 				###  check package by curl ###
@@ -929,9 +934,9 @@ Pkg_Install(){
 				exit 0;
 			fi
 		## Check a same version Package
-		Existed_pkg=`ls -l $ZinstDIRs 2> $zinst_log |grep ^l | grep "/$Package_orgS-" | awk  '{print $11}' | awk -F '/' '{print $NF}'`
+		Existed_pkg=`ls -l $ZinstDIRs 2> $zinst_log |grep ^l | grep "/$ZinstOrgName-" | awk  '{print $11}' | awk -F '/' '{print $NF}'`
 		Existed_pkg_version=`echo "$Existed_pkg" | awk -F'-' '{print $2}'`
-		Origin_pkg_version=`echo "$Package_org" | awk -F'-' '{print $2}'`
+		Origin_pkg_version=`echo "$ZinstName" | awk -F'-' '{print $2}'`
 		echo ""
 		echo ----- $Package_list -----
 			if [[ $(version_redefine $Origin_pkg_version) = $(version_redefine $Existed_pkg_version) ]];then 
