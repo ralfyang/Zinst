@@ -26,7 +26,7 @@ ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ## ENV LD_LIBRARY_PATH /lib-override
 
 ## Base information
-VERSION=5.0.3
+VERSION=5.0.6
 zinst_group="wheel"
 sudo_base="sudo"
 zinst_log="/dev/null"
@@ -53,12 +53,20 @@ OS_Checker(){
 OS_Checker
 	case $OS_name in
 		RHEL )
+			CronDir=/var/spool/cron
+			Crond=crond
 			OS_type="" ;;
 		Ubuntu )
+			CronDir=/var/spool/cron/crontabs
+			Crond=cron
 			OS_type="/ubuntu" ;;
 		OSX )
+			CronDir=/var/spool/cron
+			Crond=crond
 			OS_type="/osx" ;;
 		freeBSD )
+			CronDir=/var/spool/cron
+			Crond=crond
 			OS_type="/freebsd" ;;
 	esac
 
@@ -1203,15 +1211,15 @@ Pkg_Install(){
 					while [ $Counter -le $CrontabRow ]
 					do
 						$sudo_base sh -c "echo \"##$Packagename-$Version Cron Scheduler\"  > $Packagename.cron"
-						#$sudo_base sh -c "cat $ZICF |grep \"^CRON\" | awk 'NR==$Counter {print $5,$6,$7,$8,$9,\"$ZinstBaseRoot/\"$10,\" #$Packagename\"}' >> $Packagename.cron"
-						CrontFetch=`$sudo_base cat $ZICF |grep "^CRON" | awk 'NR=='$Counter' {print $5,$6,$7,$8,$9,"'$ZinstBaseRoot'/"$10," #'$Packagename'"}'`
+						CrontFetch=`$sudo_base cat $ZICF |grep "^CRON" | awk 'NR=='$Counter' {print $5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15" #'$Packagename'"}' | sed -e 's# [a-zA-Z]*/# /data/&#g' -e 's# /data//# /#g'  -e 's#/data/ #/data/#g' `
+
 						$sudo_base sh -c "echo \"$CrontFetch\" >> $Packagename.cron"
 						CronUser=`$sudo_base cat $ZICF |grep ^CRON |  awk 'NR=='$Counter'{print $3}'`
 							if [[ $CronUser = "-" ]];
 							then 
 								CronUser=$Owner
 							fi
-						TargetCron=/var/spool/cron/$CronUser
+						TargetCron=$CronDir/$CronUser
 						echo "#### $TargetCron"  >> .file.list
 						Result=`$sudo_base cat $TargetCron  2> $zinst_log |grep $Packagename`
 							if [[ $Counter = "1" ]];
@@ -1229,6 +1237,7 @@ Pkg_Install(){
 							else
 								$sudo_base sh -c "cat $Packagename.cron >> $TargetCron"
 							fi
+					$sudo_base chmod 600 $TargetCron
 					let Counter=Counter+1
 					done;
 			#rm $Packagename.cron
@@ -1300,7 +1309,7 @@ CheckSetNum=${#CheckSetArry[@]}
 				SetTarget=`echo "$SetOptionValueE" | awk -F "=" '{print $1}'`	
 				ZinstSet=`echo "$SetOptionValueE" | sed -e "s#$SetTarget=##g" 2> $zinst_log`
 				OptSwt=`echo $SetTarget | awk -F '.' '{print $1}'`
-				Option=`echo $SetTarget | sed -e "s#$OptSwt.##g"`
+				Option=`echo $SetTarget | sed -e "s#$OptSwt\.##g"`
 				PackageS=`echo $SetTarget | awk -F '.' '{print $1}'`
 				SetZICF="*$PackageS.zicf"
 				## Check a set list in zinst
@@ -1960,7 +1969,7 @@ ColorDark="30"
 
 		## Checking the daemon
 		sleep 1
-		DaemonPSChk=`ps aux |grep $DaemonC | egrep -v " grep" | egrep -v "zinst " |egrep -v " vi"`
+		DaemonPSChk=`ps aux |grep "$DaemonC " | egrep -v " grep" | egrep -v "zinst " |egrep -v " vi"`
 			if [[ $DaemonPSChk != "" ]];then
 				TextColor=$ColorGreen
 				Daemon_Status="Working"
@@ -1984,7 +1993,7 @@ ColorDark="30"
 			fi
 		echo -e "\t\t\t $WhoStamps : #     - $Command_Result " >> $History_LOG
 		let Counter=Counter+1
- #       $sudo_base rm -f $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
+        $sudo_base rm -f $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
 	done
 }
 
@@ -2454,8 +2463,6 @@ GetSPkgArry=( $GetSPkg )
 		Pkg_Restore $*	;;
 	find)
 		Pkg_Find $*	;;
-#	keydep*)
-#		Deploy_key $* ;;
 	track)
 		Pkg_Track $* ;;
 	-v*)
