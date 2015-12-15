@@ -1,3 +1,5 @@
+[![Join the chat at https://gitter.im/goody80/Ralf_Dev](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/goody80/Ralf_Dev?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![RecordIt](http://g.recordit.co/DNo5wZmAmp.gif)](http://recordit.co/DNo5wZmAmp)
 If you want to show detail video please click the GIF image :)
 
@@ -19,7 +21,6 @@ If you want to show detail video please click the GIF image :)
 # Zinst 메뉴얼
 ## 개요
 
-[![Join the chat at https://gitter.im/goody80/Ralf_Dev](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/goody80/Ralf_Dev?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![RecordIt](http://g.recordit.co/5oNjDo9r60.gif)](http://recordit.co/5oNjDo9r60)
 
 * zinst는 분산된 서버군의 효율적인 관리와 제어를 위해 개발 되었으며, 이를 위해 별도의 agent의 설치를 필요로 하지 않습니다. 
