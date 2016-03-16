@@ -4,7 +4,7 @@
 If you want to show detail video please click the GIF image :)
 
 * You just can type this command
- * curl -sL http://bit.ly/online-install | sh
+ * curl -sL http://bit.ly/on-install | sh
 
 * Requires: sudo, BASH, SSH
 * Feel free to contact me if you have any Question :) (한국어 지원)
