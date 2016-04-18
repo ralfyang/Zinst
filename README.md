@@ -17,7 +17,7 @@ If you want to show detail video please click the GIF image :)
  * [Official Home](http://ralfyang.com)
  * [*Link: zinst packages repository in github*](https://github.com/goody80/Zinst_packages)
 
-![http://ralfyang.com](http://cfile1.uf.tistory.com/image/2565453E55E52DFF1DACD6)
+![http://ralfyang.com](https://avatars2.githubusercontent.com/u/4043594?v=3&s=460)
 # Zinst 메뉴얼
 ## 개요
 
