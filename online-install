@@ -13,7 +13,7 @@ elif [ -d "/usr/bin" ]; then
 		fi
 	fi
 fi
-$sudo sh -c "curl -sL http://j.mp/zinst_bin > /usr/bin/zinst; chmod 755 /usr/bin/zinst"
+$sudo sh -c "curl -sL http://j.mp/zinst_BIN > /usr/bin/zinst; chmod 755 /usr/bin/zinst"
 
 if [ -e $sudo ];then
 	yum install sudo -y
