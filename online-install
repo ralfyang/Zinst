@@ -1,5 +1,19 @@
 #!/bin/bash
 sudo=""
+installer="yum"
+
+
+	if cat /etc/*-release 2> /dev/null | head -1 |grep Ubuntu | awk -F '=' '{print $2}' -q "Ubuntu"; then
+			installer="apt-get"
+	elif cat /etc/*-release 2> /dev/null | head -1 |grep Ubuntu | awk -F '=' '{print $2}' -q "LinuxMint"; then
+			installer="apt-get"
+	elif uname -q "Darwin"; then
+			installer="brew"
+	else
+			installer="yum"
+	fi
+
+
 if [ -d "$HOME/bin" ]; then
 	if echo ":$PATH:" | grep -q ":~/bin:" || echo ":$PATH:" | grep -q ":$HOME/bin:"; then
 		target="$HOME/bin/$bin_name"
@@ -16,7 +30,7 @@ fi
 $sudo sh -c "curl -sL http://j.mp/zinst_BIN > /usr/bin/zinst; chmod 755 /usr/bin/zinst"
 
 if [ -e $sudo ];then
-	yum install sudo -y
+	$installer install sudo -y
 fi
 echo "[ --------- Install has been done !! enjoy! :) -------------- ]"
 zinst i server_default_setting-1.3.0.zinst
