@@ -3,11 +3,14 @@ sudo=""
 installer="yum"
 
 
-	if cat /etc/*-release 2> /dev/null | head -1 |grep Ubuntu | awk -F '=' '{print $2}' -q "Ubuntu"; then
+Ubuntu_check=`cat /etc/*-release 2> /dev/null | head -1 |grep Ubuntu | awk -F '=' '{print $2}'`
+Uname=`uname`
+
+	if [ "$Ubuntu_check" == "Ubuntu" ]; then
 			installer="apt-get"
-	elif cat /etc/*-release 2> /dev/null | head -1 |grep Ubuntu | awk -F '=' '{print $2}' -q "LinuxMint"; then
+	elif [ "$Ubuntu_check" == "LinuxMint" ] ; then
 			installer="apt-get"
-	elif uname -q "Darwin"; then
+	elif [ "$Uname" == "Darwin" ]; then
 			installer="brew"
 	else
 			installer="yum"
