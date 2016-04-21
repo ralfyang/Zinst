@@ -6,34 +6,36 @@ installer="yum"
 Ubuntu_check=`cat /etc/*-release 2> /dev/null | head -1 |grep Ubuntu | awk -F '=' '{print $2}'`
 Uname=`uname`
 
-	if [ "$Ubuntu_check" == "Ubuntu" ]; then
+	if [[ "$Ubuntu_check" == "Ubuntu" ]]; then
 			installer="apt-get"
-	elif [ "$Ubuntu_check" == "LinuxMint" ] ; then
+	elif [[ "$Ubuntu_check" == "LinuxMint" ]] ; then
 			installer="apt-get"
-	elif [ "$Uname" == "Darwin" ]; then
+	elif [[ "$Uname" == "Darwin" ]]; then
 			installer="brew"
 	else
 			installer="yum"
 	fi
 
 
-if [ -d "$HOME/bin" ]; then
-	if echo ":$PATH:" | grep -q ":~/bin:" || echo ":$PATH:" | grep -q ":$HOME/bin:"; then
-		target="$HOME/bin/$bin_name"
-	fi
-elif [ -d "/usr/bin" ]; then
-	if echo ":$PATH:" | grep -q ":/usr/bin:"; then
-		target="/usr/bin/$bin_name"
-		if [ ! -w /usr/bin ]; then
-			sudo=sudo
-			echo "Notice!: You may be asked for administrator password to save the file in /usr/bin directory"
+	if [[ -d "$HOME/bin" ]]; then
+		if [[ `(echo ":$PATH:" | grep -q ":~/bin:" || echo ":$PATH:" | grep -q ":$HOME/bin:")` ]] ; then
+			target="$HOME/bin/$bin_name"
+		fi
+	elif [[ -d "/usr/bin" ]]; then
+		if [[ `(echo ":$PATH:" | grep -q ":/usr/bin:")` ]]; then
+			target="/usr/bin/$bin_name"
+			if [[ ! -d /usr/bin ]]; then
+				sudo=sudo
+				echo "Notice!: You may be asked for administrator password to save the file in /usr/bin directory"
+			fi
 		fi
 	fi
-fi
-$sudo sh -c "curl -sL http://j.mp/zinst_BIN > /usr/bin/zinst; chmod 755 /usr/bin/zinst"
 
-if [ -e $sudo ];then
-	$installer install sudo -y
-fi
+$sudo sh -c "curl -sL http://j.mp/zinst_ > /usr/bin/zinst; chmod 755 /usr/bin/zinst"
+
+	if [[ -e $sudo ]];then
+		$installer install sudo -y
+	fi
+
 echo "[ --------- Install has been done !! enjoy! :) -------------- ]"
 zinst i server_default_setting-1.3.0.zinst
