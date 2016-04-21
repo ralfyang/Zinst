@@ -26,7 +26,7 @@ ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ## ENV LD_LIBRARY_PATH /lib-override
 
 ## Base information
-VERSION=5.1.2
+VERSION=5.1.3
 zinst_group="wheel"
 sudo_base="sudo"
 zinst_log="/dev/null"
@@ -1944,8 +1944,7 @@ ColorDark="30"
 				#$sudo_base $ServiceDaemonDir/$DaemonC $CommandX
 				$sudo_base service $DaemonC $CommandX
 			else
-				#$sudo_base $ServiceDaemonDir/$DaemonC $CommandX &> $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
-				$sudo_base service $DaemonC $CommandX  &> $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
+				$sudo_base service $DaemonC $CommandX | tee $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
 			fi
 		DaemLog=`$sudo_base cat $ZinstBaseRoot/vault/Source/Daemon_ctrl.log |tail -1`
 		Daemon_S=$DaemLog
@@ -1962,7 +1961,7 @@ ColorDark="30"
 				:
 			fi
 			DaemLog=$Daemon_S
-		$sudo_base cat $ZinstBaseRoot/vault/Source/Daemon_ctrl.log 2> /dev/null
+		## Replaced by tee              $sudo_base cat $ZinstBaseRoot/vault/Source/Daemon_ctrl.log 2> /dev/null
 
 		## Checking the daemon
 		sleep 1
