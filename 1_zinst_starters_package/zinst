@@ -26,7 +26,7 @@ ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ## ENV LD_LIBRARY_PATH /lib-override
 
 ## Base information
-VERSION=5.1.3
+VERSION=5.1.5
 zinst_group="wheel"
 sudo_base="sudo"
 zinst_log="/dev/null"
@@ -271,7 +271,7 @@ MidPackageArry=${PackageArry[@]}
 	let Counter=Counter+1
 	done
 
-	HostOptionCheck=`echo "${HostArry[@]}" |grep "\-set\|\-same\|\-downgrade\|\-stable"`
+	HostOptionCheck=`echo "${HostArry[@]}" |grep "\-set\|\-same\|\-downgrade\|\-stable|\-oldset"`
 	HostArryNum=${#HostArry[@]}
 	if [[ $HostOptionCheck != "" ]]
 	then
@@ -363,7 +363,10 @@ History_LOG="$ZinstBaseRoot/vault/Source/.zinst_history_log"
 ### Alias for existed fuction
 ProcessPkg=$ZPackages
 ProcessPkgNum=${#PackageArry[@]}
-PureOption=`echo $ZOptions | sed -e 's/-stable //g'`
+
+#zinst i vipctl -stable  -same -oldset
+PureOption=`echo $ZOptions | sed -e 's/  / /g' -e 's/-stable//g' -e 's/-oldset//g' -e 's/ //g'`
+Old_set_checker=`echo $ZOptions | sed -e 's/  / /g' -e 's/-stable//g' -e 's/-same//g' -e 's/ //g'`
 Allcommand="$CommandX $ZPackages $ZOptions $Zset"
 
 ############################  zinst parsing engine end ##################################
@@ -911,6 +914,7 @@ Pkg_Install(){
 		############################## Install start without target host ##################################################
 		ZinstName=`echo "$Package_list" |awk -F ".zinst" '{print $1}'`
 		ZinstOrgName=`echo "$Package_list" |awk -F "-" '{print $1}'`
+
 			if [[ $Pkg_result != $Package_list ]]
 			then
 				###  check package by curl ###
@@ -969,6 +973,12 @@ Pkg_Install(){
 				fi
 			fi
  
+			#########  -oldset option check - when the package update -oldset option can apply old setup to new package ################
+			if [[ $Old_set_checker = "-oldset" ]];	then
+				oldset=`zinst set |grep "$ZinstOrgName\." | sed -e 's/^/ -set /g' | xargs `
+				Zset="$Zset $oldset"
+			fi
+
 		## Unpacking
 		mkdir -p $ZinstBaseRoot/vault/Source/$ZinstName
 		mkdir -p $ZinstDIRs
@@ -1268,10 +1278,9 @@ Pkg_Install(){
 	done
 
 	############################## Setting config  #################################
-	if [[ $Zset != "" ]]
-	then
+	if [[ $Zset != "" ]];then
 		SetOptionValue="$Zset"
-		Pkg_Set	$*
+		Pkg_Set	$* 
 	fi
 
 	if [[ $Package_list != "" ]]; then
@@ -1944,7 +1953,9 @@ ColorDark="30"
 				#$sudo_base $ServiceDaemonDir/$DaemonC $CommandX
 				$sudo_base service $DaemonC $CommandX
 			else
-				$sudo_base service $DaemonC $CommandX | tee $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
+				#$sudo_base service $DaemonC $CommandX | tee $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
+				$sudo_base service $DaemonC $CommandX &> $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
+				cat $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
 			fi
 		DaemLog=`$sudo_base cat $ZinstBaseRoot/vault/Source/Daemon_ctrl.log |tail -1`
 		Daemon_S=$DaemLog
@@ -1965,7 +1976,8 @@ ColorDark="30"
 
 		## Checking the daemon
 		sleep 1
-		DaemonPSChk=`ps aux |grep "$DaemonC " | egrep -v " grep" | egrep -v "zinst " |egrep -v " vi"`
+		Status_D=`echo $DaemonC | sed -e 's/d$//g'`
+		DaemonPSChk=`ps aux |grep "$Status_D" | egrep -v " grep" | egrep -v "zinst " |egrep -v " vi"`
 			if [[ $DaemonPSChk != "" ]];then
 				TextColor=$ColorGreen
 				Daemon_Status="Working"
@@ -2122,6 +2134,7 @@ echo "		 install				[Package]   "
 echo "				[-same]			[Package]	  "
 echo "				[-downgrade]		[Package]	  "
 echo "				[-stable]		[Package without version]	  "
+echo "				[-oldset]		[Package]	  "
 echo "		 remove					[Package]	  "
 echo "				[-force]		[Package]	  "
 echo "...................................................................................................... "
@@ -2197,6 +2210,7 @@ echo "		 install				[Package]   "
 echo "				[-same]			[Package]	  "
 echo "				[-downgrade]		[Package]	  "
 echo "				[-stable]		[Package without version for latest package]	  "
+echo "				[-oldset]		[Package] for install the new package with existed set in the server "
 echo "		 remove					[Package]	  "
 echo "				[-force]		[Package]	  "
 echo "...................................................................................................... "
