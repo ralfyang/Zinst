@@ -26,7 +26,7 @@ ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ## ENV LD_LIBRARY_PATH /lib-override
 
 ## Base information
-VERSION=5.1.5
+VERSION=5.1.6
 zinst_group="wheel"
 sudo_base="sudo"
 zinst_log="/dev/null"
@@ -199,6 +199,51 @@ Pass_Checker() {
 			fi
 	fi
 }
+
+Daemon_list(){
+package_name=$1
+
+echo ""
+
+	if [[ $package_name = "" ]];then
+		pkg_list=(`zinst  ls | fgrep -v "user_" | awk '{print $4}' | xargs`)
+		Print_list="./result.list"
+    
+		echo "$Barr" > $Print_list
+		echo " [COMMAND]: \"start/stop/restart/run\" or \"on|off\" " >> $Print_list
+		echo "$BARR" >> $Print_list
+			Count=0
+			while [ $Count -lt ${#pkg_list[@]} ];do
+				daemon_check=`zinst ls ${pkg_list[$Count]} -file |grep "/etc/init.d/" | awk -F "/" '{print $NF}'`
+				if [[ $daemon_check != "" ]];then
+					echo ""  >> $Print_list
+					echo "+ ${pkg_list[$Count]}:" >> $Print_list
+					echo " zinst [COMMAND] $daemon_check" >> $Print_list
+				fi
+			let Count=$Count+1
+			done
+		echo "$Barr" >> $Print_list
+		cat $Print_list
+	else 
+		echo "$Barr" 
+			daemon_check=`zinst ls $package_name -file |grep "/etc/init.d/" |tail -1 | awk -F "/" '{print $NF}'`
+			if [[ $daemon_check != "" ]];then
+				echo "" 
+				echo "$Barr"
+				echo " [COMMAND]: \"start/stop/restart/run\" or \"on|off\" " 
+				echo "$BARR"
+				echo "+ $package_name:"
+				echo " zinst [COMMAND] $daemon_check"
+			else
+				echo " $package_name package is not exist in this server !!!"
+			fi
+		echo "$Barr"
+	fi
+
+exit 0
+
+}
+
 
 ### Parsing for Host list
 HostCheck=`echo "$PackageAll" |grep " \-h \| \-H "`
@@ -1557,7 +1602,7 @@ CurrentCheck=`echo $ZPackages |grep "^./"`
 		ZinstOrgName=`echo $ZPackages| awk -F "-" '{print $1}'`
 		cd $ZinstDIRs/$ZinstOrgName 2> $zinst_log
 		$sudo_base cat $ZinstDIRs/$ZinstOrgName/.file.list 2> $zinst_log | grep "^cp" | awk '{print $3}'
-		$sudo_base cat $ZinstDIRs/$ZinstOrgName/.file.list 2> $zinst_log | grep "^ln" | awk '{print $5,"<- " $4}'
+		$sudo_base cat $ZinstDIRs/$ZinstOrgName/.file.list 2> $zinst_log | grep " ln" | awk '{print $5,"<- " $4}'
 	fi
 	elif [[ $ZOptions = "-zicf" ]]
 	then
@@ -2156,6 +2201,7 @@ echo "		 on/off					[Daemon_name]	  "
 echo "...................................................................................................... "
 echo "		 crontab	[-e] or [-l]					  "
 echo "------------------------------------------------------------------------------------------------------ "
+echo "		 daemon		[Blank for list-up] "
 echo "		 find		[Blank for list-up] or [Package]	 "
 echo "		 getset		[Package with version exactly]			 "
 echo "------------------------------------------------------------------------------------------------------ "
@@ -2252,6 +2298,11 @@ echo "  - Crontab manage: You can touch the cron schduler by zinst "
 echo "		 crontab	[-e]						  "
 echo "				[-l] "
 echo " "
+echo "------------------------------------------------------------------------------------------------------ "
+echo " + For find the available daemon from the package"
+echo " "
+echo "  - Package daemon "
+echo "		 daemon		[Blank for list-up]			 "
 echo "------------------------------------------------------------------------------------------------------ "
 echo " + For install available package find "
 echo " "
@@ -2482,6 +2533,8 @@ sudo mkdir -p $CurrPkgDiR
 		Pkg_Find $*	;;
 	track)
 		Pkg_Track $* ;;
+	daemon*)
+		Daemon_list	$2;;
 	-v*)
 		Zinst_Version 	;;
 	*help)
