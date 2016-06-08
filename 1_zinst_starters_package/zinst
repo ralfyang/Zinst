@@ -10,9 +10,9 @@ ROWW="============================================================="
 ### Base information
 ### ------ Config Area ----- 11st line here
 #
-ManagerIP="goody80.github.io/Zinst_packages"
-Dist_server="http://goody80.github.io/Zinst_packages"
-ZinstBaseRoot="/data"
+ManagerIP="DISTsERVERIp"
+Dist_server="http://DISTsERVERsET"
+ZinstBaseRoot="RootDirectorY"
 ZinstDIRs="$ZinstBaseRoot/zinst"
 ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 #
@@ -244,7 +244,7 @@ echo " Scaning..."
 				echo "+ $package_name:"
 				echo " zinst [COMMAND] $daemon_check"
 			else
-				echo " $package_name package is not exist in this server !!!"
+				echo " $package_name package has not any daemon for run !!!"
 			fi
 		echo "$Barr"
 	fi
@@ -2112,7 +2112,7 @@ SelfConfArry=(`echo "$PackageAll"`)
 		
 		## Add History
 		Command_p="@ Self-Conf"
-		echo -e "`date +%Y.%m.%d_%T`\t $WhoStamps : $Command_p -> ${Print_Hi[@]}  " >> $History_LOG
+		echo -e "`date +%Y.%m.%d_%T`\t $WhoStamps : $Command_p -> $PrintHist " >> $History_LOG
 	else
 		echo " ================================================================"
 		echo " You can change the configuration on zinst for IP,Host & RootDIR." 
