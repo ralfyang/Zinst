@@ -1,0 +1,22 @@
+===========================================================================
+ [COMMAND]: "start/stop/restart/run" or "on|off" 
+###########################################################################
+
++ gs_opsview_agent-0.0.4:
+ zinst [COMMAND] opsview-agent
+
++ gsshop_authorize_client-1.0.6:
+ zinst [COMMAND] ldap_client
+
++ gsshop_httpd_server-2.4.12:
+ zinst [COMMAND] httpd
+
++ opsview_agent-0.1.5:
+ zinst [COMMAND] opsview-agent
+
++ proxyctl-0.0.2:
+ zinst [COMMAND] proxyctl
+
++ vipctl-1.0.6:
+ zinst [COMMAND] vipctl
+===========================================================================

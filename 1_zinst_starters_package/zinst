@@ -203,7 +203,8 @@ Pass_Checker() {
 Daemon_list(){
 package_name=$1
 
-echo ""
+pstr="[==================================================================]"
+echo " Scaning..."
 
 	if [[ $package_name = "" ]];then
 		pkg_list=(`zinst  ls | fgrep -v "user_" | awk '{print $4}' | xargs`)
@@ -221,7 +222,15 @@ echo ""
 					echo " zinst [COMMAND] $daemon_check" >> $Print_list
 				fi
 			let Count=$Count+1
+
+			## Part of Progress bar
+			pd=$(( $Count * 68 / ${#pkg_list[@]} ))
+			printf "\r%3d.%1d%% %.${pd}s" $(( $Count * 100 / ${#pkg_list[@]} )) $(( ($Count * 1000 / ${#pkg_list[@]}) % 10 )) $pstr
+
 			done
+		## Line bracker for Progress bar
+		echo ""
+		echo ""
 		echo "$Barr" >> $Print_list
 		cat $Print_list
 	else 
