@@ -26,7 +26,7 @@ ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ## ENV LD_LIBRARY_PATH /lib-override
 
 ## Base information
-VERSION=5.1.7
+VERSION=5.1.8
 zinst_group="wheel"
 sudo_base="sudo"
 zinst_log="/dev/null"
@@ -210,9 +210,9 @@ echo " Scaning..."
 		pkg_list=(`zinst  ls | fgrep -v "user_" | awk '{print $4}' | xargs`)
 		Print_list="./result.list"
     
-		echo "$Barr" > $Print_list
+		echo "$BARR" > $Print_list
 		echo " [COMMAND]: \"start/stop/restart/run\" or \"on|off\" " >> $Print_list
-		echo "$BARR" >> $Print_list
+		echo "$Barr" >> $Print_list
 			Count=0
 			while [ $Count -lt ${#pkg_list[@]} ];do
 				daemon_check=`zinst ls ${pkg_list[$Count]} -file |grep "/etc/init.d/" | awk -F "/" '{print $NF}'`
@@ -224,14 +224,17 @@ echo " Scaning..."
 			let Count=$Count+1
 
 			## Part of Progress bar
-			pd=$(( $Count * 68 / ${#pkg_list[@]} ))
-			printf "\r%3d.%1d%% %.${pd}s" $(( $Count * 100 / ${#pkg_list[@]} )) $(( ($Count * 1000 / ${#pkg_list[@]}) % 10 )) $pstr
-
+				pd=$(( $Count * 69 / ${#pkg_list[@]} ))
+				Pkg_picklist="${pkg_list[$Count]}"
+					if [[ $Pkg_picklist = "" ]];then
+						Pkg_picklist=" - Package Scan has been completed -"
+					fi
+				printf "\r%-2s %-40s %3s %3d.%1d%% %.${pd}s" '|' "$Pkg_picklist" '|' $(( $Count * 100 / ${#pkg_list[@]} )) $(( ($Count * 1000 / ${#pkg_list[@]}) % 10 )) $pstr
 			done
 		## Line bracker for Progress bar
 		echo ""
 		echo ""
-		echo "$Barr" >> $Print_list
+		echo "$BARR" >> $Print_list
 		cat $Print_list
 	else 
 		echo "$Barr" 
