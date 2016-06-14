@@ -26,7 +26,7 @@ ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ## ENV LD_LIBRARY_PATH /lib-override
 
 ## Base information
-VERSION=5.1.8
+VERSION=5.1.9
 zinst_group="wheel"
 sudo_base="sudo"
 zinst_log="/dev/null"
@@ -208,7 +208,7 @@ echo " Scaning..."
 
 	if [[ $package_name = "" ]];then
 		pkg_list=(`zinst  ls | fgrep -v "user_" | awk '{print $4}' | xargs`)
-		Print_list="./result.list"
+		Print_list="/tmp/result.list"
     
 		echo "$BARR" > $Print_list
 		echo " [COMMAND]: \"start/stop/restart/run\" or \"on|off\" " >> $Print_list
@@ -253,7 +253,7 @@ echo " Scaning..."
 	fi
 
 exit 0
-
+rm -f $Print_list
 }
 
 
@@ -1668,6 +1668,14 @@ CurrentCheck=`echo $ZPackages |grep "^./"`
 Pkg_Find(){
 
 Repo_chk=`$sudo_base curl -e --url $Dist_URL/ 2> $zinst_log | grep " zinst"`
+Sort_version='--version-sort'
+echo ""| sort $Sort_version 2> /tmp/sort_check.out
+
+	if [[ `(grep "unrecognized" /tmp/sort_check.out )` != "" ]];then
+		Sort_version=""
+	fi
+rm -f /tmp/sort_check.out
+
 	if [[ $ZOptions = "-local" ]]
 	then
 		    if [[ $ZPackages = "" ]]
@@ -1680,23 +1688,19 @@ Repo_chk=`$sudo_base curl -e --url $Dist_URL/ 2> $zinst_log | grep " zinst"`
 			if [[ $Repo_chk != "" ]];then	
 				if [[ $ZPackages = "" ]];
 				then
-					$sudo_base curl -e --url $Dist_URL/?`date +%s` 2> $zinst_log |grep zinst | sed 's/^.*<a href="//g' |awk -F '\"' '{print $1}' | egrep -v ^zinst$ | sort --version-sort
+					$sudo_base curl -e --url $Dist_URL/?`date +%s` 2> $zinst_log |grep zinst | sed 's/^.*<a href="//g' |awk -F '\"' '{print $1}' | egrep -v ^zinst$ |sort $Sort_version
 				else
-					$sudo_base curl -e --url $Dist_URL/?`date +%s` 2> $zinst_log |grep zinst | sed 's/^.*<a href="//g' |awk -F '\"' '{print $1}' | egrep -v ^zinst$ | grep $ZPackages | sort --version-sort
+					$sudo_base curl -e --url $Dist_URL/?`date +%s` 2> $zinst_log |grep zinst | sed 's/^.*<a href="//g' |awk -F '\"' '{print $1}' | egrep -v ^zinst$ | grep $ZPackages |sort $Sort_version
 				fi
 			else
 				if [[ $ZPackages = "" ]];
 				then
-					$sudo_base curl -e --url $Dist_URL/pkglist 2> $zinst_log |grep zinst | egrep -v ^zinst$ | sort --version-sort
+					$sudo_base curl -e --url $Dist_URL/pkglist 2> $zinst_log |grep zinst | egrep -v ^zinst$ |sort $Sort_version
 				else
-					$sudo_base curl -e --url $Dist_URL/pkglist 2> $zinst_log |grep zinst | egrep -v ^zinst$ | grep $ZPackages | sort --version-sort
+					$sudo_base curl -e --url $Dist_URL/pkglist 2> $zinst_log |grep zinst | egrep -v ^zinst$ | grep $ZPackages |sort $Sort_version
 				fi
 			fi
 	fi
-
-	
-    
-
 
 }
 
