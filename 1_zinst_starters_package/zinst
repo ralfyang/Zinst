@@ -26,7 +26,7 @@ ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ## ENV LD_LIBRARY_PATH /lib-override
 
 ## Base information
-VERSION=5.2.0
+VERSION=5.2.1
 zinst_group="wheel"
 sudo_base="sudo"
 zinst_log="/dev/null"
