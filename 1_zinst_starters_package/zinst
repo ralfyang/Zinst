@@ -26,7 +26,7 @@ ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ## ENV LD_LIBRARY_PATH /lib-override
 
 ## Base information
-VERSION=5.2.1
+VERSION=5.2.3
 zinst_group="wheel"
 sudo_base="sudo"
 zinst_log="/dev/null"
@@ -969,7 +969,7 @@ Pkg_Install(){
 				DIST=`pwd`
 			fi
 		############################## Install start without target host ##################################################
-		ZinstName=`echo "$Package_list" |awk -F ".zinst" '{print $1}'`
+		ZinstName=`echo "$Package_list" |awk -F "[.]zinst" '{print $1}'`
 		ZinstOrgName=`echo "$Package_list" |awk -F "-" '{print $1}'`
 
 			if [[ $Pkg_result != $Package_list ]]
@@ -1237,7 +1237,7 @@ Pkg_Install(){
 		### Config file set
 		#### [Zinst Set parser]
 		#$sudo_base cat $ZICF |grep '^ZINST set' |grep set | awk '{print "zinst set","'$Packagename'."$3"="$4}' >> .file.list
-		$sudo_base cat $ZICF |grep '^ZINST set' | awk '{print "sed -i '/$Packagename.'"$3"'/'d '$ZinstBaseRoot/vault/zinst/zinst_set.list'"}' >> .file.list
+		$sudo_base cat $ZICF |grep '^ZINST set' | awk '{print "sed -i '/^$Packagename.'"$3"'/'d '$ZinstBaseRoot/vault/zinst/zinst_set.list'"}' >> .file.list
 		$sudo_base cat $ZICF |grep '^ZINST set' | awk '{print "echo \"'"$Packagename."'"$3"="$4"\" >> '$ZinstBaseRoot'/vault/zinst/zinst_set.list"}' >> .file.list
 
 		### Quotation mark Exception
@@ -1516,7 +1516,7 @@ ProcessPkg=($ZPackages)
 									exit 0;
 								fi
 							fi
-						$sudo_base sed -i '/'$ZinstOrgName'/d' $ZinstBaseRoot/vault/zinst/.dependency.list
+						$sudo_base sed -i "/ $ZinstOrgName /d" $ZinstBaseRoot/vault/zinst/.dependency.list
 							if [ -f $ZinstDIRs/$ZinstOrgName/uninstall.sh ]; then
 								$sudo_base bash $ZinstDIRs/$ZinstOrgName/uninstall.sh
 							fi
@@ -1534,10 +1534,10 @@ ProcessPkg=($ZPackages)
 						$sudo_base rm -Rfv $ZinstDIRs/$ZinstOrgName
 						$sudo_base rm -Rfv $ZinstBaseRoot/vault/Source/$RmPkg_list
  						echo "########## $RmPkg_list package has been removed ######## "
-						$sudo_base sed -i "/$ZinstOrgName/d" $ZinstBaseRoot/vault/zinst/zinst_set.list
+						$sudo_base sed -i "/^$ZinstOrgName/d" $ZinstBaseRoot/vault/zinst/zinst_set.list
 							if [[ $RmTargetCron != "" ]]
 							then
-								$sudo_base sed -i "/$ZinstOrgName/d" $RmTargetCron
+								$sudo_base sed -i "/#$ZinstOrgName/d" $RmTargetCron
 							fi
 					else
 						echo "============= $ZPackages package has not installed =================="
@@ -2017,6 +2017,7 @@ ColorDark="30"
 			else
 				#$sudo_base service $DaemonC $CommandX | tee $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
 				$sudo_base service $DaemonC $CommandX &> $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
+				$sudo_base chmod 664 $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
 				cat $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
 			fi
 		DaemLog=`$sudo_base cat $ZinstBaseRoot/vault/Source/Daemon_ctrl.log |tail -1`
@@ -2477,6 +2478,50 @@ printf "%$width.${width}s \n" "$Barr$Barr"
 }
 
 
+check_vminit(){
+		echo "Check the initialized VM"
+		vm_imagename=$1
+}
+
+Init_Virtual(){
+		$sudo_base yum groupinstall "Virtualization*" # && [Virshfile create] 
+
+}
+
+Add_Virtual(){
+		check_vminit
+
+}
+Up_Virtual(){
+		check_vminit
+		$sudo_base virsh start $vm_imagename
+
+}
+
+Halt_Virtual(){
+		check_vminit
+		$sudo_base virsh shutdown $vm_imagename
+
+}
+
+Destroy_Virtual(){
+		check_vminit
+		$sudo_base virsh destroy $vm_imagename
+		$sudo_base virsh undefine $vm_imagename
+		$sudo_base rm -f #$vm_dir $vm_imagename.qcow2
+
+}
+
+
+Vmlist_Virtual(){
+		check_vminit
+		$sudo_base virsh list all
+
+}
+
+
+
+
 Pkg_Getset(){
 ### Set value get from the package
 GetSPkg=$ZPackages
@@ -2510,7 +2555,9 @@ sudo mkdir -p $CurrPkgDiR
 
 ##############################  Command menu  ###################################
 	case "$CommandX" in
-	i*)
+	i)
+		Pkg_Install $* 	;;
+	inst*)
 		Pkg_Install $* 	;;
 	set)
 		Pkg_Set $*	;;
@@ -2556,6 +2603,18 @@ sudo mkdir -p $CurrPkgDiR
 		Zinst_Version 	;;
 	*help)
 		Help_Detail	;;
+	init)
+		Init_Virtual ;;
+	vms)
+		Vmlist_Virtual ;;
+	add)
+		Add_Virtual ;;
+	destroy)
+		Destroy_Virtual ;;
+	up)
+		Up_Virtual ;;
+	halt)
+		Halt_Virtual ;;
 	*)
 		Help_Command	;;
 	esac
