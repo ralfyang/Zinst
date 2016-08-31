@@ -2015,9 +2015,11 @@ ColorDark="30"
 				#$sudo_base $ServiceDaemonDir/$DaemonC $CommandX
 				$sudo_base service $DaemonC $CommandX
 			else
-				#$sudo_base service $DaemonC $CommandX | tee $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
-				$sudo_base service $DaemonC $CommandX &> $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
-				cat $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
+			        #$sudo_base service $DaemonC $CommandX | tee $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
+                                $sudo_base service $DaemonC $CommandX &> $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
+                                $sudo_base chmod 664 $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
+                                $sudo_base chgrp wheel $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
+                                $sudo_base cat $ZinstBaseRoot/vault/Source/Daemon_ctrl.log
 			fi
 		DaemLog=`$sudo_base cat $ZinstBaseRoot/vault/Source/Daemon_ctrl.log |tail -1`
 		Daemon_S=$DaemLog
