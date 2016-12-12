@@ -26,7 +26,7 @@ ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ## ENV LD_LIBRARY_PATH /lib-override
 
 ## Base information
-VERSION=5.2.3
+VERSION=5.2.4
 zinst_group="wheel"
 sudo_base="sudo"
 zinst_log="/dev/null"
@@ -75,10 +75,12 @@ Dist_URL="$Dist_server$OS_type"
 Requires_Pkg_install(){
 ComPkg=($@)
 
+	
+
 	## Requires check
 	Ccount=0
 	while [ $Ccount -lt ${#ComPkg[@]} ];do
-		if [[ `(whereis ${ComPkg[$Ccount]} | awk '{print $2}' | fgrep -v "." 2> $zinst_log)` = "" ]];then
+		if [[ `(which ${ComPkg[$Ccount]} | awk '{print $1}' | fgrep -v "." 2> $zinst_log)` = "" ]];then
 			ReqPkg[$Ccount]=${ComPkg[$Ccount]}
 		fi
 	let Ccount=$Ccount+1
@@ -95,7 +97,7 @@ ComPkg=($@)
 					$sudo_base apt-get install ${ReqPkg[@]} -y ;;
 			esac
     
-			if [[ `(whereis ${ReqPkg[@]} | awk '{print $2}' | fgrep -v "." 2> $zinst_log)` = "" ]];then
+			if [[ `(which ${ReqPkg[@]} | awk '{print $1}' | fgrep -v "." 2> $zinst_log)` = "" ]];then
 				echo "$BARR"
 					echo " You need to install the ${ReqPkg[@]} command!!"
 				echo "$BARR"
@@ -103,6 +105,24 @@ ComPkg=($@)
 			fi
 	fi
 }
+
+
+
+## chech which command & install
+check_which=`which 2> /tmp/chk_req.out`
+        if [[ `(grep "not found" /tmp/chk_req.out )` != ""  ]] ; then
+		case $OS_name in
+			RHEL)
+				$sudo_base yum install which -y ;;
+			Ubuntu) 
+				$sudo_base apt-get install which -y ;;
+		esac
+	## clear tmp file
+	rm -f  /tmp/chk_req.out
+        fi
+
+
+
 
 
 ## Requires command check & install
