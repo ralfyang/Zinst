@@ -1,7 +1,7 @@
 #!/bin/bash   
-# GSshop package install manager
+# Package install manager
 # Made by Ralf Yang
-# ralf.yang@gsshop.com & goody80762@gmail.com
+# goody80762@gmail.com
 export TIME_STYLE="+%b %d %R"
 Barr="==========================================================================="
 BARR="###########################################################################"
@@ -26,7 +26,7 @@ ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ## ENV LD_LIBRARY_PATH /lib-override
 
 ## Base information
-VERSION=5.2.4
+VERSION=5.2.5
 zinst_group="wheel"
 sudo_base="sudo"
 zinst_log="/dev/null"
@@ -55,7 +55,7 @@ OS_Checker
 		RHEL )
 			CronDir=/var/spool/cron
 			Crond=crond
-			OS_type="" ;;
+			OS_type="/rhel" ;;
 		Ubuntu )
 			CronDir=/var/spool/cron/crontabs
 			Crond=cron
@@ -1521,7 +1521,7 @@ ProcessPkg=($ZPackages)
 					if  [[ $RmResult != "" ]]; 
 					then
 						cd $ZinstDIRs/$ZinstOrgName
-						RmTargetCron=`$sudo_base cat .file.list  | grep \#### | awk '{print $2}'`
+						RmTargetCron=`$sudo_base cat .file.list  | grep "\####" | awk '{print $2}'`
 						RmPkg_list=`$sudo_base cat .file.list |grep " package install " |awk '{print $3}'`
 
 							if [[ $ZOptions != "-force" ]]
