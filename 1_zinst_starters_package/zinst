@@ -26,7 +26,7 @@ ZinstSourceDir="$ZinstBaseRoot/vault/Source"
 ## ENV LD_LIBRARY_PATH /lib-override
 
 ## Base information
-VERSION=5.2.5
+VERSION=5.2.6
 zinst_group="wheel"
 sudo_base="sudo"
 zinst_log="/dev/null"
@@ -34,13 +34,14 @@ zinst_log="/dev/null"
 
 OS_Checker(){
 		## OS Check
-		ChkOS=`cat /etc/*-release 2> $zinst_log | head -1`
 		if [[ $(uname) == Linux ]];then
 				if [[ $(cat /etc/*-release 2> /dev/null | head -1 |grep Ubuntu) != "" ]];then
 					OS_name="Ubuntu"
 				elif [[ $(cat /etc/lsb-release 2> /dev/null | head -1 |grep LinuxMint) != "" ]];then
 					OS_name="Ubuntu"
 				elif [[ $(cat /etc/*-release 2> /dev/null | head -1 |grep "CentOS") != "" ]] || [[ $(cat /etc/*-release 2> /dev/null | head -1 |grep "RHEL") != "" ]]  ;then
+					OS_name="RHEL"
+				elif [[ $(cat /etc/*-release 2> /dev/null |grep "rhel") != "" ]]  ;then
 					OS_name="RHEL"
 				fi
 		elif [[ $(uname) == Darwin ]];then
