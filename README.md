@@ -1,3 +1,4 @@
+* ! This repository Supports for Redhat or CentOS 6.x version under
 [![Join the chat at https://gitter.im/goody80/Ralf_Dev](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/goody80/Ralf_Dev?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 [![RecordIt](http://g.recordit.co/DNo5wZmAmp.gif)](http://recordit.co/DNo5wZmAmp)
