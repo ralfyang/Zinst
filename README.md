@@ -1,6 +1,11 @@
 * ! This repository Supports for Redhat or CentOS 6.x version under
 [![Join the chat at https://gitter.im/goody80/Ralf_Dev](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/goody80/Ralf_Dev?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+* You just can run the zinst reopsitory server by docker container as below
+```
+docker run -d  -v /data/dist:/data/dist:rw -p 80:80/tcp zinst/zinst_repository
+```
+  * Detail information about of zinst repository via docker: https://hub.docker.com/r/zinst/zinst_repository/
 
 [![RecordIt](http://g.recordit.co/DNo5wZmAmp.gif)](http://recordit.co/DNo5wZmAmp)
 If you want to show detail video please click the GIF image :)
