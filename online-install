@@ -38,4 +38,4 @@ $sudo sh -c "curl -sL http://j.mp/zinst_ > /usr/bin/zinst; chmod 755 /usr/bin/zi
 	fi
 
 echo "[ --------- Install has been done !! enjoy! :) -------------- ]"
-zinst i server_default_setting-1.3.0.zinst
+zinst i server_default_setting -stable -oldset
