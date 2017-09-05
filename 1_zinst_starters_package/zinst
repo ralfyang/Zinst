@@ -28,7 +28,7 @@ ssh_port="22"
 ## ENV LD_LIBRARY_PATH /lib-override
 
 ## Base information
-VERSION=7.0.4
+VERSION=7.0.5
 zinst_group="wheel"
 sudo_base="sudo"
 zinst_log="/dev/null"
@@ -706,10 +706,17 @@ EOF1
 	fi
 
 
+
+Re_org_engine(){
+
+
+
+
+
 #########################################################################################
 ############################# zinst re-org engine start #################################
 ################################# Hostlist checker ######################################
-RotaCommand=$Allcommand
+RotaCommand=$@
 szinst="zinst"
 RotaBeacon=0
 	if [[ $ZHosts != "" ]]
@@ -810,6 +817,9 @@ RotaBeacon=0
 			done
 		exit 0;
 	fi
+}
+Re_org_engine $Allcommand
+
 
 Package_Array_Sort(){
 BoxPkg=$ZPackages
@@ -2262,7 +2272,7 @@ check_dist_url=`grep "couldn't connect" /tmp/dist_check.tmp`
 		exit 0;
 	fi
 
-$sudo_base rm -f zinst
+$sudo_base mv -f zinst zinst_oldback
 echo  " Downloading..."
 curl -w ' [:: %{size_download} byte has been downloaded ::]\n' -L -# $Dist_server/zinst -o ./zinst;
 mv zinst zinst_tmp
